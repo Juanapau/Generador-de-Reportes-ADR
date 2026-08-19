@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Reportes | Módulo ADR — PNSA</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ---- Paleta modo oscuro (base UGC) ---- */
+    --dark-bg: #0a1120;
+    --dark-bg-2: #0e1830;
+    --dark-card: #141d33;
+    --dark-card-hover: #192544;
+    --dark-border: #24304f;
+    --dark-text: #f2f5fa;
+    --dark-text-dim: #9aa7c2;
+    --dark-blue-accent: #4fa3ff;
+    --dark-green-accent: #22c55e;
+    --dark-gold-accent: #e8b93b;
+
+    /* ---- Paleta modo claro (base UGC) ---- */
+    --light-bg: #eef1f8;
+    --light-card: #ffffff;
+    --light-border: #2f6fed;
+    --light-text: #16213e;
+    --light-text-dim: #5b6785;
+    --light-header: #0c1324;
+    --light-blue-accent: #2f6fed;
+    --light-gold-accent: #c9971f;
+
+    --radius: 14px;
+    --shadow: 0 10px 30px rgba(0,0,0,0.25);
+    --font-display: 'Bebas Neue', 'Rajdhani', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family: var(--font-body);
+    background: var(--dark-bg);
+    color: var(--dark-text);
+    min-height:100vh;
+    transition: background .3s ease, color .3s ease;
+  }
+  body.light{
+    background: var(--light-bg);
+    color: var(--light-text);
+  }
+  .hidden{display:none !important;}
+  img{max-width:100%;}
+  button{font-family:inherit; cursor:pointer; border:none;}
+  input{font-family:inherit;}
+
+  /* ============ LOGIN ============ */
+  #loginScreen{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(79,163,255,0.12), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(232,185,59,0.10), transparent 40%),
+      var(--dark-bg);
+  }
+  body.light #loginScreen{
+    background:
+      radial-gradient(circle at 20% 20%, rgba(47,111,237,0.08), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(201,151,31,0.08), transparent 40%),
+      var(--light-bg);
+  }
+  .login-card{
+    width:100%;
+    max-width:420px;
+    background: var(--dark-card);
+    border:1px solid var(--dark-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding:36px 32px 28px;
+    position:relative;
+  }
+  body.light .login-card{
+    background: var(--light-card);
+    border:1px solid #dbe3f5;
+  }
+  .login-badge{
+    position:absolute; top:-1px; left:0; right:0; height:4px;
+    background: linear-gradient(90deg, var(--dark-green-accent), var(--dark-blue-accent), var(--dark-gold-accent));
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .login-logo{
+    display:flex; flex-direction:column; align-items:center; gap:10px; margin-bottom:18px;
+  }
+  .login-logo img{ width:74px; height:74px; object-fit:contain; }
+  .login-logo .crest-fallback{
+    width:74px; height:74px; border-radius:50%;
+    background: linear-gradient(145deg, var(--dark-blue-accent), var(--dark-green-accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size:26px; color:#fff; letter-spacing:1px;
+  }
+  .login-title{
+    font-family: var(--font-display);
+    font-size: 30px;
+    letter-spacing: 1px;
+    text-align:center;
+    line-height:1.1;
+  }
+  .login-subtitle{
+    text-align:center;
+    font-size:13.5px;
+    color: var(--dark-text-dim);
+    margin-top:4px;
+    font-weight:600;
+  }
+  body.light .login-subtitle{ color: var(--light-text-dim); }
+  .login-module{
+    text-align:center;
+    font-size:12.5px;
+    color: var(--dark-blue-accent);
+    font-weight:700;
+    margin-top:10px;
+    text-transform:uppercase;
+    letter-spacing:.6px;
+  }
+
+  .role-tabs{
+    display:flex; gap:8px; margin:22px 0 18px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px; padding:4px;
+  }
+  body.light .role-tabs{ background: #eef2fb; }
+  .role-tab{
+    flex:1; text-align:center; padding:9px 6px; border-radius:8px;
+    font-weight:700; font-size:13.5px; color: var(--dark-text-dim);
+    background:transparent; transition:.2s;
+  }
+  body.light .role-tab{ color: var(--light-text-dim); }
+  .role-tab.active{
+    background: var(--dark-blue-accent); color:#0a1120;
+  }
+  body.light .role-tab.active{ background: var(--light-blue-accent); color:#fff; }
+
+  .field{ margin-bottom:14px; }
+  .field label{
+    display:block; font-size:12.5px; font-weight:700; margin-bottom:6px;
+    color: var(--dark-text-dim); text-transform:uppercase; letter-spacing:.4px;
+  }
+  body.light .field label{ color:var(--light-text-dim); }
+  .field input{
+    width:100%; padding:11px 13px; border-radius:9px;
+    background: rgba(255,255,255,0.05);
+    border:1px solid var(--dark-border);
+    color: var(--dark-text);
+    font-size:14.5px;
+  }
+  body.light .field input{
+    background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text);
+  }
+  .field input:focus{ outline:2px solid var(--dark-blue-accent); outline-offset:1px; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:12px 18px; border-radius:9px; font-weight:800; font-size:14.5px;
+    transition:.2s; letter-spacing:.2px;
+  }
+  .btn-primary{
+    width:100%; background: linear-gradient(120deg, var(--dark-blue-accent), #2a63cf);
+    color:#fff; margin-top:6px;
+  }
+  .btn-primary:hover{ filter:brightness(1.08); }
+  .login-error{
+    margin-top:12px; font-size:13px; font-weight:700; color:#ff6b6b; text-align:center;
+    min-height:16px;
+  }
+  .login-hint{
+    margin-top:16px; font-size:11.5px; text-align:center; color:var(--dark-text-dim); line-height:1.5;
+  }
+  body.light .login-hint{ color:var(--light-text-dim); }
+
+  .theme-toggle-login{
+    position:absolute; top:14px; right:14px;
+    width:36px; height:36px; border-radius:50%;
+    background: rgba(255,255,255,0.06); color:var(--dark-text);
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  body.light .theme-toggle-login{ background:#eef2fb; color:var(--light-text); }
+
+  /* ============ APP SHELL ============ */
+  #appShell{ min-height:100vh; }
+  header.topbar{
+    background: linear-gradient(120deg, #0a1120, #101c38);
+    border-bottom: 3px solid var(--dark-green-accent);
+    padding:18px 28px;
+    display:flex; align-items:center; justify-content:space-between; gap:20px;
+    flex-wrap:wrap;
+  }
+  body.light header.topbar{
+    background: var(--light-header);
+    border-bottom: 3px solid var(--light-blue-accent);
+  }
+  .topbar-left{ display:flex; align-items:center; gap:16px; }
+  .topbar-left img{ width:52px; height:52px; object-fit:contain; }
+  .crest-fallback-sm{
+    width:52px; height:52px; border-radius:50%;
+    background: linear-gradient(145deg, var(--dark-blue-accent), var(--dark-green-accent));
+    display:flex; align-items:center; justify-content:center;
+    font-family: var(--font-display); font-size:18px; color:#fff;
+  }
+  .topbar-title h1{
+    font-family: var(--font-display); font-size:26px; letter-spacing:.6px; color:#fff; line-height:1;
+  }
+  .topbar-title p{
+    font-size:13px; color: var(--dark-blue-accent); font-weight:700; margin-top:4px;
+  }
+
+  .userbar{
+    background: var(--dark-card);
+    border:1px solid var(--dark-border);
+    border-radius:12px;
+    padding:10px 16px;
+    display:flex; align-items:center; gap:14px;
+    margin:20px 28px 6px;
+  }
+  body.light .userbar{ background:#fff; border:1px solid #dde5f6; box-shadow: 0 4px 14px rgba(20,40,90,.06);}
+  .user-avatar{
+    width:42px; height:42px; border-radius:50%;
+    background: linear-gradient(145deg, var(--dark-gold-accent), #b9860f);
+    display:flex; align-items:center; justify-content:center; font-size:19px; color:#241a02;
+  }
+  .user-meta{ flex:1; min-width:150px; }
+  .user-meta .u-name{ font-weight:800; font-size:15px; }
+  .user-meta .u-role{ font-size:12.5px; color: var(--dark-blue-accent); font-weight:700; }
+  body.light .user-meta .u-role{ color: var(--light-blue-accent); }
+
+  .userbar-actions{ display:flex; align-items:center; gap:10px; }
+  .icon-btn{
+    width:38px; height:38px; border-radius:50%;
+    background: rgba(255,255,255,0.05); color:var(--dark-text);
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+    border:1px solid var(--dark-border);
+  }
+  body.light .icon-btn{ background:#f2f5fc; color:var(--light-text); border:1px solid #dde5f6; }
+  .btn-logout{
+    background: var(--dark-card-hover); color:#fff; border:1px solid var(--dark-border);
+    padding:9px 14px; border-radius:9px; font-weight:700; font-size:13px; display:flex; gap:8px; align-items:center;
+  }
+  body.light .btn-logout{ background:#16213e; color:#fff; border:none; }
+
+  main{ padding:22px 28px 60px; max-width:1280px; margin:0 auto; }
+
+  .section-heading{
+    font-family: var(--font-display); font-size:22px; letter-spacing:.5px; margin: 18px 0 14px;
+    color: var(--dark-gold-accent);
+  }
+  body.light .section-heading{ color: var(--light-blue-accent); }
+
+  .grid-cards{
+    display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:18px;
+  }
+  .module-card{
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius);
+    padding:22px 20px; transition:.2s; text-align:left;
+  }
+  .module-card:hover{ background: var(--dark-card-hover); transform: translateY(-2px); }
+  body.light .module-card{ background:#fff; border:1px solid #dde5f6; box-shadow: 0 4px 14px rgba(20,40,90,.05);}
+  body.light .module-card:hover{ box-shadow: 0 10px 24px rgba(20,40,90,.10); transform: translateY(-2px); }
+  .module-card .m-icon{
+    width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:19px; margin-bottom:14px;
+  }
+  .module-card h3{ font-size:16.5px; margin-bottom:6px; font-weight:800; }
+  .module-card p{ font-size:13px; color:var(--dark-text-dim); line-height:1.5; }
+  body.light .module-card p{ color:var(--light-text-dim); }
+  .module-card .m-tag{
+    display:inline-block; margin-top:12px; font-size:11px; font-weight:800;
+    padding:4px 10px; border-radius:20px; letter-spacing:.4px; text-transform:uppercase;
+  }
+  .tag-blue{ background: rgba(79,163,255,0.15); color: var(--dark-blue-accent); }
+  .tag-gold{ background: rgba(232,185,59,0.15); color: var(--dark-gold-accent); }
+  .tag-green{ background: rgba(34,197,94,0.15); color: var(--dark-green-accent); }
+  .tag-soon{ background: rgba(255,255,255,0.08); color: var(--dark-text-dim); }
+  body.light .tag-soon{ background:#eef1f8; color:var(--light-text-dim); }
+
+  .empty-note{
+    background: rgba(79,163,255,0.08); border:1px dashed var(--dark-blue-accent);
+    border-radius:12px; padding:16px 18px; font-size:13.5px; color:var(--dark-text-dim);
+    margin-top:22px; line-height:1.6;
+  }
+  body.light .empty-note{ background:#eef4ff; border:1px dashed var(--light-blue-accent); color:var(--light-text-dim); }
+
+  footer.appfoot{
+    text-align:center; font-size:12px; color:var(--dark-text-dim); padding:18px; opacity:.75;
+  }
+
+  @media (max-width:640px){
+    header.topbar{ padding:16px; }
+    .topbar-title h1{ font-size:21px; }
+    .userbar{ margin:16px 14px 4px; flex-wrap:wrap; }
+    main{ padding:16px 14px 50px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-badge"></div>
+    <button class="theme-toggle-login" id="themeToggleLogin" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">
+      <i class="fa-solid fa-moon" id="themeIconLogin"></i>
+    </button>
+
+    <div class="login-logo">
+      <div class="crest-fallback">PNSA</div>
+      <div class="login-title">Generador de Reportes</div>
+      <div class="login-subtitle">Politécnico Nuestra Señora de la Altagracia</div>
+      <div class="login-module">Módulo: Análisis y Diseño de Reportes</div>
+    </div>
+
+    <div class="role-tabs">
+      <button class="role-tab active" data-role="estudiante" id="tabEstudiante">
+        <i class="fa-solid fa-user-graduate"></i>&nbsp; Estudiante
+      </button>
+      <button class="role-tab" data-role="docente" id="tabDocente">
+        <i class="fa-solid fa-chalkboard-user"></i>&nbsp; Docente
+      </button>
+    </div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginUser">Usuario</label>
+        <input type="text" id="loginUser" placeholder="Ej. estudiante01" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="loginPass">Contraseña</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fa-solid fa-right-to-bracket"></i> Ingresar
+      </button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+
+    <div class="login-hint">
+      Acceso de prueba — Estudiante: <b>estudiante01 / 1234</b><br>
+      Acceso de prueba — Docente: <b>docente / admin123</b><br>
+      <span style="opacity:.7">(credenciales temporales; se conectarán a la base de datos real en el siguiente paso)</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="appShell" class="hidden">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="crest-fallback-sm">PNSA</div>
+      <div class="topbar-title">
+        <h1>Generador de Reportes</h1>
+        <p id="topbarModule">Módulo: Análisis y Diseño de Reportes</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="userbar">
+    <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+    <div class="user-meta">
+      <div class="u-name" id="userName">—</div>
+      <div class="u-role" id="userRole">—</div>
+    </div>
+    <div class="userbar-actions">
+      <button class="icon-btn" id="themeToggleApp" title="Cambiar tema">
+        <i class="fa-solid fa-moon" id="themeIconApp"></i>
+      </button>
+      <button class="icon-btn" title="Notificaciones">
+        <i class="fa-solid fa-bell"></i>
+      </button>
+      <button class="btn-logout" id="btnLogout">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </div>
+  </div>
+
+  <main>
+    <!-- ---- PANEL DOCENTE ---- -->
+    <div id="panelDocente" class="hidden">
+      <div class="section-heading">Panel del docente — Administración</div>
+      <div class="grid-cards">
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-users"></i></div>
+          <h3>Registro de estudiantes</h3>
+          <p>Dar de alta, editar y organizar estudiantes por equipo o pareja de trabajo.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-list-check"></i></div>
+          <h3>Actividades por RA</h3>
+          <p>Configurar cada actividad (A.1.1...), su instrumento de evaluación y su puntaje máximo antes de habilitarla.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>Calificaciones y avances</h3>
+          <p>Ver el progreso individual y por equipo de cada estudiante en todas las actividades.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-file-export"></i></div>
+          <h3>Reportes PDF / Excel</h3>
+          <p>Exportar calificaciones individuales o grupales en PDF o Excel.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-gears"></i></div>
+          <h3>Configuración</h3>
+          <p>Datos generales del módulo, año lectivo y parámetros del sistema.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+      </div>
+      <div class="empty-note">
+        <i class="fa-solid fa-circle-info"></i>
+        Este es el esqueleto de navegación del sistema. Los módulos marcados como "Próximo paso" se construirán en las siguientes sesiones, empezando por el <b>Registro de estudiantes</b> y la conexión a Google Sheets.
+      </div>
+    </div>
+
+    <!-- ---- PANEL ESTUDIANTE ---- -->
+    <div id="panelEstudiante" class="hidden">
+      <div class="section-heading">Mi espacio — RA1: Los reportes empresariales</div>
+      <div class="grid-cards">
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-pen-to-square"></i></div>
+          <h3>Mis actividades</h3>
+          <p>Consulta el instrumento de evaluación de cada actividad y realízala para autocalificarte al instante.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-simple"></i></div>
+          <h3>Mi progreso</h3>
+          <p>Revisa tu historial de calificaciones y avances a lo largo del módulo.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+      </div>
+      <div class="empty-note">
+        <i class="fa-solid fa-circle-info"></i>
+        Este es tu espacio personal. Las actividades del RA1 se activarán aquí a medida que tu docente las habilite.
+      </div>
+    </div>
+  </main>
+
+  <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
+</div>
+
+<script>
+  // ---------- Estado de sesión (en memoria, sin localStorage) ----------
+  let currentUser = null;
+  let selectedRole = 'estudiante';
+
+  // Credenciales de prueba temporales (se sustituirán por Google Sheets)
+  const DEMO_USERS = {
+    estudiante: { user: 'estudiante01', pass: '1234', nombre: 'Estudiante de Prueba' },
+    docente: { user: 'docente', pass: 'admin123', nombre: 'Juana Altagracia Paulino' }
+  };
+
+  // ---------- Theme toggle ----------
+  function setTheme(isLight){
+    document.body.classList.toggle('light', isLight);
+    const icon1 = document.getElementById('themeIconLogin');
+    const icon2 = document.getElementById('themeIconApp');
+    const iconClass = isLight ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    if(icon1) icon1.className = iconClass;
+    if(icon2) icon2.className = iconClass;
+  }
+  document.getElementById('themeToggleLogin').addEventListener('click', () => {
+    setTheme(!document.body.classList.contains('light'));
+  });
+  document.getElementById('themeToggleApp').addEventListener('click', () => {
+    setTheme(!document.body.classList.contains('light'));
+  });
+
+  // ---------- Role tabs ----------
+  document.getElementById('tabEstudiante').addEventListener('click', () => selectRole('estudiante'));
+  document.getElementById('tabDocente').addEventListener('click', () => selectRole('docente'));
+  function selectRole(role){
+    selectedRole = role;
+    document.getElementById('tabEstudiante').classList.toggle('active', role === 'estudiante');
+    document.getElementById('tabDocente').classList.toggle('active', role === 'docente');
+    document.getElementById('loginError').textContent = '';
+  }
+
+  // ---------- Login ----------
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const user = document.getElementById('loginUser').value.trim();
+    const pass = document.getElementById('loginPass').value.trim();
+    const demo = DEMO_USERS[selectedRole];
+    const errorBox = document.getElementById('loginError');
+
+    if(user === demo.user && pass === demo.pass){
+      currentUser = { rol: selectedRole, nombre: demo.nombre, usuario: demo.user };
+      errorBox.textContent = '';
+      renderApp();
+    } else {
+      errorBox.textContent = 'Usuario o contraseña incorrectos.';
+    }
+  });
+
+  // ---------- Render app shell tras login ----------
+  function renderApp(){
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('appShell').classList.remove('hidden');
+
+    document.getElementById('userName').textContent = currentUser.nombre;
+    document.getElementById('userRole').textContent =
+      currentUser.rol === 'docente' ? 'Docente — Administrador del sistema' : 'Estudiante';
+
+    document.getElementById('panelDocente').classList.toggle('hidden', currentUser.rol !== 'docente');
+    document.getElementById('panelEstudiante').classList.toggle('hidden', currentUser.rol !== 'estudiante');
+  }
+
+  // ---------- Logout ----------
+  document.getElementById('btnLogout').addEventListener('click', function(){
+    currentUser = null;
+    document.getElementById('appShell').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginForm').reset();
+    document.getElementById('loginError').textContent = '';
+  });
+</script>
+</body>
+</html>
