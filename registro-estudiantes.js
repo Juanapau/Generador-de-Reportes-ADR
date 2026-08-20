@@ -1,4 +1,4 @@
-  // ================= REGISTRO DE ESTUDIANTES =================
+// ================= REGISTRO DE ESTUDIANTES =================
   document.getElementById('cardRegistroEstudiantes').addEventListener('click', () => {
     document.getElementById('panelDocente').classList.add('hidden');
     document.getElementById('panelRegistro').classList.remove('hidden');
@@ -7,7 +7,9 @@
   document.getElementById('btnBackFromRegistro').addEventListener('click', () => {
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelDocente').classList.remove('hidden');
-  });  async function cargarEstudiantes(){
+  });
+
+  async function cargarEstudiantes(){
     const tbody = document.getElementById('tbodyEstudiantes');
     tbody.innerHTML = '<tr><td colspan="4"><div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando estudiantes...</div></td></tr>';
     try{
