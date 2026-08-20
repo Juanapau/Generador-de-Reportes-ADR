@@ -487,9 +487,82 @@
   .resultado-detalle{ font-size:13.5px; color:var(--dark-text-dim); margin-top:8px; }
   body.light .resultado-detalle{ color:var(--light-text-dim); }
 
+  /* ============ RÚBRICA VISUAL (estilo escala de valoración roja) ============ */
+  .rubrica-wrap{ margin:16px 0 22px; }
+  .rubrica-titulo{
+    font-family: var(--font-display); font-size:19px; letter-spacing:.4px; margin-bottom:10px;
+    color: var(--dark-gold-accent); display:flex; align-items:center; gap:10px;
+  }
+  .rubrica-visual{
+    width:100%; border-collapse:collapse; font-size:12.5px; border-radius:10px; overflow:hidden;
+    border:1px solid #3a0d12;
+  }
+  .rubrica-visual thead tr{ background: linear-gradient(120deg, #7a1420, #5c0f18); }
+  .rubrica-visual th{ padding:12px 10px; text-align:left; color:#fff; font-size:11.5px; vertical-align:top; }
+  .rubrica-visual th span{ font-weight:400; opacity:.85; font-size:10.5px; }
+  .rub-th-logrado{ background: rgba(79,163,255,.25); }
+  .rub-th-proceso{ background: rgba(232,185,59,.25); }
+  .rub-th-nologrado{ background: rgba(239,68,68,.25); }
+  .rubrica-visual td{ padding:12px 10px; border-top:1px solid rgba(255,255,255,0.06); vertical-align:top; background: var(--dark-card); }
+  body.light .rubrica-visual td{ background:#fff; border-top:1px solid #eef1f8; }
+  .rub-indicador{ font-weight:800; color: var(--dark-blue-accent); white-space:nowrap; }
+  body.light .rub-indicador{ color: var(--light-blue-accent); }
+  .rub-descripcion{ color:var(--dark-text-dim); line-height:1.5; }
+  body.light .rub-descripcion{ color:var(--light-text-dim); }
+  .rub-celda{ text-align:center; font-weight:800; font-size:11.5px; width:110px; }
+  .rub-celda.rub-activo.rub-logrado{ background: rgba(34,197,94,.22); color: var(--dark-green-accent); }
+  .rub-celda.rub-activo.rub-proceso{ background: rgba(232,185,59,.22); color: var(--dark-gold-accent); }
+  .rub-celda.rub-activo.rub-no_logrado{ background: rgba(239,68,68,.22); color:#ef4444; }
+  .rubrica-total{
+    display:flex; justify-content:space-between; align-items:center; padding:14px 18px;
+    background: linear-gradient(120deg, #7a1420, #5c0f18); border-radius:0 0 10px 10px; margin-top:-1px;
+  }
+  .rubrica-total-label{ color:#fff; font-weight:700; font-size:13px; }
+  .rubrica-total-valor{ font-family: var(--font-display); font-size:26px; color: var(--dark-gold-accent); }
+
+  /* ============ RECURSOS DE LA ACTIVIDAD ============ */
+  .recursos-lista{ display:flex; flex-direction:column; gap:8px; margin:12px 0 20px; }
+  .recurso-item{
+    display:flex; align-items:center; gap:12px; padding:11px 14px; border-radius:10px;
+    background: var(--dark-card); border:1px solid var(--dark-border); text-decoration:none; color:var(--dark-text);
+    font-size:13.5px; font-weight:600;
+  }
+  body.light .recurso-item{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
+  .recurso-item i.fa-link{ color: var(--dark-blue-accent); }
+  .recurso-item .recurso-del{ margin-left:auto; color:#ef4444; cursor:pointer; }
+  .recurso-form{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:flex-end; }
+  .recurso-form .field{ margin-bottom:0; flex:1; min-width:150px; }
+
+  /* ============ TARJETAS DE RA (mis actividades / actividades admin) ============ */
+  .ra-cards-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px; margin-bottom:10px; }
+  .ra-card{
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius);
+    padding:22px 18px; text-align:center; transition:.2s;
+  }
+  .ra-card:not(.ra-card-disabled):hover{ background: var(--dark-card-hover); transform: translateY(-2px); }
+  body.light .ra-card{ background:#fff; border:1px solid #dde5f6; box-shadow: 0 4px 14px rgba(20,40,90,.05); }
+  .ra-card-titulo{ font-family: var(--font-display); font-size:30px; color: var(--dark-gold-accent); letter-spacing:.5px; }
+  .ra-card-sub{ font-size:12px; color:var(--dark-text-dim); margin-top:4px; font-weight:700; }
+  body.light .ra-card-sub{ color:var(--light-text-dim); }
+  .ra-card-disabled{ opacity:.45; cursor:not-allowed; }
+
+  /* ============ TIMER Y JUSTIFICACIÓN ============ */
+  .timer-badge{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:20px;
+    background: rgba(79,163,255,.12); color: var(--dark-blue-accent); font-weight:800; font-size:13px; margin-bottom:14px;
+  }
+  .justificacion-box{ margin:18px 0; }
+  .justificacion-box label{ display:block; font-size:13px; font-weight:700; margin-bottom:8px; }
+  .justificacion-box textarea{
+    width:100%; min-height:80px; padding:12px 14px; border-radius:10px; background: rgba(255,255,255,0.05);
+    border:1px solid var(--dark-border); color:var(--dark-text); font-family:inherit; font-size:13.5px; resize:vertical;
+  }
+  body.light .justificacion-box textarea{ background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text); }
+
   @media (max-width:640px){
     header.topbar{ padding:16px; }
     .topbar-title h1{ font-size:21px; }
     .userbar{ margin:16px 14px 4px; flex-wrap:wrap; }
     main{ padding:16px 14px 50px; }
+    .rubrica-visual{ font-size:11px; }
   }
