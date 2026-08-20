@@ -260,3 +260,5 @@
     document.getElementById('panelMisActividades').classList.remove('hidden');
     cargarMisActividades();
   });
+
+  registrarActividadInteractiva('A.1.1', abrirActividadA11);
