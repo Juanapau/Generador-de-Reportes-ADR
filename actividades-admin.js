@@ -107,7 +107,13 @@
           <div class="recursos-lista" data-recursos-de="${act.codigo}">
             <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
           </div>
-          <div class="recurso-form">
+
+          <div class="role-tabs" style="margin:10px 0 12px; width:auto; max-width:260px;">
+            <button type="button" class="role-tab recurso-tipo-tab active" data-tipo="enlace">Enlace</button>
+            <button type="button" class="role-tab recurso-tipo-tab" data-tipo="archivo">Archivo</button>
+          </div>
+
+          <div class="recurso-form recurso-form-enlace">
             <div class="field">
               <label>Nombre del recurso</label>
               <input type="text" class="input-recurso-nombre" placeholder="Ej. Guía de tipos de reportes">
@@ -120,6 +126,21 @@
               <i class="fa-solid fa-plus"></i> Agregar
             </button>
           </div>
+
+          <div class="recurso-form recurso-form-archivo hidden">
+            <div class="field">
+              <label>Nombre del recurso</label>
+              <input type="text" class="input-recurso-nombre-archivo" placeholder="Ej. Presentación de apoyo">
+            </div>
+            <div class="field">
+              <label>Archivo (PDF, Word, PPT — máx. 5 MB)</label>
+              <input type="file" class="input-recurso-archivo" accept=".pdf,.doc,.docx,.ppt,.pptx">
+            </div>
+            <button type="button" class="btn-add btn-add-recurso-archivo" style="padding:10px 16px;">
+              <i class="fa-solid fa-upload"></i> Subir
+            </button>
+          </div>
+          <div class="form-msg" style="margin-top:6px;" data-msg-de="${act.codigo}"></div>
         </div>
       </div>
     `).join('');
@@ -157,6 +178,19 @@
 
       cargarRecursosAdmin(codigo, card);
 
+      // Toggle entre "Enlace" y "Archivo"
+      card.querySelectorAll('.recurso-tipo-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          card.querySelectorAll('.recurso-tipo-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const esArchivo = tab.dataset.tipo === 'archivo';
+          card.querySelector('.recurso-form-enlace').classList.toggle('hidden', esArchivo);
+          card.querySelector('.recurso-form-archivo').classList.toggle('hidden', !esArchivo);
+        });
+      });
+
+      const msgBox = card.querySelector(`[data-msg-de="${codigo}"]`);
+
       const btnAdd = card.querySelector('.btn-add-recurso');
       btnAdd.addEventListener('click', async () => {
         const nombre = card.querySelector('.input-recurso-nombre').value.trim();
@@ -179,6 +213,52 @@
           btnAdd.disabled = false;
         }
       });
+
+      // Subida de archivo (PDF/Word/PPT) a Google Drive
+      const btnAddArchivo = card.querySelector('.btn-add-recurso-archivo');
+      btnAddArchivo.addEventListener('click', () => {
+        const nombre = card.querySelector('.input-recurso-nombre-archivo').value.trim();
+        const fileInput = card.querySelector('.input-recurso-archivo');
+        const archivo = fileInput.files[0];
+
+        if(!nombre || !archivo){ alert('Completa el nombre y selecciona un archivo.'); return; }
+        if(archivo.size > 5 * 1024 * 1024){ alert('El archivo supera los 5 MB. Sube uno más liviano o comparte un enlace.'); return; }
+
+        btnAddArchivo.disabled = true;
+        msgBox.className = 'form-msg';
+        msgBox.textContent = 'Subiendo archivo, puede tardar unos segundos...';
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target.result.split(',')[1]; // quita el prefijo data:...;base64,
+          try{
+            const data = await apiPost({
+              action:'agregarRecursoArchivo',
+              codigo,
+              nombre,
+              archivoBase64: base64,
+              nombreArchivo: archivo.name,
+              mimeType: archivo.type || 'application/octet-stream'
+            });
+            if(data.success){
+              msgBox.className = 'form-msg ok';
+              msgBox.textContent = 'Archivo subido correctamente.';
+              card.querySelector('.input-recurso-nombre-archivo').value = '';
+              fileInput.value = '';
+              cargarRecursosAdmin(codigo, card);
+            } else {
+              msgBox.className = 'form-msg err';
+              msgBox.textContent = data.error || 'No se pudo subir el archivo.';
+            }
+          }catch(err){
+            msgBox.className = 'form-msg err';
+            msgBox.textContent = 'Error de conexión con el servidor.';
+          }finally{
+            btnAddArchivo.disabled = false;
+          }
+        };
+        reader.readAsDataURL(archivo);
+      });
     });
   }
 
@@ -192,7 +272,7 @@
       }
       cont.innerHTML = data.recursos.map(r => `
         <div class="recurso-item">
-          <i class="fa-solid fa-link"></i>
+          <i class="fa-solid ${r.tipo === 'archivo' ? 'fa-file-lines' : 'fa-link'}"></i>
           <span>${r.nombre}</span>
           <i class="fa-solid fa-trash recurso-del" data-id="${r.id}" data-codigo="${codigo}"></i>
         </div>
