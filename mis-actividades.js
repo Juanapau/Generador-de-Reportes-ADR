@@ -59,7 +59,27 @@
         return;
       }
 
-      wrap.innerHTML = habilitadas.map(act => `
+      // Verificar cuáles actividades ya fueron completadas por el estudiante
+      let calificacionesPorCodigo = {};
+      try{
+        const califs = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+        if(califs.success){
+          califs.calificaciones.forEach(c => { calificacionesPorCodigo[c.codigo] = c; });
+        }
+      }catch(err){ /* si falla, simplemente no se muestra el estado de completada */ }
+
+      wrap.innerHTML = habilitadas.map(act => {
+        const completada = calificacionesPorCodigo[act.codigo];
+        let estadoBadge;
+        if(completada){
+          estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Completada — ${completada.nota}/${completada.puntajeMaximo}</span>`;
+        } else if(act.codigo === 'A.1.1'){
+          estadoBadge = '<span class="estado-badge estado-activa"><i class="fa-solid fa-play"></i> Disponible</span>';
+        } else {
+          estadoBadge = '<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Próximamente interactiva</span>';
+        }
+
+        return `
         <div class="actividad-card">
           <div class="actividad-top">
             <div>
@@ -68,19 +88,17 @@
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <span class="puntaje-pill"><i class="fa-solid fa-star"></i> ${act.puntaje} pts</span>
-              ${act.codigo === 'A.1.1'
-                ? '<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Disponible</span>'
-                : '<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Próximamente interactiva</span>'}
+              ${estadoBadge}
             </div>
           </div>
           <div class="actividad-enunciado">${act.enunciado}</div>
           <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
           ${act.codigo === 'A.1.1' ? `
             <button type="button" class="btn-add abrir-actividad-btn" data-codigo="A.1.1" data-puntaje="${act.puntaje}" data-tiempo="${act.tiempoEstimado}" style="margin-top:12px;">
-              <i class="fa-solid fa-play"></i> Realizar actividad
+              <i class="fa-solid ${completada ? 'fa-eye' : 'fa-play'}"></i> ${completada ? 'Ver resultado' : 'Realizar actividad'}
             </button>` : ''}
         </div>
-      `).join('');
+      `;}).join('');
 
       wrap.querySelectorAll('.abrir-actividad-btn').forEach(btn => {
         btn.addEventListener('click', () => abrirActividadA11(Number(btn.dataset.puntaje), Number(btn.dataset.tiempo)));
