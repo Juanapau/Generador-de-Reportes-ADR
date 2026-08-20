@@ -435,12 +435,6 @@
       </button>
       <div class="login-error" id="loginError"></div>
     </form>
-
-    <div class="login-hint">
-      Acceso de prueba — Estudiante: <b>estudiante01 / 1234</b><br>
-      Acceso de prueba — Docente: <b>docente / admin123</b><br>
-      <span style="opacity:.7">(credenciales temporales; se conectarán a la base de datos real en el siguiente paso)</span>
-    </div>
   </div>
 </div>
 
@@ -659,8 +653,12 @@
 
   // ---------- Helper de conexión ----------
   async function apiGet(params){
-    const url = CONFIG.API_URL + '?' + new URLSearchParams(params).toString();
-    const res = await fetch(url);
+    // Se agrega un parámetro anti-caché (_t) y cache:'no-store' porque el navegador
+    // puede reutilizar una respuesta anterior para la misma URL (ej. el login),
+    // devolviendo datos desactualizados como el estado de "primer acceso".
+    const allParams = { ...params, _t: Date.now() };
+    const url = CONFIG.API_URL + '?' + new URLSearchParams(allParams).toString();
+    const res = await fetch(url, { cache: 'no-store' });
     return res.json();
   }
   async function apiPost(data){
