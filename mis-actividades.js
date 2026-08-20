@@ -70,10 +70,11 @@
 
       wrap.innerHTML = habilitadas.map(act => {
         const completada = calificacionesPorCodigo[act.codigo];
+        const esInteractiva = !!actividadesInteractivas[act.codigo];
         let estadoBadge;
         if(completada){
           estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Completada — ${completada.nota}/${completada.puntajeMaximo}</span>`;
-        } else if(act.codigo === 'A.1.1'){
+        } else if(esInteractiva){
           estadoBadge = '<span class="estado-badge estado-activa"><i class="fa-solid fa-play"></i> Disponible</span>';
         } else {
           estadoBadge = '<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Próximamente interactiva</span>';
@@ -93,8 +94,8 @@
           </div>
           <div class="actividad-enunciado">${act.enunciado}</div>
           <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
-          ${act.codigo === 'A.1.1' ? `
-            <button type="button" class="btn-add abrir-actividad-btn" data-codigo="A.1.1" data-puntaje="${act.puntaje}" data-tiempo="${act.tiempoEstimado}" style="margin-top:12px;">
+          ${esInteractiva ? `
+            <button type="button" class="btn-add abrir-actividad-btn" data-codigo="${act.codigo}" style="margin-top:12px;">
               <i class="fa-solid ${completada ? 'fa-eye' : 'fa-play'}"></i> ${completada ? 'Ver resultado' : 'Realizar actividad'}
             </button>` : ''}
         </div>
@@ -102,7 +103,8 @@
 
       wrap.querySelectorAll('.abrir-actividad-btn').forEach(btn => {
         const act = habilitadas.find(a => a.codigo === btn.dataset.codigo);
-        btn.addEventListener('click', () => abrirActividadA11(act.puntaje, act.tiempoEstimado, act.enunciado));
+        const funcionAbrir = actividadesInteractivas[act.codigo];
+        btn.addEventListener('click', () => funcionAbrir(act.puntaje, act.tiempoEstimado, act.enunciado));
       });
     }catch(err){
       wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
