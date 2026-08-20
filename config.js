@@ -1,5 +1,4 @@
-
-  // ---------- CONFIGURACIÓN ----------
+// ---------- CONFIGURACIÓN ----------
   // 👉 Pega aquí la URL de tu Apps Script (termina en /exec) luego de implementarlo.
   const CONFIG = {
     API_URL: 'https://script.google.com/macros/s/AKfycbxz34BwiamnGlgacedLeicRxt9F5yY8agA8lfGpVsvogt_O19wZR9aCFuQEZVo6Kkaf/exec'
