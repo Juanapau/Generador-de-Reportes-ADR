@@ -1,4 +1,4 @@
-  // ---------- Theme toggle ----------
+// ---------- Theme toggle ----------
   function setTheme(isLight){
     document.body.classList.toggle('light', isLight);
     const icon1 = document.getElementById('themeIconLogin');
