@@ -27,3 +27,34 @@
     });
     return res.json();
   }
+
+  // ---------- Registro de actividades interactivas ----------
+  // Cada actividad interactiva (A.1.1, A.1.2...) se registra aquí sola,
+  // al final de su propio archivo, para que "Mis actividades" sepa
+  // cómo abrirla sin que ningún otro archivo tenga que conocerla.
+  const actividadesInteractivas = {};
+  function registrarActividadInteractiva(codigo, funcionAbrir){
+    actividadesInteractivas[codigo] = funcionAbrir;
+  }
+
+  // ---------- Recursos de una actividad (reutilizable por cualquier actividad interactiva) ----------
+  async function cargarRecursosActividad(codigo, containerId){
+    const cont = document.getElementById(containerId);
+    if(!cont) return;
+    try{
+      const data = await apiGet({ action:'listarRecursos', codigo });
+      if(!data.success || data.recursos.length === 0){
+        cont.innerHTML = '<div style="font-size:14px; opacity:.6; padding:6px 0;">Tu docente no ha agregado recursos para esta actividad.</div>';
+        return;
+      }
+      cont.innerHTML = data.recursos.map(r => `
+        <a href="${r.url}" target="_blank" rel="noopener" class="recurso-item">
+          <i class="fa-solid ${r.tipo === 'archivo' ? 'fa-file-lines' : 'fa-link'}"></i>
+          <span>${r.nombre}</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; opacity:.6;"></i>
+        </a>
+      `).join('');
+    }catch(err){
+      cont.innerHTML = '<div style="font-size:14px; opacity:.6;">No se pudieron cargar los recursos.</div>';
+    }
+  }
