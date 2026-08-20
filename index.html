@@ -437,6 +437,16 @@
   .save-ok-msg{ font-size:12px; font-weight:700; color: var(--dark-green-accent); opacity:0; transition:.3s; }
   .save-ok-msg.show{ opacity:1; }
 
+  .estado-badge{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px;
+    font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.3px;
+  }
+  .estado-pendiente{ background: rgba(232,185,59,.15); color: var(--dark-gold-accent); }
+  .puntaje-pill{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px;
+    font-size:12px; font-weight:800; background: rgba(79,163,255,.15); color: var(--dark-blue-accent);
+  }
+
   @media (max-width:640px){
     header.topbar{ padding:16px; }
     .topbar-title h1{ font-size:21px; }
@@ -686,12 +696,12 @@
     <div id="panelEstudiante" class="hidden">
       <div class="section-heading">Mi espacio — RA1: Los reportes empresariales</div>
       <div class="grid-cards">
-        <div class="module-card">
+        <button type="button" class="module-card" id="cardMisActividades" style="text-align:left;">
           <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-pen-to-square"></i></div>
           <h3>Mis actividades</h3>
           <p>Consulta el instrumento de evaluación de cada actividad y realízala para autocalificarte al instante.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
+          <span class="m-tag tag-blue">Disponible</span>
+        </button>
         <div class="module-card">
           <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-simple"></i></div>
           <h3>Mi progreso</h3>
@@ -703,6 +713,13 @@
         <i class="fa-solid fa-circle-info"></i>
         Este es tu espacio personal. Las actividades del RA1 se activarán aquí a medida que tu docente las habilite.
       </div>
+    </div>
+
+    <!-- ---- MIS ACTIVIDADES (vista estudiante) ---- -->
+    <div id="panelMisActividades" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromMisActividades"><i class="fa-solid fa-arrow-left"></i> Volver a mi espacio</button>
+      <div class="section-heading">Mis actividades — RA1</div>
+      <div id="listaMisActividadesWrap"></div>
     </div>
   </main>
 
@@ -818,6 +835,7 @@
     // quedado abierto de una sesión anterior en el mismo navegador.
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelActividades').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('modalEstudiante').classList.add('hidden');
 
     document.getElementById('panelDocente').classList.toggle('hidden', currentUser.rol !== 'docente');
@@ -831,6 +849,7 @@
     document.getElementById('appShell').classList.add('hidden');
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelActividades').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('modalEstudiante').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('loginForm').reset();
@@ -954,6 +973,57 @@
         }
       });
     });
+  }
+
+  // ================= MIS ACTIVIDADES (vista estudiante) =================
+  document.getElementById('cardMisActividades').addEventListener('click', () => {
+    document.getElementById('panelEstudiante').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+  document.getElementById('btnBackFromMisActividades').addEventListener('click', () => {
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelEstudiante').classList.remove('hidden');
+  });
+
+  async function cargarMisActividades(){
+    const wrap = document.getElementById('listaMisActividadesWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
+    try{
+      const data = await apiGet({ action:'listarActividades', ra:'RA1' });
+      if(!data.success){
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudieron cargar las actividades.</div>';
+        return;
+      }
+      const habilitadas = data.actividades.filter(a => a.habilitada === 'Si');
+
+      if(habilitadas.length === 0){
+        wrap.innerHTML = `<div class="empty-note">
+          <i class="fa-solid fa-circle-info"></i>
+          Tu docente aún no ha habilitado ninguna actividad de este RA. Vuelve a revisar más tarde.
+        </div>`;
+        return;
+      }
+
+      wrap.innerHTML = habilitadas.map(act => `
+        <div class="actividad-card">
+          <div class="actividad-top">
+            <div>
+              <div class="actividad-codigo">${act.codigo}</div>
+              <div class="actividad-ec">${act.ec} · ${act.ra}</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <span class="puntaje-pill"><i class="fa-solid fa-star"></i> ${act.puntaje} pts</span>
+              <span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Próximamente interactiva</span>
+            </div>
+          </div>
+          <div class="actividad-enunciado">${act.enunciado}</div>
+          <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
+        </div>
+      `).join('');
+    }catch(err){
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
   }
 
   async function cargarEstudiantes(){
