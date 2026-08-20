@@ -296,6 +296,77 @@
     text-align:center; font-size:12px; color:var(--dark-text-dim); padding:18px; opacity:.75;
   }
 
+  /* ============ REGISTRO DE ESTUDIANTES ============ */
+  .back-btn{
+    display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:13.5px;
+    color: var(--dark-blue-accent); margin-bottom:14px; background:transparent;
+  }
+  body.light .back-btn{ color: var(--light-blue-accent); }
+
+  .panel-toolbar{
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;
+    margin-bottom:16px;
+  }
+  .btn-add{
+    background: linear-gradient(120deg, var(--dark-green-accent), #16a34a);
+    color:#052e14; padding:10px 16px; border-radius:9px; font-weight:800; font-size:13.5px;
+    display:flex; align-items:center; gap:8px;
+  }
+
+  .data-table-wrap{
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius);
+    overflow-x:auto;
+  }
+  body.light .data-table-wrap{ background:#fff; border:1px solid #dde5f6; box-shadow: 0 4px 14px rgba(20,40,90,.05); }
+  table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; min-width:560px; }
+  table.data-table th{
+    text-align:left; padding:13px 16px; font-size:11.5px; text-transform:uppercase; letter-spacing:.4px;
+    color: var(--dark-text-dim); border-bottom:1px solid var(--dark-border);
+  }
+  body.light table.data-table th{ color:var(--light-text-dim); border-bottom:1px solid #e3e9f7; }
+  table.data-table td{ padding:12px 16px; border-bottom:1px solid var(--dark-border); }
+  body.light table.data-table td{ border-bottom:1px solid #eef1f8; }
+  table.data-table tr:last-child td{ border-bottom:none; }
+  .row-actions{ display:flex; gap:8px; }
+  .row-actions button{
+    width:32px; height:32px; border-radius:8px; font-size:13px;
+    background: rgba(255,255,255,0.05); color:var(--dark-text); border:1px solid var(--dark-border);
+  }
+  body.light .row-actions button{ background:#f2f5fc; color:var(--light-text); border:1px solid #dde5f6; }
+  .row-actions .del-btn:hover{ background:#ef4444; color:#fff; }
+  .row-actions .edit-btn:hover{ background: var(--dark-blue-accent); color:#fff; }
+  .equipo-badge{
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:12px; font-weight:700;
+    background: rgba(232,185,59,0.15); color: var(--dark-gold-accent);
+  }
+  .empty-table-msg{ text-align:center; padding:32px; color:var(--dark-text-dim); font-size:13.5px; }
+  body.light .empty-table-msg{ color:var(--light-text-dim); }
+
+  /* ---- Modal ---- */
+  .modal-overlay{
+    position:fixed; inset:0; background: rgba(5,10,20,0.65);
+    display:flex; align-items:center; justify-content:center; padding:20px; z-index:50;
+  }
+  .modal-box{
+    width:100%; max-width:420px; background: var(--dark-card); border:1px solid var(--dark-border);
+    border-radius: var(--radius); padding:26px 24px; box-shadow: var(--shadow);
+  }
+  body.light .modal-box{ background:#fff; border:1px solid #dde5f6; }
+  .modal-title{ font-family: var(--font-display); font-size:21px; letter-spacing:.4px; margin-bottom:16px; }
+  .modal-actions{ display:flex; gap:10px; margin-top:18px; }
+  .btn-secondary{
+    flex:1; background: rgba(255,255,255,0.06); color:var(--dark-text); padding:11px; border-radius:9px; font-weight:700;
+    border:1px solid var(--dark-border);
+  }
+  body.light .btn-secondary{ background:#f2f5fc; color:var(--light-text); border:1px solid #dde5f6; }
+  .modal-actions .btn-primary{ flex:1; margin-top:0; }
+  .form-msg{ font-size:12.5px; font-weight:700; margin-top:8px; min-height:16px; }
+  .form-msg.err{ color:#ff6b6b; }
+  .form-msg.ok{ color: var(--dark-green-accent); }
+
+  .loading-note{ text-align:center; padding:26px; color:var(--dark-text-dim); font-size:13.5px; }
+  body.light .loading-note{ color:var(--light-text-dim); }
+
   @media (max-width:640px){
     header.topbar{ padding:16px; }
     .topbar-title h1{ font-size:21px; }
@@ -389,12 +460,12 @@
     <div id="panelDocente" class="hidden">
       <div class="section-heading">Panel del docente — Administración</div>
       <div class="grid-cards">
-        <div class="module-card">
+        <button class="module-card" id="cardRegistroEstudiantes" style="text-align:left;">
           <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-users"></i></div>
           <h3>Registro de estudiantes</h3>
           <p>Dar de alta, editar y organizar estudiantes por equipo o pareja de trabajo.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
+          <span class="m-tag tag-blue">Disponible</span>
+        </button>
         <div class="module-card">
           <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-list-check"></i></div>
           <h3>Actividades por RA</h3>
@@ -426,6 +497,64 @@
       </div>
     </div>
 
+    <!-- ---- REGISTRO DE ESTUDIANTES ---- -->
+    <div id="panelRegistro" class="hidden">
+      <button class="back-btn" id="btnBackFromRegistro"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Registro de estudiantes</div>
+
+      <div class="panel-toolbar">
+        <div style="font-size:13px; color:var(--dark-text-dim);" id="totalEstudiantesLabel">Cargando...</div>
+        <button class="btn-add" id="btnNuevoEstudiante"><i class="fa-solid fa-user-plus"></i> Nuevo estudiante</button>
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table" id="tablaEstudiantes">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Equipo / Pareja</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyEstudiantes">
+            <tr><td colspan="4"><div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando estudiantes...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- MODAL: Agregar / Editar estudiante ---- -->
+    <div id="modalEstudiante" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-title" id="modalEstudianteTitle">Nuevo estudiante</div>
+        <form id="formEstudiante">
+          <input type="hidden" id="estUsuarioOriginal">
+          <div class="field">
+            <label for="estUsuario">Usuario (código de acceso)</label>
+            <input type="text" id="estUsuario" placeholder="Ej. jperez01" required>
+          </div>
+          <div class="field">
+            <label for="estNombre">Nombre completo</label>
+            <input type="text" id="estNombre" placeholder="Nombre y apellido" required>
+          </div>
+          <div class="field">
+            <label for="estEquipo">Equipo / Pareja (opcional)</label>
+            <input type="text" id="estEquipo" placeholder="Ej. Equipo 1">
+          </div>
+          <div class="field">
+            <label for="estPassword">Contraseña <span id="passHint" style="text-transform:none; font-weight:600;"></span></label>
+            <input type="text" id="estPassword" placeholder="Contraseña de acceso">
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+          <div class="form-msg" id="formEstudianteMsg"></div>
+        </form>
+      </div>
+    </div>
+
     <!-- ---- PANEL ESTUDIANTE ---- -->
     <div id="panelEstudiante" class="hidden">
       <div class="section-heading">Mi espacio — RA1: Los reportes empresariales</div>
@@ -454,15 +583,30 @@
 </div>
 
 <script>
+  // ---------- CONFIGURACIÓN ----------
+  // 👉 Pega aquí la URL de tu Apps Script (termina en /exec) luego de implementarlo.
+  const CONFIG = {
+    API_URL: 'https://script.google.com/macros/s/AKfycbxz34BwiamnGlgacedLeicRxt9F5yY8agA8lfGpVsvogt_O19wZR9aCFuQEZVo6Kkaf/exec'
+  };
+
   // ---------- Estado de sesión (en memoria, sin localStorage) ----------
   let currentUser = null;
   let selectedRole = 'estudiante';
+  let estudiantesCache = [];
 
-  // Credenciales de prueba temporales (se sustituirán por Google Sheets)
-  const DEMO_USERS = {
-    estudiante: { user: 'estudiante01', pass: '1234', nombre: 'Estudiante de Prueba' },
-    docente: { user: 'docente', pass: 'admin123', nombre: 'Juana Altagracia Paulino' }
-  };
+  // ---------- Helper de conexión ----------
+  async function apiGet(params){
+    const url = CONFIG.API_URL + '?' + new URLSearchParams(params).toString();
+    const res = await fetch(url);
+    return res.json();
+  }
+  async function apiPost(data){
+    const res = await fetch(CONFIG.API_URL, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return res.json();
+  }
 
   // ---------- Theme toggle ----------
   function setTheme(isLight){
@@ -491,19 +635,35 @@
   }
 
   // ---------- Login ----------
-  document.getElementById('loginForm').addEventListener('submit', function(e){
+  document.getElementById('loginForm').addEventListener('submit', async function(e){
     e.preventDefault();
     const user = document.getElementById('loginUser').value.trim();
     const pass = document.getElementById('loginPass').value.trim();
-    const demo = DEMO_USERS[selectedRole];
     const errorBox = document.getElementById('loginError');
+    const submitBtn = e.target.querySelector('.btn-primary');
 
-    if(user === demo.user && pass === demo.pass){
-      currentUser = { rol: selectedRole, nombre: demo.nombre, usuario: demo.user };
-      errorBox.textContent = '';
-      renderApp();
-    } else {
-      errorBox.textContent = 'Usuario o contraseña incorrectos.';
+    if(CONFIG.API_URL.includes('PEGA_AQUI')){
+      errorBox.textContent = 'Falta configurar la URL del backend (CONFIG.API_URL) en el código.';
+      return;
+    }
+
+    errorBox.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';
+
+    try{
+      const data = await apiGet({ action:'login', usuario:user, password:pass, rol:selectedRole });
+      if(data.success){
+        currentUser = { rol: data.rol, nombre: data.nombre, usuario: data.usuario, equipo: data.equipo };
+        renderApp();
+      } else {
+        errorBox.textContent = data.error || 'Usuario o contraseña incorrectos.';
+      }
+    }catch(err){
+      errorBox.textContent = 'No se pudo conectar con el servidor. Verifica tu conexión.';
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Ingresar';
     }
   });
 
@@ -528,6 +688,149 @@
     document.getElementById('loginForm').reset();
     document.getElementById('loginError').textContent = '';
   });
+
+  // ================= REGISTRO DE ESTUDIANTES =================
+  document.getElementById('cardRegistroEstudiantes').addEventListener('click', () => {
+    document.getElementById('panelDocente').classList.add('hidden');
+    document.getElementById('panelRegistro').classList.remove('hidden');
+    cargarEstudiantes();
+  });
+  document.getElementById('btnBackFromRegistro').addEventListener('click', () => {
+    document.getElementById('panelRegistro').classList.add('hidden');
+    document.getElementById('panelDocente').classList.remove('hidden');
+  });
+
+  async function cargarEstudiantes(){
+    const tbody = document.getElementById('tbodyEstudiantes');
+    tbody.innerHTML = '<tr><td colspan="4"><div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando estudiantes...</div></td></tr>';
+    try{
+      const data = await apiGet({ action:'listarEstudiantes' });
+      if(data.success){
+        estudiantesCache = data.estudiantes;
+        pintarTablaEstudiantes();
+      } else {
+        tbody.innerHTML = '<tr><td colspan="4"><div class="empty-table-msg">No se pudo cargar la lista.</div></td></tr>';
+      }
+    }catch(err){
+      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-table-msg">Error de conexión con el servidor.</div></td></tr>';
+    }
+  }
+
+  function pintarTablaEstudiantes(){
+    const tbody = document.getElementById('tbodyEstudiantes');
+    document.getElementById('totalEstudiantesLabel').textContent =
+      estudiantesCache.length + (estudiantesCache.length === 1 ? ' estudiante registrado' : ' estudiantes registrados');
+
+    if(estudiantesCache.length === 0){
+      tbody.innerHTML = '<tr><td colspan="4"><div class="empty-table-msg"><i class="fa-solid fa-users-slash"></i><br>Aún no hay estudiantes registrados.</div></td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = estudiantesCache.map(est => `
+      <tr>
+        <td>${est.usuario}</td>
+        <td>${est.nombre}</td>
+        <td>${est.equipo ? `<span class="equipo-badge">${est.equipo}</span>` : '<span style="opacity:.5;">Sin asignar</span>'}</td>
+        <td>
+          <div class="row-actions">
+            <button class="edit-btn" title="Editar" onclick="abrirEditarEstudiante('${est.usuario}')"><i class="fa-solid fa-pen"></i></button>
+            <button class="del-btn" title="Eliminar" onclick="eliminarEstudianteUI('${est.usuario}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ---- Modal: abrir para nuevo / editar ----
+  const modalEstudiante = document.getElementById('modalEstudiante');
+
+  document.getElementById('btnNuevoEstudiante').addEventListener('click', () => {
+    document.getElementById('modalEstudianteTitle').textContent = 'Nuevo estudiante';
+    document.getElementById('formEstudiante').reset();
+    document.getElementById('estUsuarioOriginal').value = '';
+    document.getElementById('estUsuario').disabled = false;
+    document.getElementById('passHint').textContent = '';
+    document.getElementById('estPassword').required = true;
+    document.getElementById('formEstudianteMsg').textContent = '';
+    modalEstudiante.classList.remove('hidden');
+  });
+
+  window.abrirEditarEstudiante = function(usuario){
+    const est = estudiantesCache.find(e => e.usuario === usuario);
+    if(!est) return;
+    document.getElementById('modalEstudianteTitle').textContent = 'Editar estudiante';
+    document.getElementById('estUsuarioOriginal').value = est.usuario;
+    document.getElementById('estUsuario').value = est.usuario;
+    document.getElementById('estUsuario').disabled = true;
+    document.getElementById('estNombre').value = est.nombre;
+    document.getElementById('estEquipo').value = est.equipo || '';
+    document.getElementById('estPassword').value = '';
+    document.getElementById('estPassword').required = false;
+    document.getElementById('passHint').textContent = '(dejar en blanco para no cambiarla)';
+    document.getElementById('formEstudianteMsg').textContent = '';
+    modalEstudiante.classList.remove('hidden');
+  };
+
+  document.getElementById('btnCancelarModal').addEventListener('click', () => {
+    modalEstudiante.classList.add('hidden');
+  });
+
+  document.getElementById('formEstudiante').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const msg = document.getElementById('formEstudianteMsg');
+    const submitBtn = e.target.querySelector('.btn-primary');
+    const usuarioOriginal = document.getElementById('estUsuarioOriginal').value;
+
+    const payload = {
+      usuario: document.getElementById('estUsuario').value.trim(),
+      nombre: document.getElementById('estNombre').value.trim(),
+      equipo: document.getElementById('estEquipo').value.trim(),
+      password: document.getElementById('estPassword').value.trim()
+    };
+
+    submitBtn.disabled = true;
+    msg.className = 'form-msg';
+    msg.textContent = 'Guardando...';
+
+    try{
+      let data;
+      if(usuarioOriginal){
+        payload.action = 'actualizarEstudiante';
+        payload.usuarioOriginal = usuarioOriginal;
+        data = await apiPost(payload);
+      } else {
+        payload.action = 'agregarEstudiante';
+        data = await apiPost(payload);
+      }
+
+      if(data.success){
+        modalEstudiante.classList.add('hidden');
+        cargarEstudiantes();
+      } else {
+        msg.className = 'form-msg err';
+        msg.textContent = data.error || 'Ocurrió un error al guardar.';
+      }
+    }catch(err){
+      msg.className = 'form-msg err';
+      msg.textContent = 'Error de conexión con el servidor.';
+    }finally{
+      submitBtn.disabled = false;
+    }
+  });
+
+  window.eliminarEstudianteUI = async function(usuario){
+    if(!confirm(`¿Eliminar al estudiante "${usuario}"? Esta acción no se puede deshacer.`)) return;
+    try{
+      const data = await apiPost({ action:'eliminarEstudiante', usuario: usuario });
+      if(data.success){
+        cargarEstudiantes();
+      } else {
+        alert(data.error || 'No se pudo eliminar.');
+      }
+    }catch(err){
+      alert('Error de conexión con el servidor.');
+    }
+  };
 </script>
 </body>
 </html>
