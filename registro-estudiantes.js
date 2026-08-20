@@ -42,6 +42,7 @@
         <td>${est.equipo ? `<span class="equipo-badge">${est.equipo}</span>` : '<span style="opacity:.5;">Sin asignar</span>'}</td>
         <td>
           <div class="row-actions">
+            <button type="button" class="view-btn" title="Ver perfil del estudiante" onclick="verPerfilEstudiante('${est.usuario}')"><i class="fa-solid fa-eye"></i></button>
             <button type="button" class="edit-btn" title="Editar" onclick="abrirEditarEstudiante('${est.usuario}')"><i class="fa-solid fa-pen"></i></button>
             <button type="button" class="del-btn" title="Eliminar" onclick="eliminarEstudianteUI('${est.usuario}')"><i class="fa-solid fa-trash"></i></button>
           </div>
@@ -140,6 +141,29 @@
       alert('Error de conexión con el servidor.');
     }
   };
+
+  // ================= VER PERFIL DEL ESTUDIANTE (suplantación, solo lectura) =================
+  window.verPerfilEstudiante = function(usuario){
+    const est = estudiantesCache.find(e => e.usuario === usuario);
+    if(!est) return;
+
+    docenteOriginal = currentUser; // se guarda para poder regresar
+    currentUser = { rol:'estudiante', usuario: est.usuario, nombre: est.nombre, equipo: est.equipo };
+
+    document.getElementById('panelRegistro').classList.add('hidden');
+    renderApp();
+
+    document.getElementById('impersonationBanner').classList.remove('hidden');
+    document.getElementById('impersonationNombre').textContent = est.nombre;
+  };
+
+  document.getElementById('btnVolverDocente').addEventListener('click', () => {
+    if(!docenteOriginal) return;
+    currentUser = docenteOriginal;
+    docenteOriginal = null;
+    document.getElementById('impersonationBanner').classList.add('hidden');
+    renderApp();
+  });
 
   // ================= CAMBIO OBLIGATORIO DE CONTRASEÑA (primer acceso) =================
   document.getElementById('formCambioPassword').addEventListener('submit', async function(e){
