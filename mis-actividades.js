@@ -101,7 +101,8 @@
       `;}).join('');
 
       wrap.querySelectorAll('.abrir-actividad-btn').forEach(btn => {
-        btn.addEventListener('click', () => abrirActividadA11(Number(btn.dataset.puntaje), Number(btn.dataset.tiempo)));
+        const act = habilitadas.find(a => a.codigo === btn.dataset.codigo);
+        btn.addEventListener('click', () => abrirActividadA11(act.puntaje, act.tiempoEstimado, act.enunciado));
       });
     }catch(err){
       wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
