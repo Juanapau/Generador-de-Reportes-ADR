@@ -387,6 +387,56 @@
   .loading-note{ text-align:center; padding:26px; color:var(--dark-text-dim); font-size:13.5px; }
   body.light .loading-note{ color:var(--light-text-dim); }
 
+  /* ============ ACTIVIDADES POR RA ============ */
+  .actividad-card{
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius);
+    padding:18px 20px; margin-bottom:14px;
+  }
+  body.light .actividad-card{ background:#fff; border:1px solid #dde5f6; box-shadow: 0 4px 14px rgba(20,40,90,.05); }
+  .actividad-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap; margin-bottom:10px; }
+  .actividad-codigo{
+    font-family: var(--font-display); font-size:19px; letter-spacing:.5px; color: var(--dark-gold-accent);
+  }
+  .actividad-ec{ font-size:11.5px; color:var(--dark-text-dim); font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+  body.light .actividad-ec{ color:var(--light-text-dim); }
+  .actividad-enunciado{ font-size:13.5px; line-height:1.55; margin:10px 0; }
+  .actividad-meta{ font-size:12px; color:var(--dark-blue-accent); font-weight:700; margin-bottom:12px; }
+  body.light .actividad-meta{ color:var(--light-blue-accent); }
+  .actividad-controls{
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap; padding-top:12px; border-top:1px solid var(--dark-border);
+  }
+  body.light .actividad-controls{ border-top:1px solid #eef1f8; }
+  .puntaje-field{ display:flex; align-items:center; gap:8px; }
+  .puntaje-field label{ font-size:12.5px; font-weight:700; color:var(--dark-text-dim); }
+  body.light .puntaje-field label{ color:var(--light-text-dim); }
+  .puntaje-field input{
+    width:80px; padding:8px 10px; border-radius:8px; background: rgba(255,255,255,0.05);
+    border:1px solid var(--dark-border); color:var(--dark-text); font-size:14px; font-weight:700;
+  }
+  body.light .puntaje-field input{ background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text); }
+
+  .switch-field{ display:flex; align-items:center; gap:10px; }
+  .switch{ position:relative; width:44px; height:24px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .switch-slider{
+    position:absolute; inset:0; background: rgba(255,255,255,0.12); border-radius:20px; cursor:pointer; transition:.2s;
+  }
+  body.light .switch-slider{ background:#dbe3f5; }
+  .switch-slider::before{
+    content:''; position:absolute; width:18px; height:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s;
+  }
+  .switch input:checked + .switch-slider{ background: var(--dark-green-accent); }
+  .switch input:checked + .switch-slider::before{ transform: translateX(20px); }
+  .switch-label{ font-size:12.5px; font-weight:700; color:var(--dark-text-dim); }
+  body.light .switch-label{ color:var(--light-text-dim); }
+
+  .btn-save-act{
+    margin-left:auto; background: linear-gradient(120deg, var(--dark-blue-accent), #2a63cf);
+    color:#fff; padding:9px 16px; border-radius:9px; font-weight:800; font-size:13px; display:flex; align-items:center; gap:8px;
+  }
+  .save-ok-msg{ font-size:12px; font-weight:700; color: var(--dark-green-accent); opacity:0; transition:.3s; }
+  .save-ok-msg.show{ opacity:1; }
+
   @media (max-width:640px){
     header.topbar{ padding:16px; }
     .topbar-title h1{ font-size:21px; }
@@ -509,12 +559,12 @@
           <p>Dar de alta, editar y organizar estudiantes por equipo o pareja de trabajo.</p>
           <span class="m-tag tag-blue">Disponible</span>
         </button>
-        <div class="module-card">
+        <button type="button" class="module-card" id="cardActividadesRA" style="text-align:left;">
           <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-list-check"></i></div>
           <h3>Actividades por RA</h3>
           <p>Configurar cada actividad (A.1.1...), su instrumento de evaluación y su puntaje máximo antes de habilitarla.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
+          <span class="m-tag tag-gold">Disponible</span>
+        </button>
         <div class="module-card">
           <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-line"></i></div>
           <h3>Calificaciones y avances</h3>
@@ -610,6 +660,26 @@
           <div class="form-msg" id="formEstudianteMsg"></div>
         </form>
       </div>
+    </div>
+
+    <!-- ---- ACTIVIDADES POR RA ---- -->
+    <div id="panelActividades" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromActividades"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Actividades por RA — Asignación de puntaje</div>
+
+      <div class="panel-toolbar">
+        <div style="font-size:13px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
+        <div class="role-tabs" style="margin:0; width:auto;">
+          <button type="button" class="role-tab active" id="raTab1" data-ra="RA1">RA1</button>
+        </div>
+      </div>
+
+      <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
+        <i class="fa-solid fa-circle-info"></i>
+        Asigna el puntaje máximo de cada actividad y actívala con el interruptor cuando esté lista para que los estudiantes la vean. El instrumento de evaluación (escala de valoración de 6 criterios) se configurará al construir cada actividad interactiva.
+      </div>
+
+      <div id="listaActividadesWrap"></div>
     </div>
 
     <!-- ---- PANEL ESTUDIANTE ---- -->
@@ -747,6 +817,7 @@
     // ocultando cualquier submódulo (como Registro de estudiantes) que haya
     // quedado abierto de una sesión anterior en el mismo navegador.
     document.getElementById('panelRegistro').classList.add('hidden');
+    document.getElementById('panelActividades').classList.add('hidden');
     document.getElementById('modalEstudiante').classList.add('hidden');
 
     document.getElementById('panelDocente').classList.toggle('hidden', currentUser.rol !== 'docente');
@@ -759,6 +830,7 @@
     estudiantesCache = [];
     document.getElementById('appShell').classList.add('hidden');
     document.getElementById('panelRegistro').classList.add('hidden');
+    document.getElementById('panelActividades').classList.add('hidden');
     document.getElementById('modalEstudiante').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('loginForm').reset();
@@ -775,6 +847,114 @@
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelDocente').classList.remove('hidden');
   });
+
+  // ================= ACTIVIDADES POR RA =================
+  let actividadesCache = [];
+  let raActual = 'RA1';
+
+  document.getElementById('cardActividadesRA').addEventListener('click', () => {
+    document.getElementById('panelDocente').classList.add('hidden');
+    document.getElementById('panelActividades').classList.remove('hidden');
+    cargarActividades();
+  });
+  document.getElementById('btnBackFromActividades').addEventListener('click', () => {
+    document.getElementById('panelActividades').classList.add('hidden');
+    document.getElementById('panelDocente').classList.remove('hidden');
+  });
+  document.getElementById('raTab1').addEventListener('click', () => {
+    raActual = 'RA1';
+    cargarActividades();
+  });
+
+  async function cargarActividades(){
+    const wrap = document.getElementById('listaActividadesWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
+    try{
+      const data = await apiGet({ action:'listarActividades', ra: raActual });
+      if(data.success){
+        actividadesCache = data.actividades;
+        pintarActividades();
+      } else {
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudo cargar la lista de actividades.</div>';
+      }
+    }catch(err){
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
+
+  function pintarActividades(){
+    const wrap = document.getElementById('listaActividadesWrap');
+    const habilitadas = actividadesCache.filter(a => a.habilitada === 'Si').length;
+    document.getElementById('totalActividadesLabel').textContent =
+      `${actividadesCache.length} actividades — ${habilitadas} habilitada(s)`;
+
+    if(actividadesCache.length === 0){
+      wrap.innerHTML = `<div class="empty-table-msg">
+        <i class="fa-solid fa-triangle-exclamation"></i><br>
+        No hay actividades cargadas para ${raActual}. Ejecuta la función <b>sembrarActividadesRA1()</b> una vez desde el editor de Apps Script para precargarlas.
+      </div>`;
+      return;
+    }
+
+    wrap.innerHTML = actividadesCache.map(act => `
+      <div class="actividad-card" data-codigo="${act.codigo}">
+        <div class="actividad-top">
+          <div>
+            <div class="actividad-codigo">${act.codigo}</div>
+            <div class="actividad-ec">${act.ec} · ${act.ra}</div>
+          </div>
+        </div>
+        <div class="actividad-enunciado">${act.enunciado}</div>
+        <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
+        <div class="actividad-controls">
+          <div class="puntaje-field">
+            <label>Puntaje máx.</label>
+            <input type="number" min="0" step="0.5" class="input-puntaje" value="${act.puntaje || 0}">
+          </div>
+          <div class="switch-field">
+            <label class="switch">
+              <input type="checkbox" class="input-habilitada" ${act.habilitada === 'Si' ? 'checked' : ''}>
+              <span class="switch-slider"></span>
+            </label>
+            <span class="switch-label">Habilitada</span>
+          </div>
+          <button type="button" class="btn-save-act"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
+          <span class="save-ok-msg"><i class="fa-solid fa-check"></i> Guardado</span>
+        </div>
+      </div>
+    `).join('');
+
+    // Vincular botones de guardar de cada tarjeta
+    wrap.querySelectorAll('.actividad-card').forEach(card => {
+      const codigo = card.dataset.codigo;
+      const btn = card.querySelector('.btn-save-act');
+      const okMsg = card.querySelector('.save-ok-msg');
+
+      btn.addEventListener('click', async () => {
+        const puntaje = card.querySelector('.input-puntaje').value;
+        const habilitada = card.querySelector('.input-habilitada').checked;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+        okMsg.classList.remove('show');
+
+        try{
+          const data = await apiPost({ action:'actualizarActividad', codigo, puntaje, habilitada });
+          if(data.success){
+            okMsg.classList.add('show');
+            setTimeout(() => okMsg.classList.remove('show'), 2000);
+          } else {
+            alert(data.error || 'No se pudo guardar.');
+          }
+        }catch(err){
+          alert('Error de conexión con el servidor.');
+        }finally{
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar';
+        }
+      });
+    });
+  }
 
   async function cargarEstudiantes(){
     const tbody = document.getElementById('tbodyEstudiantes');
