@@ -515,6 +515,7 @@
   .rubrica-visual th{ padding:12px 10px; text-align:left; color:#fff; font-size:13px; vertical-align:top; }
   .rubrica-visual th span{ font-weight:400; opacity:.85; font-size:12px; }
   .rub-th-logrado{ background: rgba(79,163,255,.25); }
+  .rub-th-bueno{ background: rgba(139,195,74,.25); }
   .rub-th-proceso{ background: rgba(232,185,59,.25); }
   .rub-th-nologrado{ background: rgba(239,68,68,.25); }
   .rubrica-visual td{ padding:12px 10px; border-top:1px solid rgba(255,255,255,0.06); vertical-align:top; background: var(--dark-card); }
@@ -525,8 +526,20 @@
   body.light .rub-descripcion{ color:var(--light-text-dim); }
   .rub-celda{ text-align:center; font-weight:800; font-size:13px; width:110px; }
   .rub-celda.rub-activo.rub-logrado{ background: rgba(34,197,94,.22); color: var(--dark-green-accent); }
+  .rub-celda.rub-activo.rub-bueno{ background: rgba(139,195,74,.22); color:#8bc34a; }
   .rub-celda.rub-activo.rub-proceso{ background: rgba(232,185,59,.22); color: var(--dark-gold-accent); }
   .rub-celda.rub-activo.rub-no_logrado{ background: rgba(239,68,68,.22); color:#ef4444; }
+
+  /* Rúbrica descriptiva: celdas con texto (no solo etiqueta), más anchas y sin negrita forzada */
+  .rubrica-descriptiva .rub-celda.rub-descriptiva-celda{
+    text-align:left; font-weight:500; font-size:12.5px; width:auto; line-height:1.45; color: var(--dark-text-dim);
+  }
+  body.light .rubrica-descriptiva .rub-celda.rub-descriptiva-celda{ color: var(--light-text-dim); }
+  .rubrica-descriptiva .rub-celda.rub-activo{ font-weight:700; }
+  .rubrica-descriptiva .rub-celda.rub-activo.rub-logrado{ color: var(--dark-green-accent); }
+  .rubrica-descriptiva .rub-celda.rub-activo.rub-bueno{ color:#8bc34a; }
+  .rubrica-descriptiva .rub-celda.rub-activo.rub-proceso{ color: var(--dark-gold-accent); }
+  .rubrica-descriptiva .rub-celda.rub-activo.rub-no_logrado{ color:#ef4444; }
   .rubrica-total{
     display:flex; justify-content:space-between; align-items:center; padding:14px 18px;
     background: linear-gradient(120deg, #7a1420, #5c0f18); border-radius:0 0 10px 10px; margin-top:-1px;
