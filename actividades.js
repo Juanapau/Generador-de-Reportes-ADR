@@ -1,0 +1,522 @@
+// ============================================================================
+// ACTIVIDADES INTERACTIVAS — TODOS los códigos de actividad viven en este
+// único archivo, organizados por secciones (Ctrl+F el código, ej. "A.1.2").
+// Esto evita tener decenas de archivos sueltos a medida que crece el módulo.
+// ============================================================================
+
+// ============================================================================
+// A.1.1 — CLASIFICADOR DE REPORTES EMPRESARIALES (Interno / Externo)
+// ============================================================================
+  // ================= ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES =================
+  // Contenido pensado para 5to de Bachillerato Técnico en Informática: requiere leer
+  // y analizar el propósito/audiencia de cada reporte, no solo detectar una palabra clave.
+  const ITEMS_A11_BASE = [
+    { id:1, texto:'Resumen semanal de indicadores de productividad, compartido únicamente entre los supervisores de línea de producción.', tipo:'interno' },
+    { id:2, texto:'Boletín trimestral con los resultados financieros consolidados, remitido a la Superintendencia de Valores.', tipo:'externo' },
+    { id:3, texto:'Registro de horas trabajadas y ausencias, utilizado por el área de nómina para calcular los pagos quincenales.', tipo:'interno' },
+    { id:4, texto:'Cotización detallada de servicios de mantenimiento, enviada a una empresa interesada en contratar a la compañía.', tipo:'externo' },
+    { id:5, texto:'Comparativo de existencias entre bodegas, empleado para decidir traslados internos de mercancía.', tipo:'interno' },
+    { id:6, texto:'Memoria anual de responsabilidad social corporativa, disponible para descarga en la página institucional.', tipo:'externo' },
+    { id:7, texto:'Análisis de rotación de personal presentado en la reunión mensual de gerencia.', tipo:'interno' },
+    { id:8, texto:'Certificación de cumplimiento tributario, solicitada por un banco para aprobar una línea de crédito.', tipo:'externo' },
+    { id:9, texto:'Bitácora de incidencias del sistema, revisada por el equipo de soporte técnico para dar seguimiento a fallos.', tipo:'interno' },
+    { id:10, texto:'Carta de confirmación de pedido con el detalle de productos y fechas de entrega, dirigida a un cliente.', tipo:'externo' }
+  ];
+
+  const CRITERIOS_BASE_A11 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad de clasificación desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación de tipos', descripcion:'Reconoce las características que distinguen un reporte interno de uno externo.' },
+    { key:'clasificacion', nombre:'3. Clasificación correcta', descripcion:'Ubica cada ejemplo en la categoría correcta según sus características.' },
+    { key:'justificacion', nombre:'4. Justificación del criterio', descripcion:'Explica el motivo de su clasificación con argumentos válidos.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'colaborativo', nombre:'6. Trabajo colaborativo', descripcion:'Colabora de forma organizada con su equipo durante el ejercicio.' }
+  ];
+
+  let ITEMS_A11 = [];
+  let asignacionesA11 = {};
+  let seleccionadoA11 = null;
+  let puntajeMaxA11 = 0;
+  let tiempoEstimadoA11 = 10;
+  let inicioTiempoA11 = null;
+  let timerIntervalA11 = null;
+
+  async function abrirActividadA11(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA11 = puntajeMaximo;
+    tiempoEstimadoA11 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA11').textContent = enunciado || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA11').classList.remove('hidden');
+
+    // ---- Bloqueo de repetición: si ya existe una calificación para esta actividad,
+    // se muestra directamente el resultado guardado y no se permite volver a realizarla.
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.1') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA11').classList.add('hidden');
+        document.getElementById('vistaEjercicioA11').classList.add('hidden');
+        document.getElementById('vistaResultadoA11').classList.remove('hidden');
+        document.getElementById('resultadoDesgloseA11').innerHTML = '';
+        renderRubrica('rubricaResultadoA11', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA11').classList.remove('hidden');
+        document.getElementById('tituloDesgloseA11').classList.add('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA11').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA11').classList.add('hidden');
+    document.getElementById('vistaResultadoA11').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA11').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA11} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosEstudianteA11();
+
+    const criteriosPrevios = CRITERIOS_BASE_A11.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA11', criteriosPrevios, puntajeMaxA11, null);
+  }
+
+  async function cargarRecursosEstudianteA11(){
+    const cont = document.getElementById('recursosEstudianteA11');
+    try{
+      const data = await apiGet({ action:'listarRecursos', codigo:'A.1.1' });
+      if(!data.success || data.recursos.length === 0){
+        cont.innerHTML = '<div style="font-size:15px; opacity:.6; padding:6px 0;">Tu docente no ha agregado recursos para esta actividad.</div>';
+        return;
+      }
+      cont.innerHTML = data.recursos.map(r => `
+        <a href="${r.url}" target="_blank" rel="noopener" class="recurso-item">
+          <i class="fa-solid ${r.tipo === 'archivo' ? 'fa-file-lines' : 'fa-link'}"></i>
+          <span>${r.nombre}</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; opacity:.6;"></i>
+        </a>
+      `).join('');
+    }catch(err){
+      cont.innerHTML = '<div style="font-size:15px; opacity:.6;">No se pudieron cargar los recursos.</div>';
+    }
+  }
+
+  document.getElementById('btnBackFromActividadA11').addEventListener('click', () => {
+    clearInterval(timerIntervalA11);
+    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA11').addEventListener('click', () => {
+    ITEMS_A11 = barajar(ITEMS_A11_BASE); // orden distinto en cada intento, sin patrón predecible
+    asignacionesA11 = {};
+    seleccionadoA11 = null;
+    document.getElementById('justificacionA11').value = '';
+    document.getElementById('vistaInstrumentoA11').classList.add('hidden');
+    document.getElementById('vistaEjercicioA11').classList.remove('hidden');
+    pintarClasificador();
+
+    inicioTiempoA11 = Date.now();
+    clearInterval(timerIntervalA11);
+    timerIntervalA11 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA11) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA11').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA11} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarClasificador(){
+    const pool = document.getElementById('clasifPool');
+    const zonaInterno = document.getElementById('zonaInternoItems');
+    const zonaExterno = document.getElementById('zonaExternoItems');
+
+    const enPool = ITEMS_A11.filter(it => !asignacionesA11[it.id]);
+    const enInterno = ITEMS_A11.filter(it => asignacionesA11[it.id] === 'interno');
+    const enExterno = ITEMS_A11.filter(it => asignacionesA11[it.id] === 'externo');
+
+    pool.innerHTML = enPool.map(it => `
+      <div class="clasif-item ${seleccionadoA11 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
+    `).join('') || '<span style="opacity:.5; font-size:15px;">Todos los reportes han sido clasificados.</span>';
+
+    zonaInterno.innerHTML = enInterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+    zonaExterno.innerHTML = enExterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+
+    pool.querySelectorAll('.clasif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        seleccionadoA11 = seleccionadoA11 === id ? null : id;
+        pintarClasificador();
+      });
+    });
+
+    [...zonaInterno.querySelectorAll('.clasif-item'), ...zonaExterno.querySelectorAll('.clasif-item')].forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        delete asignacionesA11[id];
+        pintarClasificador();
+      });
+    });
+
+    document.getElementById('btnFinalizarA11').disabled = enPool.length > 0;
+  }
+
+  document.getElementById('zonaInterno').addEventListener('click', (e) => {
+    if(seleccionadoA11 === null) return;
+    if(e.target.closest('.clasif-item')) return;
+    asignacionesA11[seleccionadoA11] = 'interno';
+    seleccionadoA11 = null;
+    pintarClasificador();
+  });
+  document.getElementById('zonaExterno').addEventListener('click', (e) => {
+    if(seleccionadoA11 === null) return;
+    if(e.target.closest('.clasif-item')) return;
+    asignacionesA11[seleccionadoA11] = 'externo';
+    seleccionadoA11 = null;
+    pintarClasificador();
+  });
+
+  document.getElementById('btnFinalizarA11').addEventListener('click', async () => {
+    clearInterval(timerIntervalA11);
+
+    let correctas = 0;
+    ITEMS_A11.forEach(it => { if(asignacionesA11[it.id] === it.tipo) correctas++; });
+    const total = ITEMS_A11.length;
+    const proporcionCorrecta = correctas / total;
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA11) / 60000;
+    const justificacion = document.getElementById('justificacionA11').value.trim();
+
+    const criterios = [];
+
+    criterios.push({ nombre: CRITERIOS_BASE_A11[0].nombre, descripcion: CRITERIOS_BASE_A11[0].descripcion, nivel: 'logrado' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[1].nombre, descripcion: CRITERIOS_BASE_A11[1].descripcion,
+      nivel: proporcionCorrecta >= 0.75 ? 'logrado' : (proporcionCorrecta >= 0.4 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[2].nombre, descripcion: CRITERIOS_BASE_A11[2].descripcion,
+      nivel: proporcionCorrecta >= 0.9 ? 'logrado' : (proporcionCorrecta >= 0.5 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[3].nombre, descripcion: CRITERIOS_BASE_A11[3].descripcion,
+      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[4].nombre, descripcion: CRITERIOS_BASE_A11[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA11 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA11 * 2 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A11[5].nombre, descripcion: CRITERIOS_BASE_A11[5].descripcion, nivel: 'logrado' });
+
+    const pesoUnidad = puntajeMaxA11 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => {
+      if(c.nivel === 'logrado') notaCalculada += pesoUnidad;
+      else if(c.nivel === 'proceso') notaCalculada += pesoUnidad / 2;
+    });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA11').classList.add('hidden');
+    document.getElementById('vistaResultadoA11').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
+    document.getElementById('tituloDesgloseA11').classList.remove('hidden');
+    renderRubrica('rubricaResultadoA11', criterios, puntajeMaxA11, notaCalculada);
+
+    document.getElementById('resultadoDesgloseA11').innerHTML = `
+      <div class="clasif-zona zona-interno">
+        <h4><i class="fa-solid fa-building"></i> Interno</h4>
+        ${ITEMS_A11.filter(it => it.tipo === 'interno').map(it => `
+          <div class="clasif-item ${asignacionesA11[it.id] === 'interno' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+        `).join('')}
+      </div>
+      <div class="clasif-zona zona-externo">
+        <h4><i class="fa-solid fa-globe"></i> Externo</h4>
+        ${ITEMS_A11.filter(it => it.tipo === 'externo').map(it => `
+          <div class="clasif-item ${asignacionesA11[it.id] === 'externo' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+        `).join('')}
+      </div>
+    `;
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.1',
+        ra:'RA1',
+        ec:'EC6.1.1',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA11,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnVolverMisActA11').addEventListener('click', () => {
+    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.1', abrirActividadA11);
+
+// ============================================================================
+// A.1.2 — PARTES DE UN REPORTE EMPRESARIAL
+// ============================================================================
+  // ================= ACTIVIDAD A.1.2: PARTES DE UN REPORTE EMPRESARIAL =================
+  // Se muestra un reporte simulado con datos reales (empresa, productos, totales en RD$).
+  // El estudiante debe identificar qué parte del reporte es cada sección, arrastrando/asignando
+  // las etiquetas del banco (que aparecen en orden aleatorio) a la zona correspondiente.
+  const ZONAS_A12_BASE = [
+    {
+      id:1,
+      correcta:'Encabezado de reporte',
+      html:`<div style="font-weight:800; font-size:16px;">TECNOVENTAS RD, S.R.L.</div>
+            <div style="font-size:14px; opacity:.85;">Reporte de Ventas Mensuales — Enero 2026</div>`
+    },
+    {
+      id:2,
+      correcta:'Encabezado de página',
+      html:`<div style="font-size:12.5px; opacity:.8; margin-bottom:6px;">Página 1 &nbsp;·&nbsp; Generado: 31/01/2026 &nbsp;·&nbsp; Vendedor: Todos</div>
+            <div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:6px;">
+              <span style="flex:2;">Producto</span><span style="flex:1;">Cant.</span><span style="flex:1;">Precio Unit.</span><span style="flex:1;">Total</span>
+            </div>`
+    },
+    {
+      id:3,
+      correcta:'Línea de detalle',
+      html:`<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Laptop HP 15</span><span style="flex:1;">3</span><span style="flex:1;">RD$28,500.00</span><span style="flex:1;">RD$85,500.00</span></div>
+            <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Mouse inalámbrico</span><span style="flex:1;">12</span><span style="flex:1;">RD$650.00</span><span style="flex:1;">RD$7,800.00</span></div>
+            <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Teclado mecánico</span><span style="flex:1;">7</span><span style="flex:1;">RD$1,200.00</span><span style="flex:1;">RD$8,400.00</span></div>`
+    },
+    {
+      id:4,
+      correcta:'Pie de página',
+      html:`<div style="font-size:12.5px; opacity:.85;">Página 1 de 2 &nbsp;·&nbsp; Subtotal de esta página: <b>RD$101,700.00</b></div>`
+    },
+    {
+      id:5,
+      correcta:'Pie de reporte',
+      html:`<div style="font-size:14.5px; font-weight:800;">TOTAL GENERAL DEL REPORTE: RD$198,450.00</div>
+            <div style="font-size:12px; opacity:.75;">Elaborado por: Departamento de Ventas</div>`
+    }
+  ];
+  const ETIQUETAS_A12_BASE = ['Encabezado de reporte', 'Encabezado de página', 'Línea de detalle', 'Pie de página', 'Pie de reporte'];
+
+  const CRITERIOS_BASE_A12 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación de partes', descripcion:'Reconoce las partes que componen un reporte empresarial.' },
+    { key:'clasificacion', nombre:'3. Ubicación correcta', descripcion:'Coloca cada etiqueta en la zona correcta del reporte.' },
+    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica la función de al menos dos de las partes identificadas.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let asignacionesA12 = {};
+  let etiquetaSeleccionadaA12 = null;
+  let etiquetasBarajadasA12 = [];
+  let puntajeMaxA12 = 0;
+  let tiempoEstimadoA12 = 10;
+  let inicioTiempoA12 = null;
+  let timerIntervalA12 = null;
+
+  async function abrirActividadA12(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA12 = puntajeMaximo;
+    tiempoEstimadoA12 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA12').textContent = enunciado || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA12').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.2') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA12').classList.add('hidden');
+        document.getElementById('vistaEjercicioA12').classList.add('hidden');
+        document.getElementById('vistaResultadoA12').classList.remove('hidden');
+        document.getElementById('resultadoDesgloseA12').innerHTML = '';
+        renderListaCotejo('rubricaResultadoA12', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA12').classList.remove('hidden');
+        document.getElementById('tituloDesgloseA12').classList.add('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA12').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA12').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA12').classList.add('hidden');
+    document.getElementById('vistaResultadoA12').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA12').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA12} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.2', 'recursosEstudianteA12');
+
+    const criteriosPrevios = CRITERIOS_BASE_A12.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderListaCotejo('instrumentoPrevioA12', criteriosPrevios, puntajeMaxA12, null);
+  }
+
+  document.getElementById('btnBackFromActividadA12').addEventListener('click', () => {
+    clearInterval(timerIntervalA12);
+    document.getElementById('panelActividadA12').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA12').addEventListener('click', () => {
+    asignacionesA12 = {};
+    etiquetaSeleccionadaA12 = null;
+    etiquetasBarajadasA12 = barajar(ETIQUETAS_A12_BASE); // orden distinto en cada intento
+    document.getElementById('justificacionA12').value = '';
+    document.getElementById('vistaInstrumentoA12').classList.add('hidden');
+    document.getElementById('vistaEjercicioA12').classList.remove('hidden');
+    pintarEsquemaA12();
+
+    inicioTiempoA12 = Date.now();
+    clearInterval(timerIntervalA12);
+    timerIntervalA12 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA12) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA12').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA12} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarEsquemaA12(){
+    const pool = document.getElementById('etiquetasPoolA12');
+    const esquema = document.getElementById('esquemaReporteA12');
+
+    const etiquetasUsadas = Object.values(asignacionesA12);
+    const etiquetasDisponibles = etiquetasBarajadasA12.filter(et => !etiquetasUsadas.includes(et));
+
+    pool.innerHTML = etiquetasDisponibles.map(et => `
+      <div class="clasif-item ${etiquetaSeleccionadaA12 === et ? 'selected' : ''}" data-etiqueta="${et}">${et}</div>
+    `).join('') || '<span style="opacity:.5; font-size:14px;">Todas las etiquetas han sido ubicadas.</span>';
+
+    esquema.innerHTML = ZONAS_A12_BASE.map(z => {
+      const etiqueta = asignacionesA12[z.id];
+      return `
+        <div class="esquema-zona ${etiqueta ? 'esquema-zona-llena' : 'esquema-zona-vacia'}" data-zona="${z.id}">
+          <div style="flex:1;">
+            ${z.html}
+            <div class="esquema-zona-slot">
+              ${etiqueta
+                ? `<span class="esquema-zona-etiqueta"><i class="fa-solid fa-tag"></i> ${etiqueta}</span>`
+                : `<span class="esquema-zona-placeholder">¿Qué parte del reporte es esta? Selecciona una etiqueta y haz clic aquí.</span>`}
+            </div>
+          </div>
+          ${etiqueta ? '<i class="fa-solid fa-xmark" style="opacity:.5;"></i>' : ''}
+        </div>`;
+    }).join('');
+
+    pool.querySelectorAll('.clasif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const et = el.dataset.etiqueta;
+        etiquetaSeleccionadaA12 = etiquetaSeleccionadaA12 === et ? null : et;
+        pintarEsquemaA12();
+      });
+    });
+
+    esquema.querySelectorAll('.esquema-zona').forEach(el => {
+      el.addEventListener('click', () => {
+        const zonaId = Number(el.dataset.zona);
+        if(asignacionesA12[zonaId]){
+          delete asignacionesA12[zonaId]; // quitar etiqueta ya puesta
+        } else if(etiquetaSeleccionadaA12){
+          asignacionesA12[zonaId] = etiquetaSeleccionadaA12;
+          etiquetaSeleccionadaA12 = null;
+        }
+        pintarEsquemaA12();
+      });
+    });
+
+    document.getElementById('btnFinalizarA12').disabled = Object.keys(asignacionesA12).length < ZONAS_A12_BASE.length;
+  }
+
+  document.getElementById('btnFinalizarA12').addEventListener('click', async () => {
+    clearInterval(timerIntervalA12);
+
+    let correctas = 0;
+    ZONAS_A12_BASE.forEach(z => { if(asignacionesA12[z.id] === z.correcta) correctas++; });
+    const total = ZONAS_A12_BASE.length;
+    const proporcionCorrecta = correctas / total;
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA12) / 60000;
+    const justificacion = document.getElementById('justificacionA12').value.trim();
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A12[0].nombre, descripcion: CRITERIOS_BASE_A12[0].descripcion, nivel: 'cumple' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[1].nombre, descripcion: CRITERIOS_BASE_A12[1].descripcion,
+      nivel: proporcionCorrecta >= 0.6 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[2].nombre, descripcion: CRITERIOS_BASE_A12[2].descripcion,
+      nivel: proporcionCorrecta >= 0.8 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[3].nombre, descripcion: CRITERIOS_BASE_A12[3].descripcion,
+      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[4].nombre, descripcion: CRITERIOS_BASE_A12[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA12 * 1.5 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A12[5].nombre, descripcion: CRITERIOS_BASE_A12[5].descripcion, nivel: 'cumple' });
+
+    const pesoUnidad = puntajeMaxA12 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => { if(c.nivel === 'cumple') notaCalculada += pesoUnidad; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA12').classList.add('hidden');
+    document.getElementById('vistaResultadoA12').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA12').classList.add('hidden');
+    document.getElementById('tituloDesgloseA12').classList.remove('hidden');
+    renderListaCotejo('rubricaResultadoA12', criterios, puntajeMaxA12, notaCalculada);
+
+    document.getElementById('resultadoDesgloseA12').innerHTML = ZONAS_A12_BASE.map(z => {
+      const asignada = asignacionesA12[z.id];
+      const ok = asignada === z.correcta;
+      return `
+        <div class="esquema-zona ${ok ? 'correcto' : 'incorrecto'}">
+          <div style="flex:1;">
+            ${z.html}
+            <div class="esquema-zona-slot">
+              <span class="esquema-zona-etiqueta">Tu respuesta: ${asignada || 'Sin responder'} ${!ok ? `(correcta: ${z.correcta})` : ''}</span>
+            </div>
+          </div>
+          <i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}"></i>
+        </div>`;
+    }).join('');
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.2',
+        ra:'RA1',
+        ec:'EC6.1.1',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA12,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnVolverMisActA12').addEventListener('click', () => {
+    document.getElementById('panelActividadA12').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.2', abrirActividadA12);
