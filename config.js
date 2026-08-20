@@ -38,6 +38,16 @@
   }
 
   // ---------- Recursos de una actividad (reutilizable por cualquier actividad interactiva) ----------
+  // ---------- Utilidad de mezclado (usada por cualquier actividad para evitar patrones) ----------
+  function barajar(arr){
+    const copia = [...arr];
+    for(let i = copia.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [copia[i], copia[j]] = [copia[j], copia[i]];
+    }
+    return copia;
+  }
+
   async function cargarRecursosActividad(codigo, containerId){
     const cont = document.getElementById(containerId);
     if(!cont) return;
