@@ -60,7 +60,7 @@
       <div class="login-badge"></div>
       <div class="login-logo">
         <div class="crest-fallback"><i class="fa-solid fa-key"></i></div>
-        <div class="login-title" style="font-size:24px;">Cambia tu contraseña</div>
+        <div class="login-title" style="font-size:27.5px;">Cambia tu contraseña</div>
         <div class="login-subtitle">Es tu primer ingreso al sistema. Por seguridad, debes establecer una nueva contraseña antes de continuar.</div>
       </div>
 
@@ -155,10 +155,6 @@
           <span class="m-tag tag-soon">Próximo paso</span>
         </div>
       </div>
-      <div class="empty-note">
-        <i class="fa-solid fa-circle-info"></i>
-        Este es el esqueleto de navegación del sistema. Los módulos marcados como "Próximo paso" se construirán en las siguientes sesiones, empezando por el <b>Registro de estudiantes</b> y la conexión a Google Sheets.
-      </div>
     </div>
 
     <!-- ---- REGISTRO DE ESTUDIANTES ---- -->
@@ -167,7 +163,7 @@
       <div class="section-heading">Registro de estudiantes</div>
 
       <div class="panel-toolbar">
-        <div style="font-size:13px; color:var(--dark-text-dim);" id="totalEstudiantesLabel">Cargando...</div>
+        <div style="font-size:15px; color:var(--dark-text-dim);" id="totalEstudiantesLabel">Cargando...</div>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button type="button" class="btn-secondary" id="btnExportarExcel" style="padding:10px 14px;">
             <i class="fa-solid fa-file-arrow-down"></i> Exportar a Excel
@@ -247,7 +243,7 @@
       <div id="vistaListaActividades" class="hidden">
         <button type="button" class="back-btn" id="btnBackToRaCardsAdmin"><i class="fa-solid fa-arrow-left"></i> Volver a los RA</button>
         <div class="panel-toolbar">
-          <div style="font-size:13px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
+          <div style="font-size:15px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
         </div>
         <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
           <i class="fa-solid fa-circle-info"></i>
@@ -293,7 +289,7 @@
       <!-- Vista 2: lista de actividades del RA seleccionado -->
       <div id="vistaListaMisActividades" class="hidden">
         <button type="button" class="back-btn" id="btnBackToRaCardsEstudiante"><i class="fa-solid fa-arrow-left"></i> Volver a mis RA</button>
-        <div class="section-heading" id="tituloListaMisActividades" style="font-size:19px;">RA1</div>
+        <div class="section-heading" id="tituloListaMisActividades" style="font-size:22px;">RA1</div>
         <div id="listaMisActividadesWrap"></div>
       </div>
     </div>
@@ -305,10 +301,10 @@
 
       <!-- Vista 1: enunciado + recursos + instrumento (antes de comenzar) -->
       <div id="vistaInstrumentoA11">
-        <div class="section-heading" style="font-size:16px;">Enunciado</div>
-        <p id="enunciadoActivoA11" style="font-size:13.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA11" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
 
-        <div class="section-heading" style="font-size:16px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
         <div id="recursosEstudianteA11" class="recursos-lista">
           <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
         </div>
@@ -361,7 +357,7 @@
           Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
         </div>
         <div id="rubricaResultadoA11"></div>
-        <div class="section-heading" style="font-size:16px;" id="tituloDesgloseA11">Detalle de tu clasificación</div>
+        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA11">Detalle de tu clasificación</div>
         <div class="clasif-zonas" id="resultadoDesgloseA11"></div>
         <button type="button" class="btn btn-primary" id="btnVolverMisActA11" style="width:auto; padding:12px 28px; margin-top:10px;">
           <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
