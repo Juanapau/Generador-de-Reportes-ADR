@@ -78,7 +78,8 @@
             <div class="actividad-ec">${act.ec} · ${act.ra}</div>
           </div>
         </div>
-        <div class="actividad-enunciado">${act.enunciado}</div>
+        <label style="display:block; font-size:12.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
+        <textarea class="input-enunciado textarea-generico">${act.enunciado}</textarea>
         <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
         <div class="actividad-controls">
           <div class="puntaje-field">
@@ -155,13 +156,14 @@
         const puntaje = card.querySelector('.input-puntaje').value;
         const tiempoEstimado = card.querySelector('.input-tiempo').value;
         const habilitada = card.querySelector('.input-habilitada').checked;
+        const enunciado = card.querySelector('.input-enunciado').value.trim();
 
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
         okMsg.classList.remove('show');
 
         try{
-          const data = await apiPost({ action:'actualizarActividad', codigo, puntaje, tiempoEstimado, habilitada });
+          const data = await apiPost({ action:'actualizarActividad', codigo, puntaje, tiempoEstimado, habilitada, enunciado });
           if(data.success){
             okMsg.classList.add('show');
             setTimeout(() => okMsg.classList.remove('show'), 2000);
