@@ -1,13 +1,17 @@
 // ================= ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES =================
-  const ITEMS_A11 = [
-    { id:1, texto:'Reporte de ventas mensuales dirigido al gerente general de la empresa.', tipo:'interno' },
-    { id:2, texto:'Informe financiero anual publicado para los accionistas.', tipo:'externo' },
-    { id:3, texto:'Reporte de asistencia del personal para el departamento de RRHH.', tipo:'interno' },
-    { id:4, texto:'Estado de cuenta enviado a un cliente.', tipo:'externo' },
-    { id:5, texto:'Reporte de inventario para el supervisor de almacén.', tipo:'interno' },
-    { id:6, texto:'Informe de sostenibilidad publicado en el sitio web de la empresa.', tipo:'externo' },
-    { id:7, texto:'Reporte de desempeño de ventas para la gerencia.', tipo:'interno' },
-    { id:8, texto:'Factura enviada a un proveedor externo.', tipo:'externo' }
+  // Contenido pensado para 5to de Bachillerato Técnico en Informática: requiere leer
+  // y analizar el propósito/audiencia de cada reporte, no solo detectar una palabra clave.
+  const ITEMS_A11_BASE = [
+    { id:1, texto:'Resumen semanal de indicadores de productividad, compartido únicamente entre los supervisores de línea de producción.', tipo:'interno' },
+    { id:2, texto:'Boletín trimestral con los resultados financieros consolidados, remitido a la Superintendencia de Valores.', tipo:'externo' },
+    { id:3, texto:'Registro de horas trabajadas y ausencias, utilizado por el área de nómina para calcular los pagos quincenales.', tipo:'interno' },
+    { id:4, texto:'Cotización detallada de servicios de mantenimiento, enviada a una empresa interesada en contratar a la compañía.', tipo:'externo' },
+    { id:5, texto:'Comparativo de existencias entre bodegas, empleado para decidir traslados internos de mercancía.', tipo:'interno' },
+    { id:6, texto:'Memoria anual de responsabilidad social corporativa, disponible para descarga en la página institucional.', tipo:'externo' },
+    { id:7, texto:'Análisis de rotación de personal presentado en la reunión mensual de gerencia.', tipo:'interno' },
+    { id:8, texto:'Certificación de cumplimiento tributario, solicitada por un banco para aprobar una línea de crédito.', tipo:'externo' },
+    { id:9, texto:'Bitácora de incidencias del sistema, revisada por el equipo de soporte técnico para dar seguimiento a fallos.', tipo:'interno' },
+    { id:10, texto:'Carta de confirmación de pedido con el detalle de productos y fechas de entrega, dirigida a un cliente.', tipo:'externo' }
   ];
 
   const CRITERIOS_BASE_A11 = [
@@ -19,6 +23,7 @@
     { key:'colaborativo', nombre:'6. Trabajo colaborativo', descripcion:'Colabora de forma organizada con su equipo durante el ejercicio.' }
   ];
 
+  let ITEMS_A11 = [];
   let asignacionesA11 = {};
   let seleccionadoA11 = null;
   let puntajeMaxA11 = 0;
@@ -26,18 +31,48 @@
   let inicioTiempoA11 = null;
   let timerIntervalA11 = null;
 
-  function abrirActividadA11(puntajeMaximo, tiempoEstimado){
+  function barajar(arr){
+    const copia = [...arr];
+    for(let i = copia.length - 1; i > 0; i--){
+      const j = Math.floor(Math.random() * (i + 1));
+      [copia[i], copia[j]] = [copia[j], copia[i]];
+    }
+    return copia;
+  }
+
+  async function abrirActividadA11(puntajeMaximo, tiempoEstimado){
     puntajeMaxA11 = puntajeMaximo;
     tiempoEstimadoA11 = tiempoEstimado || 10;
     document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('panelActividadA11').classList.remove('hidden');
+
+    // ---- Bloqueo de repetición: si ya existe una calificación para esta actividad,
+    // se muestra directamente el resultado guardado y no se permite volver a realizarla.
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.1') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA11').classList.add('hidden');
+        document.getElementById('vistaEjercicioA11').classList.add('hidden');
+        document.getElementById('vistaResultadoA11').classList.remove('hidden');
+        document.getElementById('resultadoDesgloseA11').innerHTML = '';
+        renderRubrica('rubricaResultadoA11', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA11').classList.remove('hidden');
+        document.getElementById('tituloDesgloseA11').classList.add('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
     document.getElementById('vistaInstrumentoA11').classList.remove('hidden');
     document.getElementById('vistaEjercicioA11').classList.add('hidden');
     document.getElementById('vistaResultadoA11').classList.add('hidden');
 
+    document.getElementById('tiempoEstimadoAvisoA11').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA11} minutos</b> para completar esta actividad una vez que la inicies.`;
+
     cargarRecursosEstudianteA11();
 
-    // Instrumento de evaluación (previo, sin resultados aún)
     const criteriosPrevios = CRITERIOS_BASE_A11.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
     renderRubrica('instrumentoPrevioA11', criteriosPrevios, puntajeMaxA11, null);
   }
@@ -52,7 +87,7 @@
       }
       cont.innerHTML = data.recursos.map(r => `
         <a href="${r.url}" target="_blank" rel="noopener" class="recurso-item">
-          <i class="fa-solid fa-link"></i>
+          <i class="fa-solid ${r.tipo === 'archivo' ? 'fa-file-lines' : 'fa-link'}"></i>
           <span>${r.nombre}</span>
           <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; opacity:.6;"></i>
         </a>
@@ -69,6 +104,7 @@
   });
 
   document.getElementById('btnComenzarA11').addEventListener('click', () => {
+    ITEMS_A11 = barajar(ITEMS_A11_BASE); // orden distinto en cada intento, sin patrón predecible
     asignacionesA11 = {};
     seleccionadoA11 = null;
     document.getElementById('justificacionA11').value = '';
@@ -76,14 +112,13 @@
     document.getElementById('vistaEjercicioA11').classList.remove('hidden');
     pintarClasificador();
 
-    // Iniciar cronómetro (criterio 5: cumplimiento del tiempo)
     inicioTiempoA11 = Date.now();
     clearInterval(timerIntervalA11);
     timerIntervalA11 = setInterval(() => {
       const seg = Math.floor((Date.now() - inicioTiempoA11) / 1000);
       const mm = String(Math.floor(seg/60)).padStart(2,'0');
       const ss = String(seg%60).padStart(2,'0');
-      document.getElementById('timerA11').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss}`;
+      document.getElementById('timerA11').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA11} min aprox.)</span>`;
     }, 1000);
   });
 
@@ -148,41 +183,32 @@
     const minutosTranscurridos = (Date.now() - inicioTiempoA11) / 60000;
     const justificacion = document.getElementById('justificacionA11').value.trim();
 
-    // ===== Evaluación automática de cada criterio =====
     const criterios = [];
 
-    // 1. Participación activa: si llegó hasta aquí, participó.
     criterios.push({ nombre: CRITERIOS_BASE_A11[0].nombre, descripcion: CRITERIOS_BASE_A11[0].descripcion, nivel: 'logrado' });
 
-    // 2. Identificación de tipos: se infiere del nivel de acierto general.
     criterios.push({
       nombre: CRITERIOS_BASE_A11[1].nombre, descripcion: CRITERIOS_BASE_A11[1].descripcion,
       nivel: proporcionCorrecta >= 0.75 ? 'logrado' : (proporcionCorrecta >= 0.4 ? 'proceso' : 'no_logrado')
     });
 
-    // 3. Clasificación correcta (el criterio central, autocalificado por el ejercicio).
     criterios.push({
       nombre: CRITERIOS_BASE_A11[2].nombre, descripcion: CRITERIOS_BASE_A11[2].descripcion,
       nivel: proporcionCorrecta >= 0.9 ? 'logrado' : (proporcionCorrecta >= 0.5 ? 'proceso' : 'no_logrado')
     });
 
-    // 4. Justificación del criterio: según longitud/calidad mínima del texto.
     criterios.push({
       nombre: CRITERIOS_BASE_A11[3].nombre, descripcion: CRITERIOS_BASE_A11[3].descripcion,
       nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
     });
 
-    // 5. Cumplimiento del tiempo: comparado con el tiempo estimado por el docente.
     criterios.push({
       nombre: CRITERIOS_BASE_A11[4].nombre, descripcion: CRITERIOS_BASE_A11[4].descripcion,
       nivel: minutosTranscurridos <= tiempoEstimadoA11 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA11 * 2 ? 'proceso' : 'no_logrado')
     });
 
-    // 6. Trabajo colaborativo: no medible por el sistema, se marca Logrado por defecto
-    // (el docente puede ajustarlo manualmente desde "Calificaciones y avances" si lo requiere).
     criterios.push({ nombre: CRITERIOS_BASE_A11[5].nombre, descripcion: CRITERIOS_BASE_A11[5].descripcion, nivel: 'logrado' });
 
-    // ===== Cálculo de la nota total según los niveles logrados =====
     const pesoUnidad = puntajeMaxA11 / criterios.length;
     let notaCalculada = 0;
     criterios.forEach(c => {
@@ -191,9 +217,10 @@
     });
     notaCalculada = Math.round(notaCalculada * 100) / 100;
 
-    // Mostrar resultado
     document.getElementById('vistaEjercicioA11').classList.add('hidden');
     document.getElementById('vistaResultadoA11').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
+    document.getElementById('tituloDesgloseA11').classList.remove('hidden');
     renderRubrica('rubricaResultadoA11', criterios, puntajeMaxA11, notaCalculada);
 
     document.getElementById('resultadoDesgloseA11').innerHTML = `
@@ -211,7 +238,6 @@
       </div>
     `;
 
-    // Guardar la calificación con el desglose completo por criterio
     try{
       await apiPost({
         action:'guardarCalificacion',
