@@ -364,6 +364,68 @@
         </button>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.2: PARTES DEL REPORTE ---- -->
+    <div id="panelActividadA12" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromActividadA12"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.2 — Partes de un reporte empresarial</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA12">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA12" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA12" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA12"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA12" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA12" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA12" class="hidden">
+        <div class="timer-badge" id="timerA12"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Haz clic en una etiqueta del banco y luego en la zona del reporte donde corresponde. Puedes hacer clic en una zona ya etiquetada para quitarle la etiqueta.
+        </div>
+
+        <div class="clasif-pool" id="etiquetasPoolA12"></div>
+
+        <div class="esquema-reporte" id="esquemaReporteA12"></div>
+
+        <div class="justificacion-box">
+          <label for="justificacionA12"><i class="fa-solid fa-pen"></i> ¿Para qué sirve cada parte que ubicaste? (criterio 4)</label>
+          <textarea id="justificacionA12" placeholder="Explica brevemente la función de al menos dos de las partes del reporte que identificaste..."></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnFinalizarA12" style="width:auto; padding:12px 28px;" disabled>
+          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        </button>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA12" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA12">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA12"></div>
+        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA12">Detalle de tu esquema</div>
+        <div class="esquema-reporte" id="resultadoDesgloseA12"></div>
+        <button type="button" class="btn btn-primary" id="btnVolverMisActA12" style="width:auto; padding:12px 28px; margin-top:10px;">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
@@ -379,5 +441,6 @@
 <script src="actividades-admin.js"></script>
 <script src="mis-actividades.js"></script>
 <script src="a1-1-clasificador.js"></script>
+<script src="a1-2-partes-reporte.js"></script>
 </body>
 </html>
