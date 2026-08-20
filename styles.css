@@ -573,6 +573,26 @@
   body.light .ra-card-sub{ color:var(--light-text-dim); }
   .ra-card-disabled{ opacity:.45; cursor:not-allowed; }
 
+  /* ============ ESQUEMA GRÁFICO DE REPORTE (A.1.2) ============ */
+  .esquema-reporte{
+    max-width:560px; margin:0 auto 22px; border:2px solid var(--dark-border); border-radius:12px; overflow:hidden;
+  }
+  .esquema-zona{
+    padding:14px 16px; border-bottom:1px solid var(--dark-border); cursor:pointer; transition:.15s;
+    display:flex; align-items:center; justify-content:space-between; gap:10px; min-height:24px;
+  }
+  .esquema-zona:last-child{ border-bottom:none; }
+  .esquema-zona-vacia{ background: rgba(255,255,255,0.03); }
+  body.light .esquema-zona-vacia{ background:#f7f9fd; }
+  .esquema-zona-llena{ background: rgba(79,163,255,.10); }
+  .esquema-zona-etiqueta{ font-weight:800; font-size:14px; }
+  .esquema-zona-placeholder{ font-size:12.5px; opacity:.5; font-style:italic; }
+  .esquema-zona-tag{
+    font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; opacity:.55; font-weight:700;
+  }
+  .esquema-zona.correcto{ background: rgba(34,197,94,.15); border-left:4px solid var(--dark-green-accent); }
+  .esquema-zona.incorrecto{ background: rgba(239,68,68,.15); border-left:4px solid #ef4444; }
+
   /* ============ TIMER Y JUSTIFICACIÓN ============ */
   .timer-badge{
     display:inline-flex; align-items:center; gap:8px; padding:8px 14px; border-radius:20px;
