@@ -232,19 +232,23 @@
       <button type="button" class="back-btn" id="btnBackFromActividades"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
       <div class="section-heading">Actividades por RA — Asignación de puntaje</div>
 
-      <div class="panel-toolbar">
-        <div style="font-size:13px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
-        <div class="role-tabs" style="margin:0; width:auto;">
-          <button type="button" class="role-tab active" id="raTab1" data-ra="RA1">RA1</button>
+      <!-- Vista 1: selección de RA -->
+      <div id="vistaRaCardsAdmin">
+        <div class="ra-cards-grid" id="raCardsAdminWrap"></div>
+      </div>
+
+      <!-- Vista 2: lista de actividades del RA seleccionado -->
+      <div id="vistaListaActividades" class="hidden">
+        <button type="button" class="back-btn" id="btnBackToRaCardsAdmin"><i class="fa-solid fa-arrow-left"></i> Volver a los RA</button>
+        <div class="panel-toolbar">
+          <div style="font-size:13px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
         </div>
+        <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
+          <i class="fa-solid fa-circle-info"></i>
+          Asigna el puntaje y tiempo estimado, activa la actividad, y agrega los recursos de apoyo (enlaces) que verán los estudiantes.
+        </div>
+        <div id="listaActividadesWrap"></div>
       </div>
-
-      <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
-        <i class="fa-solid fa-circle-info"></i>
-        Asigna el puntaje máximo de cada actividad y actívala con el interruptor cuando esté lista para que los estudiantes la vean. El instrumento de evaluación (escala de valoración de 6 criterios) se configurará al construir cada actividad interactiva.
-      </div>
-
-      <div id="listaActividadesWrap"></div>
     </div>
 
     <!-- ---- PANEL ESTUDIANTE ---- -->
@@ -273,8 +277,19 @@
     <!-- ---- MIS ACTIVIDADES (vista estudiante) ---- -->
     <div id="panelMisActividades" class="hidden">
       <button type="button" class="back-btn" id="btnBackFromMisActividades"><i class="fa-solid fa-arrow-left"></i> Volver a mi espacio</button>
-      <div class="section-heading">Mis actividades — RA1</div>
-      <div id="listaMisActividadesWrap"></div>
+      <div class="section-heading">Mis actividades</div>
+
+      <!-- Vista 1: selección de RA -->
+      <div id="vistaRaCardsEstudiante">
+        <div class="ra-cards-grid" id="raCardsEstudianteWrap"></div>
+      </div>
+
+      <!-- Vista 2: lista de actividades del RA seleccionado -->
+      <div id="vistaListaMisActividades" class="hidden">
+        <button type="button" class="back-btn" id="btnBackToRaCardsEstudiante"><i class="fa-solid fa-arrow-left"></i> Volver a mis RA</button>
+        <div class="section-heading" id="tituloListaMisActividades" style="font-size:19px;">RA1</div>
+        <div id="listaMisActividadesWrap"></div>
+      </div>
     </div>
 
     <!-- ---- ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES ---- -->
@@ -282,36 +297,29 @@
       <button type="button" class="back-btn" id="btnBackFromActividadA11"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
       <div class="section-heading">A.1.1 — Clasificador de reportes empresariales</div>
 
-      <!-- Vista 1: instrumento de evaluación -->
+      <!-- Vista 1: enunciado + recursos + instrumento (antes de comenzar) -->
       <div id="vistaInstrumentoA11">
-        <p style="font-size:13.5px; margin-bottom:14px; line-height:1.6;">
+        <div class="section-heading" style="font-size:16px;">Enunciado</div>
+        <p style="font-size:13.5px; margin-bottom:20px; line-height:1.6;">
           Los estudiantes, organizados en equipos, analizan diferentes ejemplos de reportes empresariales impresos y digitales y los clasifican según su tipo (interno o externo), justificando el criterio utilizado.
         </p>
-        <div class="section-heading" style="font-size:17px;">Así serás evaluado</div>
-        <table class="rubrica-table">
-          <thead>
-            <tr><th style="width:36px;">#</th><th>Criterio</th><th>Descripción del desempeño</th></tr>
-          </thead>
-          <tbody>
-            <tr><td class="crit-num">1</td><td>Participación activa</td><td>Participa en la actividad de clasificación desde el inicio.</td></tr>
-            <tr><td class="crit-num">2</td><td>Identificación de tipos</td><td>Reconoce las características que distinguen un reporte interno de uno externo.</td></tr>
-            <tr><td class="crit-num">3</td><td>Clasificación correcta</td><td>Ubica cada ejemplo en la categoría correcta según sus características. <b>(Autocalificado)</b></td></tr>
-            <tr><td class="crit-num">4</td><td>Justificación del criterio</td><td>Explica el motivo de su clasificación con argumentos válidos.</td></tr>
-            <tr><td class="crit-num">5</td><td>Cumplimiento del tiempo</td><td>Completa la actividad dentro del tiempo asignado en clase.</td></tr>
-            <tr><td class="crit-num">6</td><td>Trabajo colaborativo</td><td>Colabora de forma organizada con su equipo durante el ejercicio.</td></tr>
-          </tbody>
-        </table>
-        <div class="empty-note">
-          <i class="fa-solid fa-circle-info"></i>
-          El criterio <b>3 (Clasificación correcta)</b> se autocalifica según tus respuestas. Los demás criterios los evalúa tu docente durante la actividad en clase.
+
+        <div class="section-heading" style="font-size:16px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA11" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
         </div>
-        <button type="button" class="btn btn-primary" id="btnComenzarA11" style="margin-top:18px; width:auto; padding:12px 28px;">
+
+        <div id="instrumentoPrevioA11"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA11" style="margin-top:6px; width:auto; padding:12px 28px;">
           <i class="fa-solid fa-play"></i> Comenzar actividad
         </button>
       </div>
 
       <!-- Vista 2: el ejercicio en sí -->
       <div id="vistaEjercicioA11" class="hidden">
+        <div class="timer-badge" id="timerA11"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+
         <div class="empty-note" style="margin-top:0;">
           <i class="fa-solid fa-hand-pointer"></i>
           Haz clic en cada reporte para seleccionarlo, luego haz clic en la zona "Interno" o "Externo" para clasificarlo. Puedes hacer clic en un reporte ya clasificado para regresarlo.
@@ -330,6 +338,11 @@
           </div>
         </div>
 
+        <div class="justificacion-box">
+          <label for="justificacionA11"><i class="fa-solid fa-pen"></i> ¿Por qué clasificaste los reportes de esta manera? (criterio 4)</label>
+          <textarea id="justificacionA11" placeholder="Explica brevemente el criterio que usaste para diferenciar los reportes internos de los externos..."></textarea>
+        </div>
+
         <button type="button" class="btn btn-primary" id="btnFinalizarA11" style="width:auto; padding:12px 28px;" disabled>
           <i class="fa-solid fa-check-double"></i> Finalizar y calificar
         </button>
@@ -337,11 +350,9 @@
 
       <!-- Vista 3: resultado -->
       <div id="vistaResultadoA11" class="hidden">
-        <div class="resultado-box">
-          <div class="resultado-nota" id="resultadoNotaA11">0 / 0</div>
-          <div class="resultado-detalle" id="resultadoDetalleA11"></div>
-        </div>
-        <div class="clasif-zonas" style="margin-top:20px;" id="resultadoDesgloseA11"></div>
+        <div id="rubricaResultadoA11"></div>
+        <div class="section-heading" style="font-size:16px;">Detalle de tu clasificación</div>
+        <div class="clasif-zonas" id="resultadoDesgloseA11"></div>
         <button type="button" class="btn btn-primary" id="btnVolverMisActA11" style="width:auto; padding:12px 28px; margin-top:10px;">
           <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
         </button>
@@ -353,6 +364,7 @@
 </div>
 
 <script src="config.js"></script>
+<script src="rubrica.js"></script>
 <script src="theme.js"></script>
 <script src="auth.js"></script>
 <script src="registro-estudiantes.js"></script>
