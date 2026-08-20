@@ -40,9 +40,10 @@
     return copia;
   }
 
-  async function abrirActividadA11(puntajeMaximo, tiempoEstimado){
+  async function abrirActividadA11(puntajeMaximo, tiempoEstimado, enunciado){
     puntajeMaxA11 = puntajeMaximo;
     tiempoEstimadoA11 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA11').textContent = enunciado || '';
     document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('panelActividadA11').classList.remove('hidden');
 
