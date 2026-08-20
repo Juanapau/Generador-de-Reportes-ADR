@@ -73,6 +73,8 @@
   document.getElementById('btnLogout').addEventListener('click', function(){
     currentUser = null;
     estudiantesCache = [];
+    docenteOriginal = null;
+    document.getElementById('impersonationBanner').classList.add('hidden');
     document.getElementById('appShell').classList.add('hidden');
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelActividades').classList.add('hidden');
