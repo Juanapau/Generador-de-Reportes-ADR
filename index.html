@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Reportes | Módulo ADR — PNSA</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-badge"></div>
+    <button type="button" class="theme-toggle-login" id="themeToggleLogin" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">
+      <i class="fa-solid fa-moon" id="themeIconLogin"></i>
+    </button>
+
+    <div class="login-logo">
+      <div class="crest-fallback">PNSA</div>
+      <div class="login-title">Generador de Reportes</div>
+      <div class="login-subtitle">Politécnico Nuestra Señora de la Altagracia</div>
+      <div class="login-module">Módulo: Análisis y Diseño de Reportes</div>
+    </div>
+
+    <div class="role-tabs">
+      <button type="button" class="role-tab active" data-role="estudiante" id="tabEstudiante">
+        <i class="fa-solid fa-user-graduate"></i>&nbsp; Estudiante
+      </button>
+      <button type="button" class="role-tab" data-role="docente" id="tabDocente">
+        <i class="fa-solid fa-chalkboard-user"></i>&nbsp; Docente
+      </button>
+    </div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginUser">Usuario</label>
+        <input type="text" id="loginUser" placeholder="Ej. estudiante01" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="loginPass">Contraseña</label>
+        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">
+        <i class="fa-solid fa-right-to-bracket"></i> Ingresar
+      </button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ CAMBIO OBLIGATORIO DE CONTRASEÑA (primer acceso) ============ -->
+<div id="forcedPasswordScreen" class="hidden">
+  <div id="loginScreenBg2" class="login-bg-wrap">
+    <div class="login-card">
+      <div class="login-badge"></div>
+      <div class="login-logo">
+        <div class="crest-fallback"><i class="fa-solid fa-key"></i></div>
+        <div class="login-title" style="font-size:24px;">Cambia tu contraseña</div>
+        <div class="login-subtitle">Es tu primer ingreso al sistema. Por seguridad, debes establecer una nueva contraseña antes de continuar.</div>
+      </div>
+
+      <form id="formCambioPassword">
+        <div class="field">
+          <label for="nuevaPass1">Nueva contraseña</label>
+          <input type="password" id="nuevaPass1" placeholder="Mínimo 4 caracteres" minlength="4" required>
+        </div>
+        <div class="field">
+          <label for="nuevaPass2">Confirmar nueva contraseña</label>
+          <input type="password" id="nuevaPass2" placeholder="Repite la contraseña" minlength="4" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fa-solid fa-check"></i> Guardar y continuar
+        </button>
+        <div class="login-error" id="cambioPasswordError"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============ APP SHELL ============ -->
+<div id="appShell" class="hidden">
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="crest-fallback-sm">PNSA</div>
+      <div class="topbar-title">
+        <h1>Generador de Reportes</h1>
+        <p id="topbarModule">Módulo: Análisis y Diseño de Reportes</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="userbar">
+    <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+    <div class="user-meta">
+      <div class="u-name" id="userName">—</div>
+      <div class="u-role" id="userRole">—</div>
+    </div>
+    <div class="userbar-actions">
+      <button type="button" class="icon-btn" id="themeToggleApp" title="Cambiar tema">
+        <i class="fa-solid fa-moon" id="themeIconApp"></i>
+      </button>
+      <button type="button" class="icon-btn" title="Notificaciones">
+        <i class="fa-solid fa-bell"></i>
+      </button>
+      <button type="button" class="btn-logout" id="btnLogout">
+        <i class="fa-solid fa-right-from-bracket"></i> Salir
+      </button>
+    </div>
+  </div>
+
+  <main>
+    <!-- ---- PANEL DOCENTE ---- -->
+    <div id="panelDocente" class="hidden">
+      <div class="section-heading">Panel del docente — Administración</div>
+      <div class="grid-cards">
+        <button type="button" class="module-card" id="cardRegistroEstudiantes" style="text-align:left;">
+          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-users"></i></div>
+          <h3>Registro de estudiantes</h3>
+          <p>Dar de alta, editar y organizar estudiantes por equipo o pareja de trabajo.</p>
+          <span class="m-tag tag-blue">Disponible</span>
+        </button>
+        <button type="button" class="module-card" id="cardActividadesRA" style="text-align:left;">
+          <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-list-check"></i></div>
+          <h3>Actividades por RA</h3>
+          <p>Configurar cada actividad (A.1.1...), su instrumento de evaluación y su puntaje máximo antes de habilitarla.</p>
+          <span class="m-tag tag-gold">Disponible</span>
+        </button>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-line"></i></div>
+          <h3>Calificaciones y avances</h3>
+          <p>Ver el progreso individual y por equipo de cada estudiante en todas las actividades.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-file-export"></i></div>
+          <h3>Reportes PDF / Excel</h3>
+          <p>Exportar calificaciones individuales o grupales en PDF o Excel.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-gears"></i></div>
+          <h3>Configuración</h3>
+          <p>Datos generales del módulo, año lectivo y parámetros del sistema.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+      </div>
+      <div class="empty-note">
+        <i class="fa-solid fa-circle-info"></i>
+        Este es el esqueleto de navegación del sistema. Los módulos marcados como "Próximo paso" se construirán en las siguientes sesiones, empezando por el <b>Registro de estudiantes</b> y la conexión a Google Sheets.
+      </div>
+    </div>
+
+    <!-- ---- REGISTRO DE ESTUDIANTES ---- -->
+    <div id="panelRegistro" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromRegistro"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Registro de estudiantes</div>
+
+      <div class="panel-toolbar">
+        <div style="font-size:13px; color:var(--dark-text-dim);" id="totalEstudiantesLabel">Cargando...</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" id="btnExportarExcel" style="padding:10px 14px;">
+            <i class="fa-solid fa-file-arrow-down"></i> Exportar a Excel
+          </button>
+          <button type="button" class="btn-secondary" id="btnImportarExcel" style="padding:10px 14px;">
+            <i class="fa-solid fa-file-arrow-up"></i> Importar desde Excel
+          </button>
+          <input type="file" id="inputImportarExcel" accept=".xlsx,.xls" class="hidden">
+          <button type="button" class="btn-add" id="btnNuevoEstudiante"><i class="fa-solid fa-user-plus"></i> Nuevo estudiante</button>
+        </div>
+      </div>
+
+      <div class="empty-note" style="margin-top:0; margin-bottom:16px;" id="importFormatNote">
+        <i class="fa-solid fa-circle-info"></i>
+        Para importar, tu archivo Excel debe tener las columnas: <b>Usuario</b>, <b>Nombre</b>, <b>Equipo</b> (opcional) y <b>Contraseña</b> (opcional — si la dejas vacía, se usará el mismo Usuario como contraseña temporal).
+      </div>
+
+      <div class="data-table-wrap">
+        <table class="data-table" id="tablaEstudiantes">
+          <thead>
+            <tr>
+              <th>Usuario</th>
+              <th>Nombre</th>
+              <th>Equipo / Pareja</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyEstudiantes">
+            <tr><td colspan="4"><div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando estudiantes...</div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ---- MODAL: Agregar / Editar estudiante ---- -->
+    <div id="modalEstudiante" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="modal-title" id="modalEstudianteTitle">Nuevo estudiante</div>
+        <form id="formEstudiante">
+          <input type="hidden" id="estUsuarioOriginal">
+          <div class="field">
+            <label for="estUsuario">Usuario (código de acceso)</label>
+            <input type="text" id="estUsuario" placeholder="Ej. jperez01" required>
+          </div>
+          <div class="field">
+            <label for="estNombre">Nombre completo</label>
+            <input type="text" id="estNombre" placeholder="Nombre y apellido" required>
+          </div>
+          <div class="field">
+            <label for="estEquipo">Equipo / Pareja (opcional)</label>
+            <input type="text" id="estEquipo" placeholder="Ej. Equipo 1">
+          </div>
+          <div class="field">
+            <label for="estPassword">Contraseña <span id="passHint" style="text-transform:none; font-weight:600;"></span></label>
+            <input type="text" id="estPassword" placeholder="Contraseña de acceso">
+          </div>
+          <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Guardar</button>
+          </div>
+          <div class="form-msg" id="formEstudianteMsg"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ---- ACTIVIDADES POR RA ---- -->
+    <div id="panelActividades" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromActividades"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Actividades por RA — Asignación de puntaje</div>
+
+      <div class="panel-toolbar">
+        <div style="font-size:13px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
+        <div class="role-tabs" style="margin:0; width:auto;">
+          <button type="button" class="role-tab active" id="raTab1" data-ra="RA1">RA1</button>
+        </div>
+      </div>
+
+      <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
+        <i class="fa-solid fa-circle-info"></i>
+        Asigna el puntaje máximo de cada actividad y actívala con el interruptor cuando esté lista para que los estudiantes la vean. El instrumento de evaluación (escala de valoración de 6 criterios) se configurará al construir cada actividad interactiva.
+      </div>
+
+      <div id="listaActividadesWrap"></div>
+    </div>
+
+    <!-- ---- PANEL ESTUDIANTE ---- -->
+    <div id="panelEstudiante" class="hidden">
+      <div class="section-heading">Mi espacio — RA1: Los reportes empresariales</div>
+      <div class="grid-cards">
+        <button type="button" class="module-card" id="cardMisActividades" style="text-align:left;">
+          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-pen-to-square"></i></div>
+          <h3>Mis actividades</h3>
+          <p>Consulta el instrumento de evaluación de cada actividad y realízala para autocalificarte al instante.</p>
+          <span class="m-tag tag-blue">Disponible</span>
+        </button>
+        <div class="module-card">
+          <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-simple"></i></div>
+          <h3>Mi progreso</h3>
+          <p>Revisa tu historial de calificaciones y avances a lo largo del módulo.</p>
+          <span class="m-tag tag-soon">Próximo paso</span>
+        </div>
+      </div>
+      <div class="empty-note">
+        <i class="fa-solid fa-circle-info"></i>
+        Este es tu espacio personal. Las actividades del RA1 se activarán aquí a medida que tu docente las habilite.
+      </div>
+    </div>
+
+    <!-- ---- MIS ACTIVIDADES (vista estudiante) ---- -->
+    <div id="panelMisActividades" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromMisActividades"><i class="fa-solid fa-arrow-left"></i> Volver a mi espacio</button>
+      <div class="section-heading">Mis actividades — RA1</div>
+      <div id="listaMisActividadesWrap"></div>
+    </div>
+
+    <!-- ---- ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES ---- -->
+    <div id="panelActividadA11" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromActividadA11"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.1 — Clasificador de reportes empresariales</div>
+
+      <!-- Vista 1: instrumento de evaluación -->
+      <div id="vistaInstrumentoA11">
+        <p style="font-size:13.5px; margin-bottom:14px; line-height:1.6;">
+          Los estudiantes, organizados en equipos, analizan diferentes ejemplos de reportes empresariales impresos y digitales y los clasifican según su tipo (interno o externo), justificando el criterio utilizado.
+        </p>
+        <div class="section-heading" style="font-size:17px;">Así serás evaluado</div>
+        <table class="rubrica-table">
+          <thead>
+            <tr><th style="width:36px;">#</th><th>Criterio</th><th>Descripción del desempeño</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="crit-num">1</td><td>Participación activa</td><td>Participa en la actividad de clasificación desde el inicio.</td></tr>
+            <tr><td class="crit-num">2</td><td>Identificación de tipos</td><td>Reconoce las características que distinguen un reporte interno de uno externo.</td></tr>
+            <tr><td class="crit-num">3</td><td>Clasificación correcta</td><td>Ubica cada ejemplo en la categoría correcta según sus características. <b>(Autocalificado)</b></td></tr>
+            <tr><td class="crit-num">4</td><td>Justificación del criterio</td><td>Explica el motivo de su clasificación con argumentos válidos.</td></tr>
+            <tr><td class="crit-num">5</td><td>Cumplimiento del tiempo</td><td>Completa la actividad dentro del tiempo asignado en clase.</td></tr>
+            <tr><td class="crit-num">6</td><td>Trabajo colaborativo</td><td>Colabora de forma organizada con su equipo durante el ejercicio.</td></tr>
+          </tbody>
+        </table>
+        <div class="empty-note">
+          <i class="fa-solid fa-circle-info"></i>
+          El criterio <b>3 (Clasificación correcta)</b> se autocalifica según tus respuestas. Los demás criterios los evalúa tu docente durante la actividad en clase.
+        </div>
+        <button type="button" class="btn btn-primary" id="btnComenzarA11" style="margin-top:18px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA11" class="hidden">
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Haz clic en cada reporte para seleccionarlo, luego haz clic en la zona "Interno" o "Externo" para clasificarlo. Puedes hacer clic en un reporte ya clasificado para regresarlo.
+        </div>
+
+        <div class="clasif-pool" id="clasifPool"></div>
+
+        <div class="clasif-zonas">
+          <div class="clasif-zona zona-interno" id="zonaInterno">
+            <h4><i class="fa-solid fa-building"></i> Interno</h4>
+            <div id="zonaInternoItems"></div>
+          </div>
+          <div class="clasif-zona zona-externo" id="zonaExterno">
+            <h4><i class="fa-solid fa-globe"></i> Externo</h4>
+            <div id="zonaExternoItems"></div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnFinalizarA11" style="width:auto; padding:12px 28px;" disabled>
+          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        </button>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA11" class="hidden">
+        <div class="resultado-box">
+          <div class="resultado-nota" id="resultadoNotaA11">0 / 0</div>
+          <div class="resultado-detalle" id="resultadoDetalleA11"></div>
+        </div>
+        <div class="clasif-zonas" style="margin-top:20px;" id="resultadoDesgloseA11"></div>
+        <button type="button" class="btn btn-primary" id="btnVolverMisActA11" style="width:auto; padding:12px 28px; margin-top:10px;">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+      </div>
+    </div>
+  </main>
+
+  <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
+</div>
+
+<script src="js/config.js"></script>
+<script src="js/theme.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/registro-estudiantes.js"></script>
+<script src="js/actividades-admin.js"></script>
+<script src="js/mis-actividades.js"></script>
+<script src="js/actividades/a1-1-clasificador.js"></script>
+</body>
+</html>
