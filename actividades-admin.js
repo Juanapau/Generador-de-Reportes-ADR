@@ -78,7 +78,7 @@
             <div class="actividad-ec">${act.ec} · ${act.ra}</div>
           </div>
         </div>
-        <label style="display:block; font-size:12.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
+        <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
         <textarea class="input-enunciado textarea-generico">${act.enunciado}</textarea>
         <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
         <div class="actividad-controls">
@@ -102,7 +102,7 @@
         </div>
 
         <div class="recursos-section">
-          <div style="font-weight:800; font-size:13px; margin-top:16px; margin-bottom:8px;">
+          <div style="font-weight:800; font-size:15px; margin-top:16px; margin-bottom:8px;">
             <i class="fa-solid fa-paperclip"></i> Recursos de apoyo
           </div>
           <div class="recursos-lista" data-recursos-de="${act.codigo}">
@@ -269,7 +269,7 @@
     try{
       const data = await apiGet({ action:'listarRecursos', codigo });
       if(!data.success || data.recursos.length === 0){
-        cont.innerHTML = '<div style="font-size:12.5px; opacity:.6; padding:6px 0;">Sin recursos agregados todavía.</div>';
+        cont.innerHTML = '<div style="font-size:14.5px; opacity:.6; padding:6px 0;">Sin recursos agregados todavía.</div>';
         return;
       }
       cont.innerHTML = data.recursos.map(r => `
@@ -288,6 +288,6 @@
         });
       });
     }catch(err){
-      cont.innerHTML = '<div style="font-size:12.5px; opacity:.6;">Error al cargar recursos.</div>';
+      cont.innerHTML = '<div style="font-size:14.5px; opacity:.6;">Error al cargar recursos.</div>';
     }
   }
