@@ -83,7 +83,7 @@
     try{
       const data = await apiGet({ action:'listarRecursos', codigo:'A.1.1' });
       if(!data.success || data.recursos.length === 0){
-        cont.innerHTML = '<div style="font-size:13px; opacity:.6; padding:6px 0;">Tu docente no ha agregado recursos para esta actividad.</div>';
+        cont.innerHTML = '<div style="font-size:15px; opacity:.6; padding:6px 0;">Tu docente no ha agregado recursos para esta actividad.</div>';
         return;
       }
       cont.innerHTML = data.recursos.map(r => `
@@ -94,7 +94,7 @@
         </a>
       `).join('');
     }catch(err){
-      cont.innerHTML = '<div style="font-size:13px; opacity:.6;">No se pudieron cargar los recursos.</div>';
+      cont.innerHTML = '<div style="font-size:15px; opacity:.6;">No se pudieron cargar los recursos.</div>';
     }
   }
 
@@ -134,7 +134,7 @@
 
     pool.innerHTML = enPool.map(it => `
       <div class="clasif-item ${seleccionadoA11 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
-    `).join('') || '<span style="opacity:.5; font-size:13px;">Todos los reportes han sido clasificados.</span>';
+    `).join('') || '<span style="opacity:.5; font-size:15px;">Todos los reportes han sido clasificados.</span>';
 
     zonaInterno.innerHTML = enInterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
     zonaExterno.innerHTML = enExterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
