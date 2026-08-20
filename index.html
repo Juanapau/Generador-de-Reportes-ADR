@@ -446,6 +446,57 @@
     display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px;
     font-size:12px; font-weight:800; background: rgba(79,163,255,.15); color: var(--dark-blue-accent);
   }
+  .estado-activa{ background: rgba(34,197,94,.15); color: var(--dark-green-accent); }
+
+  /* ============ RÚBRICA (instrumento de evaluación) ============ */
+  .rubrica-table{
+    width:100%; border-collapse:collapse; font-size:13px; margin:16px 0 20px;
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius); overflow:hidden;
+  }
+  body.light .rubrica-table{ background:#fff; border:1px solid #dde5f6; }
+  .rubrica-table th{
+    background: rgba(232,185,59,.12); color: var(--dark-gold-accent); text-align:left; padding:10px 14px; font-size:11.5px;
+    text-transform:uppercase; letter-spacing:.3px;
+  }
+  body.light .rubrica-table th{ background:#fdf6e3; }
+  .rubrica-table td{ padding:11px 14px; border-top:1px solid var(--dark-border); vertical-align:top; }
+  body.light .rubrica-table td{ border-top:1px solid #eef1f8; }
+  .rubrica-table .crit-num{ font-weight:800; color: var(--dark-blue-accent); }
+  body.light .rubrica-table .crit-num{ color: var(--light-blue-accent); }
+
+  /* ============ ACTIVIDAD: CLASIFICADOR ============ */
+  .clasif-pool{
+    display:flex; flex-wrap:wrap; gap:10px; padding:16px; background: rgba(255,255,255,0.03);
+    border:1px dashed var(--dark-border); border-radius:12px; margin-bottom:18px; min-height:60px;
+  }
+  body.light .clasif-pool{ background:#f7f9fd; border:1px dashed #d7e0f2; }
+  .clasif-item{
+    padding:10px 14px; border-radius:9px; background: var(--dark-card-hover); border:1px solid var(--dark-border);
+    font-size:13px; cursor:pointer; transition:.15s; max-width:280px;
+  }
+  body.light .clasif-item{ background:#eef2fb; border:1px solid #d7e0f2; }
+  .clasif-item.selected{ outline:2px solid var(--dark-blue-accent); background: rgba(79,163,255,.15); }
+  .clasif-item.correcto{ border-color: var(--dark-green-accent); background: rgba(34,197,94,.12); }
+  .clasif-item.incorrecto{ border-color:#ef4444; background: rgba(239,68,68,.12); }
+
+  .clasif-zonas{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  @media (max-width:640px){ .clasif-zonas{ grid-template-columns:1fr; } }
+  .clasif-zona{
+    padding:16px; border-radius:12px; min-height:120px; border:2px solid var(--dark-border);
+  }
+  .clasif-zona h4{ font-family: var(--font-display); font-size:18px; letter-spacing:.4px; margin-bottom:10px; }
+  .zona-interno{ border-color: var(--dark-blue-accent); background: rgba(79,163,255,.06); }
+  .zona-externo{ border-color: var(--dark-gold-accent); background: rgba(232,185,59,.06); }
+  .clasif-zona .clasif-item{ margin-bottom:8px; }
+
+  .resultado-box{
+    text-align:center; padding:30px 20px; border-radius: var(--radius); margin-top:10px;
+    background: var(--dark-card); border:1px solid var(--dark-border);
+  }
+  body.light .resultado-box{ background:#fff; border:1px solid #dde5f6; }
+  .resultado-nota{ font-family: var(--font-display); font-size:52px; color: var(--dark-green-accent); line-height:1; }
+  .resultado-detalle{ font-size:13.5px; color:var(--dark-text-dim); margin-top:8px; }
+  body.light .resultado-detalle{ color:var(--light-text-dim); }
 
   @media (max-width:640px){
     header.topbar{ padding:16px; }
@@ -721,6 +772,77 @@
       <div class="section-heading">Mis actividades — RA1</div>
       <div id="listaMisActividadesWrap"></div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES ---- -->
+    <div id="panelActividadA11" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromActividadA11"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.1 — Clasificador de reportes empresariales</div>
+
+      <!-- Vista 1: instrumento de evaluación -->
+      <div id="vistaInstrumentoA11">
+        <p style="font-size:13.5px; margin-bottom:14px; line-height:1.6;">
+          Los estudiantes, organizados en equipos, analizan diferentes ejemplos de reportes empresariales impresos y digitales y los clasifican según su tipo (interno o externo), justificando el criterio utilizado.
+        </p>
+        <div class="section-heading" style="font-size:17px;">Así serás evaluado</div>
+        <table class="rubrica-table">
+          <thead>
+            <tr><th style="width:36px;">#</th><th>Criterio</th><th>Descripción del desempeño</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="crit-num">1</td><td>Participación activa</td><td>Participa en la actividad de clasificación desde el inicio.</td></tr>
+            <tr><td class="crit-num">2</td><td>Identificación de tipos</td><td>Reconoce las características que distinguen un reporte interno de uno externo.</td></tr>
+            <tr><td class="crit-num">3</td><td>Clasificación correcta</td><td>Ubica cada ejemplo en la categoría correcta según sus características. <b>(Autocalificado)</b></td></tr>
+            <tr><td class="crit-num">4</td><td>Justificación del criterio</td><td>Explica el motivo de su clasificación con argumentos válidos.</td></tr>
+            <tr><td class="crit-num">5</td><td>Cumplimiento del tiempo</td><td>Completa la actividad dentro del tiempo asignado en clase.</td></tr>
+            <tr><td class="crit-num">6</td><td>Trabajo colaborativo</td><td>Colabora de forma organizada con su equipo durante el ejercicio.</td></tr>
+          </tbody>
+        </table>
+        <div class="empty-note">
+          <i class="fa-solid fa-circle-info"></i>
+          El criterio <b>3 (Clasificación correcta)</b> se autocalifica según tus respuestas. Los demás criterios los evalúa tu docente durante la actividad en clase.
+        </div>
+        <button type="button" class="btn btn-primary" id="btnComenzarA11" style="margin-top:18px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA11" class="hidden">
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Haz clic en cada reporte para seleccionarlo, luego haz clic en la zona "Interno" o "Externo" para clasificarlo. Puedes hacer clic en un reporte ya clasificado para regresarlo.
+        </div>
+
+        <div class="clasif-pool" id="clasifPool"></div>
+
+        <div class="clasif-zonas">
+          <div class="clasif-zona zona-interno" id="zonaInterno">
+            <h4><i class="fa-solid fa-building"></i> Interno</h4>
+            <div id="zonaInternoItems"></div>
+          </div>
+          <div class="clasif-zona zona-externo" id="zonaExterno">
+            <h4><i class="fa-solid fa-globe"></i> Externo</h4>
+            <div id="zonaExternoItems"></div>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnFinalizarA11" style="width:auto; padding:12px 28px;" disabled>
+          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        </button>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA11" class="hidden">
+        <div class="resultado-box">
+          <div class="resultado-nota" id="resultadoNotaA11">0 / 0</div>
+          <div class="resultado-detalle" id="resultadoDetalleA11"></div>
+        </div>
+        <div class="clasif-zonas" style="margin-top:20px;" id="resultadoDesgloseA11"></div>
+        <button type="button" class="btn btn-primary" id="btnVolverMisActA11" style="width:auto; padding:12px 28px; margin-top:10px;">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
@@ -836,6 +958,7 @@
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelActividades').classList.add('hidden');
     document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA11').classList.add('hidden');
     document.getElementById('modalEstudiante').classList.add('hidden');
 
     document.getElementById('panelDocente').classList.toggle('hidden', currentUser.rol !== 'docente');
@@ -850,6 +973,7 @@
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelActividades').classList.add('hidden');
     document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA11').classList.add('hidden');
     document.getElementById('modalEstudiante').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('loginForm').reset();
@@ -1014,17 +1138,167 @@
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <span class="puntaje-pill"><i class="fa-solid fa-star"></i> ${act.puntaje} pts</span>
-              <span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Próximamente interactiva</span>
+              ${act.codigo === 'A.1.1'
+                ? '<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Disponible</span>'
+                : '<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Próximamente interactiva</span>'}
             </div>
           </div>
           <div class="actividad-enunciado">${act.enunciado}</div>
           <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
+          ${act.codigo === 'A.1.1' ? `
+            <button type="button" class="btn-add abrir-actividad-btn" data-codigo="A.1.1" data-puntaje="${act.puntaje}" style="margin-top:12px;">
+              <i class="fa-solid fa-play"></i> Realizar actividad
+            </button>` : ''}
         </div>
       `).join('');
+
+      wrap.querySelectorAll('.abrir-actividad-btn').forEach(btn => {
+        btn.addEventListener('click', () => abrirActividadA11(Number(btn.dataset.puntaje)));
+      });
     }catch(err){
       wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
     }
   }
+
+  // ================= ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES =================
+  const ITEMS_A11 = [
+    { id:1, texto:'Reporte de ventas mensuales dirigido al gerente general de la empresa.', tipo:'interno' },
+    { id:2, texto:'Informe financiero anual publicado para los accionistas.', tipo:'externo' },
+    { id:3, texto:'Reporte de asistencia del personal para el departamento de RRHH.', tipo:'interno' },
+    { id:4, texto:'Estado de cuenta enviado a un cliente.', tipo:'externo' },
+    { id:5, texto:'Reporte de inventario para el supervisor de almacén.', tipo:'interno' },
+    { id:6, texto:'Informe de sostenibilidad publicado en el sitio web de la empresa.', tipo:'externo' },
+    { id:7, texto:'Reporte de desempeño de ventas para la gerencia.', tipo:'interno' },
+    { id:8, texto:'Factura enviada a un proveedor externo.', tipo:'externo' }
+  ];
+  let asignacionesA11 = {};
+  let seleccionadoA11 = null;
+  let puntajeMaxA11 = 0;
+
+  function abrirActividadA11(puntajeMaximo){
+    puntajeMaxA11 = puntajeMaximo;
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA11').classList.remove('hidden');
+    document.getElementById('vistaInstrumentoA11').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA11').classList.add('hidden');
+    document.getElementById('vistaResultadoA11').classList.add('hidden');
+  }
+
+  document.getElementById('btnBackFromActividadA11').addEventListener('click', () => {
+    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA11').addEventListener('click', () => {
+    asignacionesA11 = {};
+    seleccionadoA11 = null;
+    document.getElementById('vistaInstrumentoA11').classList.add('hidden');
+    document.getElementById('vistaEjercicioA11').classList.remove('hidden');
+    pintarClasificador();
+  });
+
+  function pintarClasificador(){
+    const pool = document.getElementById('clasifPool');
+    const zonaInterno = document.getElementById('zonaInternoItems');
+    const zonaExterno = document.getElementById('zonaExternoItems');
+
+    const enPool = ITEMS_A11.filter(it => !asignacionesA11[it.id]);
+    const enInterno = ITEMS_A11.filter(it => asignacionesA11[it.id] === 'interno');
+    const enExterno = ITEMS_A11.filter(it => asignacionesA11[it.id] === 'externo');
+
+    pool.innerHTML = enPool.map(it => `
+      <div class="clasif-item ${seleccionadoA11 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
+    `).join('') || '<span style="opacity:.5; font-size:13px;">Todos los reportes han sido clasificados.</span>';
+
+    zonaInterno.innerHTML = enInterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+    zonaExterno.innerHTML = enExterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+
+    // Seleccionar un ítem del pool
+    pool.querySelectorAll('.clasif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        seleccionadoA11 = seleccionadoA11 === id ? null : id;
+        pintarClasificador();
+      });
+    });
+
+    // Click en un ítem ya clasificado: lo regresa al pool
+    [...zonaInterno.querySelectorAll('.clasif-item'), ...zonaExterno.querySelectorAll('.clasif-item')].forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        delete asignacionesA11[id];
+        pintarClasificador();
+      });
+    });
+
+    document.getElementById('btnFinalizarA11').disabled = enPool.length > 0;
+  }
+
+  document.getElementById('zonaInterno').addEventListener('click', (e) => {
+    if(seleccionadoA11 === null) return;
+    if(e.target.closest('.clasif-item')) return; // evita reasignar al hacer click en un ítem ya puesto
+    asignacionesA11[seleccionadoA11] = 'interno';
+    seleccionadoA11 = null;
+    pintarClasificador();
+  });
+  document.getElementById('zonaExterno').addEventListener('click', (e) => {
+    if(seleccionadoA11 === null) return;
+    if(e.target.closest('.clasif-item')) return;
+    asignacionesA11[seleccionadoA11] = 'externo';
+    seleccionadoA11 = null;
+    pintarClasificador();
+  });
+
+  document.getElementById('btnFinalizarA11').addEventListener('click', async () => {
+    let correctas = 0;
+    ITEMS_A11.forEach(it => { if(asignacionesA11[it.id] === it.tipo) correctas++; });
+
+    const total = ITEMS_A11.length;
+    const nota = Math.round((correctas / total) * puntajeMaxA11 * 100) / 100;
+
+    // Mostrar resultado
+    document.getElementById('vistaEjercicioA11').classList.add('hidden');
+    document.getElementById('vistaResultadoA11').classList.remove('hidden');
+    document.getElementById('resultadoNotaA11').textContent = `${nota} / ${puntajeMaxA11}`;
+    document.getElementById('resultadoDetalleA11').textContent =
+      `Clasificaste correctamente ${correctas} de ${total} reportes (criterio 3: Clasificación correcta).`;
+
+    document.getElementById('resultadoDesgloseA11').innerHTML = `
+      <div class="clasif-zona zona-interno">
+        <h4><i class="fa-solid fa-building"></i> Interno</h4>
+        ${ITEMS_A11.filter(it => it.tipo === 'interno').map(it => `
+          <div class="clasif-item ${asignacionesA11[it.id] === 'interno' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+        `).join('')}
+      </div>
+      <div class="clasif-zona zona-externo">
+        <h4><i class="fa-solid fa-globe"></i> Externo</h4>
+        ${ITEMS_A11.filter(it => it.tipo === 'externo').map(it => `
+          <div class="clasif-item ${asignacionesA11[it.id] === 'externo' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+        `).join('')}
+      </div>
+    `;
+
+    // Guardar la calificación
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.1',
+        ra:'RA1',
+        ec:'EC6.1.1',
+        nota: nota,
+        puntajeMaximo: puntajeMaxA11
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnVolverMisActA11').addEventListener('click', () => {
+    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
 
   async function cargarEstudiantes(){
     const tbody = document.getElementById('tbodyEstudiantes');
