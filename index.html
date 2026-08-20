@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root{
     /* ---- Paleta modo oscuro (base UGC) ---- */
@@ -68,6 +69,25 @@
       var(--dark-bg);
   }
   body.light #loginScreen{
+    background:
+      radial-gradient(circle at 20% 20%, rgba(47,111,237,0.08), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(201,151,31,0.08), transparent 40%),
+      var(--light-bg);
+  }
+
+  #forcedPasswordScreen{ min-height:100vh; }
+  .login-bg-wrap{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(79,163,255,0.12), transparent 40%),
+      radial-gradient(circle at 80% 80%, rgba(232,185,59,0.10), transparent 40%),
+      var(--dark-bg);
+  }
+  body.light .login-bg-wrap{
     background:
       radial-gradient(circle at 20% 20%, rgba(47,111,237,0.08), transparent 40%),
       radial-gradient(circle at 80% 80%, rgba(201,151,31,0.08), transparent 40%),
@@ -381,7 +401,7 @@
 <div id="loginScreen">
   <div class="login-card">
     <div class="login-badge"></div>
-    <button class="theme-toggle-login" id="themeToggleLogin" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">
+    <button type="button" class="theme-toggle-login" id="themeToggleLogin" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">
       <i class="fa-solid fa-moon" id="themeIconLogin"></i>
     </button>
 
@@ -393,10 +413,10 @@
     </div>
 
     <div class="role-tabs">
-      <button class="role-tab active" data-role="estudiante" id="tabEstudiante">
+      <button type="button" class="role-tab active" data-role="estudiante" id="tabEstudiante">
         <i class="fa-solid fa-user-graduate"></i>&nbsp; Estudiante
       </button>
-      <button class="role-tab" data-role="docente" id="tabDocente">
+      <button type="button" class="role-tab" data-role="docente" id="tabDocente">
         <i class="fa-solid fa-chalkboard-user"></i>&nbsp; Docente
       </button>
     </div>
@@ -424,6 +444,35 @@
   </div>
 </div>
 
+<!-- ============ CAMBIO OBLIGATORIO DE CONTRASEÑA (primer acceso) ============ -->
+<div id="forcedPasswordScreen" class="hidden">
+  <div id="loginScreenBg2" class="login-bg-wrap">
+    <div class="login-card">
+      <div class="login-badge"></div>
+      <div class="login-logo">
+        <div class="crest-fallback"><i class="fa-solid fa-key"></i></div>
+        <div class="login-title" style="font-size:24px;">Cambia tu contraseña</div>
+        <div class="login-subtitle">Es tu primer ingreso al sistema. Por seguridad, debes establecer una nueva contraseña antes de continuar.</div>
+      </div>
+
+      <form id="formCambioPassword">
+        <div class="field">
+          <label for="nuevaPass1">Nueva contraseña</label>
+          <input type="password" id="nuevaPass1" placeholder="Mínimo 4 caracteres" minlength="4" required>
+        </div>
+        <div class="field">
+          <label for="nuevaPass2">Confirmar nueva contraseña</label>
+          <input type="password" id="nuevaPass2" placeholder="Repite la contraseña" minlength="4" required>
+        </div>
+        <button type="submit" class="btn btn-primary">
+          <i class="fa-solid fa-check"></i> Guardar y continuar
+        </button>
+        <div class="login-error" id="cambioPasswordError"></div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- ============ APP SHELL ============ -->
 <div id="appShell" class="hidden">
   <header class="topbar">
@@ -443,13 +492,13 @@
       <div class="u-role" id="userRole">—</div>
     </div>
     <div class="userbar-actions">
-      <button class="icon-btn" id="themeToggleApp" title="Cambiar tema">
+      <button type="button" class="icon-btn" id="themeToggleApp" title="Cambiar tema">
         <i class="fa-solid fa-moon" id="themeIconApp"></i>
       </button>
-      <button class="icon-btn" title="Notificaciones">
+      <button type="button" class="icon-btn" title="Notificaciones">
         <i class="fa-solid fa-bell"></i>
       </button>
-      <button class="btn-logout" id="btnLogout">
+      <button type="button" class="btn-logout" id="btnLogout">
         <i class="fa-solid fa-right-from-bracket"></i> Salir
       </button>
     </div>
@@ -460,7 +509,7 @@
     <div id="panelDocente" class="hidden">
       <div class="section-heading">Panel del docente — Administración</div>
       <div class="grid-cards">
-        <button class="module-card" id="cardRegistroEstudiantes" style="text-align:left;">
+        <button type="button" class="module-card" id="cardRegistroEstudiantes" style="text-align:left;">
           <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-users"></i></div>
           <h3>Registro de estudiantes</h3>
           <p>Dar de alta, editar y organizar estudiantes por equipo o pareja de trabajo.</p>
@@ -499,12 +548,26 @@
 
     <!-- ---- REGISTRO DE ESTUDIANTES ---- -->
     <div id="panelRegistro" class="hidden">
-      <button class="back-btn" id="btnBackFromRegistro"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <button type="button" class="back-btn" id="btnBackFromRegistro"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
       <div class="section-heading">Registro de estudiantes</div>
 
       <div class="panel-toolbar">
         <div style="font-size:13px; color:var(--dark-text-dim);" id="totalEstudiantesLabel">Cargando...</div>
-        <button class="btn-add" id="btnNuevoEstudiante"><i class="fa-solid fa-user-plus"></i> Nuevo estudiante</button>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" id="btnExportarExcel" style="padding:10px 14px;">
+            <i class="fa-solid fa-file-arrow-down"></i> Exportar a Excel
+          </button>
+          <button type="button" class="btn-secondary" id="btnImportarExcel" style="padding:10px 14px;">
+            <i class="fa-solid fa-file-arrow-up"></i> Importar desde Excel
+          </button>
+          <input type="file" id="inputImportarExcel" accept=".xlsx,.xls" class="hidden">
+          <button type="button" class="btn-add" id="btnNuevoEstudiante"><i class="fa-solid fa-user-plus"></i> Nuevo estudiante</button>
+        </div>
+      </div>
+
+      <div class="empty-note" style="margin-top:0; margin-bottom:16px;" id="importFormatNote">
+        <i class="fa-solid fa-circle-info"></i>
+        Para importar, tu archivo Excel debe tener las columnas: <b>Usuario</b>, <b>Nombre</b>, <b>Equipo</b> (opcional) y <b>Contraseña</b> (opcional — si la dejas vacía, se usará el mismo Usuario como contraseña temporal).
       </div>
 
       <div class="data-table-wrap">
@@ -655,7 +718,12 @@
       const data = await apiGet({ action:'login', usuario:user, password:pass, rol:selectedRole });
       if(data.success){
         currentUser = { rol: data.rol, nombre: data.nombre, usuario: data.usuario, equipo: data.equipo };
-        renderApp();
+        if(data.primerAcceso){
+          document.getElementById('loginScreen').classList.add('hidden');
+          document.getElementById('forcedPasswordScreen').classList.remove('hidden');
+        } else {
+          renderApp();
+        }
       } else {
         errorBox.textContent = data.error || 'Usuario o contraseña incorrectos.';
       }
@@ -733,8 +801,8 @@
         <td>${est.equipo ? `<span class="equipo-badge">${est.equipo}</span>` : '<span style="opacity:.5;">Sin asignar</span>'}</td>
         <td>
           <div class="row-actions">
-            <button class="edit-btn" title="Editar" onclick="abrirEditarEstudiante('${est.usuario}')"><i class="fa-solid fa-pen"></i></button>
-            <button class="del-btn" title="Eliminar" onclick="eliminarEstudianteUI('${est.usuario}')"><i class="fa-solid fa-trash"></i></button>
+            <button type="button" class="edit-btn" title="Editar" onclick="abrirEditarEstudiante('${est.usuario}')"><i class="fa-solid fa-pen"></i></button>
+            <button type="button" class="del-btn" title="Eliminar" onclick="eliminarEstudianteUI('${est.usuario}')"><i class="fa-solid fa-trash"></i></button>
           </div>
         </td>
       </tr>
@@ -831,6 +899,118 @@
       alert('Error de conexión con el servidor.');
     }
   };
+
+  // ================= CAMBIO OBLIGATORIO DE CONTRASEÑA (primer acceso) =================
+  document.getElementById('formCambioPassword').addEventListener('submit', async function(e){
+    e.preventDefault();
+    const p1 = document.getElementById('nuevaPass1').value.trim();
+    const p2 = document.getElementById('nuevaPass2').value.trim();
+    const errorBox = document.getElementById('cambioPasswordError');
+    const submitBtn = e.target.querySelector('.btn-primary');
+
+    if(p1 !== p2){
+      errorBox.textContent = 'Las contraseñas no coinciden.';
+      return;
+    }
+    if(p1.length < 4){
+      errorBox.textContent = 'La contraseña debe tener al menos 4 caracteres.';
+      return;
+    }
+
+    errorBox.textContent = '';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+    try{
+      const data = await apiPost({ action:'cambiarPassword', usuario: currentUser.usuario, passwordNueva: p1 });
+      if(data.success){
+        document.getElementById('forcedPasswordScreen').classList.add('hidden');
+        document.getElementById('formCambioPassword').reset();
+        renderApp();
+      } else {
+        errorBox.textContent = data.error || 'No se pudo guardar la nueva contraseña.';
+      }
+    }catch(err){
+      errorBox.textContent = 'Error de conexión con el servidor.';
+    }finally{
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Guardar y continuar';
+    }
+  });
+
+  // ================= EXPORTAR A EXCEL =================
+  document.getElementById('btnExportarExcel').addEventListener('click', () => {
+    if(estudiantesCache.length === 0){
+      alert('No hay estudiantes para exportar.');
+      return;
+    }
+    const filas = estudiantesCache.map(e => ({
+      Usuario: e.usuario,
+      Nombre: e.nombre,
+      Equipo: e.equipo || '',
+      FechaRegistro: e.fechaRegistro || ''
+    }));
+    const ws = XLSX.utils.json_to_sheet(filas);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Estudiantes');
+    XLSX.writeFile(wb, 'Estudiantes_GeneradorReportes.xlsx');
+  });
+
+  // ================= IMPORTAR DESDE EXCEL =================
+  document.getElementById('btnImportarExcel').addEventListener('click', () => {
+    document.getElementById('inputImportarExcel').click();
+  });
+
+  document.getElementById('inputImportarExcel').addEventListener('change', function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async function(evt){
+      try{
+        const wb = XLSX.read(evt.target.result, { type:'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const filas = XLSX.utils.sheet_to_json(ws, { defval:'' });
+
+        const estudiantes = filas.map(f => ({
+          usuario: String(f.Usuario || f.usuario || '').trim(),
+          nombre: String(f.Nombre || f.nombre || '').trim(),
+          equipo: String(f.Equipo || f.equipo || '').trim(),
+          password: String(f.Contraseña || f.contraseña || f.Password || f.password || '').trim()
+        })).filter(x => x.usuario && x.nombre);
+
+        if(estudiantes.length === 0){
+          alert('No se encontraron filas válidas. Verifica que el archivo tenga las columnas Usuario y Nombre.');
+          return;
+        }
+
+        const btn = document.getElementById('btnImportarExcel');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Importando...';
+
+        const data = await apiPost({ action:'importarEstudiantes', estudiantes: estudiantes });
+
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-file-arrow-up"></i> Importar desde Excel';
+
+        if(data.success){
+          let mensaje = `Se importaron ${data.agregados} estudiante(s).`;
+          if(data.omitidos && data.omitidos.length > 0){
+            mensaje += `\nOmitidos (usuario ya existente o datos incompletos): ${data.omitidos.join(', ')}`;
+          }
+          alert(mensaje);
+          cargarEstudiantes();
+        } else {
+          alert(data.error || 'No se pudo completar la importación.');
+        }
+      }catch(err){
+        alert('No se pudo leer el archivo. Verifica que sea un Excel válido (.xlsx).');
+      } finally {
+        e.target.value = '';
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  });
 </script>
 </body>
 </html>
