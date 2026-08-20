@@ -738,11 +738,18 @@
   // ---------- Render app shell tras login ----------
   function renderApp(){
     document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('forcedPasswordScreen').classList.add('hidden');
     document.getElementById('appShell').classList.remove('hidden');
 
     document.getElementById('userName').textContent = currentUser.nombre;
     document.getElementById('userRole').textContent =
       currentUser.rol === 'docente' ? 'Docente — Administrador del sistema' : 'Estudiante';
+
+    // Reinicia siempre a la vista principal del rol correspondiente,
+    // ocultando cualquier submódulo (como Registro de estudiantes) que haya
+    // quedado abierto de una sesión anterior en el mismo navegador.
+    document.getElementById('panelRegistro').classList.add('hidden');
+    document.getElementById('modalEstudiante').classList.add('hidden');
 
     document.getElementById('panelDocente').classList.toggle('hidden', currentUser.rol !== 'docente');
     document.getElementById('panelEstudiante').classList.toggle('hidden', currentUser.rol !== 'estudiante');
@@ -751,7 +758,10 @@
   // ---------- Logout ----------
   document.getElementById('btnLogout').addEventListener('click', function(){
     currentUser = null;
+    estudiantesCache = [];
     document.getElementById('appShell').classList.add('hidden');
+    document.getElementById('panelRegistro').classList.add('hidden');
+    document.getElementById('modalEstudiante').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('loginForm').reset();
     document.getElementById('loginError').textContent = '';
