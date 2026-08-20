@@ -592,6 +592,14 @@
   }
   .esquema-zona.correcto{ background: rgba(34,197,94,.15); border-left:4px solid var(--dark-green-accent); }
   .esquema-zona.incorrecto{ background: rgba(239,68,68,.15); border-left:4px solid #ef4444; }
+  .esquema-zona-slot{
+    margin-top:10px; padding-top:8px; border-top:1px dashed var(--dark-border);
+  }
+  .esquema-zona-slot .esquema-zona-placeholder{ font-size:12px; opacity:.55; font-style:italic; }
+  .esquema-zona-slot .esquema-zona-etiqueta{
+    display:inline-flex; align-items:center; gap:6px; font-size:13px; font-weight:800; color: var(--dark-blue-accent);
+  }
+  body.light .esquema-zona-slot .esquema-zona-etiqueta{ color: var(--light-blue-accent); }
 
   /* ============ TIMER Y JUSTIFICACIÓN ============ */
   .timer-badge{
