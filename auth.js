@@ -1,4 +1,4 @@
-  // ---------- Role tabs ----------
+// ---------- Role tabs ----------
   document.getElementById('tabEstudiante').addEventListener('click', () => selectRole('estudiante'));
   document.getElementById('tabDocente').addEventListener('click', () => selectRole('docente'));
   function selectRole(role){
