@@ -559,6 +559,12 @@
   }
   body.light .justificacion-box textarea{ background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text); }
 
+  .textarea-generico{
+    width:100%; min-height:80px; padding:12px 14px; border-radius:10px; background: rgba(255,255,255,0.05);
+    border:1px solid var(--dark-border); color:var(--dark-text); font-family:inherit; font-size:13.5px; resize:vertical;
+  }
+  body.light .textarea-generico{ background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text); }
+
   @media (max-width:640px){
     header.topbar{ padding:16px; }
     .topbar-title h1{ font-size:21px; }
