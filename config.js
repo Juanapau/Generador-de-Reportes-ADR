@@ -8,6 +8,7 @@
   let currentUser = null;
   let selectedRole = 'estudiante';
   let estudiantesCache = [];
+  let docenteOriginal = null; // guarda al docente cuando está "viendo como" un estudiante
 
   // ---------- Helper de conexión ----------
   async function apiGet(params){
