@@ -21,14 +21,9 @@
 
   function pintarRaCardsAdmin(){
     const wrap = document.getElementById('raCardsAdminWrap');
-    wrap.innerHTML = ['RA1','RA2','RA3','RA4','RA5'].map(ra => {
-      const disponible = RAS_DISPONIBLES.includes(ra);
-      return `
-        <div class="ra-card ${disponible ? '' : 'ra-card-disabled'}" data-ra="${ra}">
-          <div class="ra-card-titulo">${ra}</div>
-          <div class="ra-card-sub">${disponible ? 'Ver actividades' : 'Próximamente'}</div>
-        </div>`;
-    }).join('');
+    wrap.innerHTML = pintarTarjetasRA(
+      ['RA1','RA2','RA3','RA4','RA5'].map(ra => ({ ra, disponible: RAS_DISPONIBLES.includes(ra) }))
+    );
 
     wrap.querySelectorAll('.ra-card:not(.ra-card-disabled)').forEach(card => {
       card.addEventListener('click', () => {
