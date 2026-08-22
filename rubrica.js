@@ -49,8 +49,12 @@ function renderRubrica(containerId, criterios, puntajeMaximo, notaFinal){
       </table>
       <div class="rubrica-total">
         <div class="rubrica-total-label">Calificación total</div>
-        <div class="rubrica-total-valor">${notaFinal === null || notaFinal === undefined ? '—' : notaFinal} / ${puntajeMaximo.toFixed(2)}</div>
+        <div class="rubrica-total-valor"><span id="${containerId}-nota">${notaFinal === null || notaFinal === undefined ? '—' : '0.00'}</span> / ${puntajeMaximo.toFixed(2)}</div>
       </div>
     </div>
   `;
+
+  if(notaFinal !== null && notaFinal !== undefined){
+    animarContador(document.getElementById(`${containerId}-nota`), 0, notaFinal, 900);
+  }
 }
