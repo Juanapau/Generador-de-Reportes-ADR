@@ -92,8 +92,6 @@
             </label>
             <span class="switch-label">Habilitada</span>
           </div>
-          <button type="button" class="btn-save-act"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
-          <span class="save-ok-msg"><i class="fa-solid fa-check"></i> Guardado</span>
         </div>
 
         <div class="recursos-section">
@@ -137,6 +135,11 @@
             </button>
           </div>
           <div class="form-msg" style="margin-top:6px;" data-msg-de="${act.codigo}"></div>
+        </div>
+
+        <div class="actividad-guardar-final">
+          <button type="button" class="btn-save-act"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios de esta actividad</button>
+          <span class="save-ok-msg"><i class="fa-solid fa-check"></i> Guardado</span>
         </div>
       </div>
     `).join('');
