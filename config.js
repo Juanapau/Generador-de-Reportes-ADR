@@ -41,6 +41,49 @@
     RA5: { icono:'fa-robot',          color:'gold',  descripcion:'Integrar repositorios de tableros con algoritmos de Big Data o Inteligencia Artificial para descubrir patrones y tendencias.' }
   };
 
+  // ---------- Notificaciones tipo toast (reemplaza alert() nativo) ----------
+  function mostrarNotificacion(mensaje, tipo){
+    tipo = tipo || 'info'; // 'success' | 'error' | 'info'
+    const iconos = { success:'fa-circle-check', error:'fa-circle-exclamation', info:'fa-circle-info' };
+    const cont = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    toast.innerHTML = `<i class="fa-solid ${iconos[tipo] || iconos.info}"></i><span>${mensaje}</span>`;
+    cont.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.add('show'));
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+
+  // ---------- Modal de confirmación (reemplaza confirm() nativo) ----------
+  // Uso: if(await confirmarAccion('¿Eliminar este recurso?')) { ... }
+  function confirmarAccion(mensaje, titulo){
+    return new Promise(resolve => {
+      const modal = document.getElementById('modalConfirmacion');
+      document.getElementById('confirmTitulo').textContent = titulo || '¿Estás segura?';
+      document.getElementById('confirmMensaje').textContent = mensaje;
+      modal.classList.remove('hidden');
+
+      const btnAceptar = document.getElementById('confirmAceptar');
+      const btnCancelar = document.getElementById('confirmCancelar');
+
+      function limpiar(resultado){
+        modal.classList.add('hidden');
+        btnAceptar.removeEventListener('click', onAceptar);
+        btnCancelar.removeEventListener('click', onCancelar);
+        resolve(resultado);
+      }
+      function onAceptar(){ limpiar(true); }
+      function onCancelar(){ limpiar(false); }
+
+      btnAceptar.addEventListener('click', onAceptar);
+      btnCancelar.addEventListener('click', onCancelar);
+    });
+  }
+
   function pintarTarjetasRA(items){
     return items.map(({ ra, disponible }) => {
       const info = RA_INFO[ra];
