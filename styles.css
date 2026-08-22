@@ -561,17 +561,30 @@
   .recurso-form .field{ margin-bottom:0; flex:1; min-width:150px; }
 
   /* ============ TARJETAS DE RA (mis actividades / actividades admin) ============ */
-  .ra-cards-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:16px; margin-bottom:10px; }
+  .ra-cards-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(210px,1fr)); gap:16px; margin-bottom:10px; }
   .ra-card{
     background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius);
-    padding:22px 18px; text-align:center; transition:.2s;
+    padding:24px 20px; text-align:center; transition:.2s;
   }
   .ra-card:not(.ra-card-disabled):hover{ background: var(--dark-card-hover); transform: translateY(-2px); }
   body.light .ra-card{ background:#fff; border:1px solid #dde5f6; box-shadow: 0 4px 14px rgba(20,40,90,.05); }
-  .ra-card-titulo{ font-family: var(--font-display); font-size:34.5px; color: var(--dark-gold-accent); letter-spacing:.5px; }
-  .ra-card-sub{ font-size:14px; color:var(--dark-text-dim); margin-top:4px; font-weight:700; }
-  body.light .ra-card-sub{ color:var(--light-text-dim); }
+  .ra-card-icon{
+    width:56px; height:56px; border-radius:16px; display:flex; align-items:center; justify-content:center;
+    font-size:23px; margin:0 auto 14px;
+  }
+  .ra-icon-blue{ background: rgba(79,163,255,.15); color: var(--dark-blue-accent); }
+  .ra-icon-gold{ background: rgba(232,185,59,.15); color: var(--dark-gold-accent); }
+  .ra-icon-green{ background: rgba(34,197,94,.15); color: var(--dark-green-accent); }
+  .ra-card-titulo{ font-family: var(--font-display); font-size:30px; color: var(--dark-gold-accent); letter-spacing:.5px; }
+  .ra-card-desc{ font-size:13px; color:var(--dark-text); line-height:1.5; margin:8px 0 12px; min-height:40px; }
+  body.light .ra-card-desc{ color:var(--light-text-dim); }
+  .ra-card-sub{
+    font-size:12px; color:var(--dark-blue-accent); font-weight:800; text-transform:uppercase; letter-spacing:.4px;
+  }
+  body.light .ra-card-sub{ color:var(--light-blue-accent); }
   .ra-card-disabled{ opacity:.45; cursor:not-allowed; }
+  .ra-card-disabled .ra-card-sub{ color:var(--dark-text-dim); text-transform:none; letter-spacing:0; font-weight:700; }
+  body.light .ra-card-disabled .ra-card-sub{ color:var(--light-text-dim); }
 
   /* ============ ESQUEMA GRÁFICO DE REPORTE (A.1.2) ============ */
   .esquema-reporte{
