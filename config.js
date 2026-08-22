@@ -34,11 +34,11 @@
   // cómo abrirla sin que ningún otro archivo tenga que conocerla.
   // ---------- Información de los 5 RA (compartida entre panel docente y estudiante) ----------
   const RA_INFO = {
-    RA1: { icono:'fa-clipboard-list', color:'blue',  descripcion:'Clasifica los reportes empresariales y reconoce sus partes y herramientas de diseño.' },
-    RA2: { icono:'fa-table-cells-large', color:'gold', descripcion:'Diseña las secciones de un reporte: encabezados, detalles, totales y formatos.' },
-    RA3: { icono:'fa-code',           color:'green', descripcion:'Aplica fórmulas y funciones, y gestiona el acceso, publicación y almacenamiento de reportes.' },
-    RA4: { icono:'fa-chart-line',     color:'blue',  descripcion:'Mide parámetros e indicadores para mejorar estrategias de marketing digital.' },
-    RA5: { icono:'fa-robot',          color:'gold',  descripcion:'Integra tableros con algoritmos de Big Data e Inteligencia Artificial.' }
+    RA1: { icono:'fa-clipboard-list', color:'blue',  descripcion:'Clasificar los requerimientos de información de los diversos usuarios para producir reportes empresariales, siguiendo parámetros establecidos.' },
+    RA2: { icono:'fa-table-cells-large', color:'gold', descripcion:'Aplicar los conocimientos recibidos para la creación de reportes empresariales funcionales y oportunos, según requerimientos del usuario.' },
+    RA3: { icono:'fa-code',           color:'green', descripcion:'Presentar o entregar reportes que cumplan los requerimientos de información, según criterios definidos por la organización.' },
+    RA4: { icono:'fa-chart-line',     color:'blue',  descripcion:'Medir parámetros e indicadores para mejorar estrategias de marketing digital implementando los correctivos en las pautas recibidas.' },
+    RA5: { icono:'fa-robot',          color:'gold',  descripcion:'Integrar repositorios de tableros con algoritmos de Big Data o Inteligencia Artificial para descubrir patrones y tendencias.' }
   };
 
   function pintarTarjetasRA(items){
