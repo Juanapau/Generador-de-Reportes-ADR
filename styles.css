@@ -453,6 +453,10 @@
     border:1px solid var(--dark-border); color:var(--dark-text); font-size:16px; font-weight:700;
   }
   body.light .puntaje-field input{ background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text); }
+  .puntaje-field input[type="datetime-local"]{ width:200px; font-size:14px; font-weight:600; color-scheme: dark; }
+  body.light .puntaje-field input[type="datetime-local"]{ color-scheme: light; }
+
+  .disponibilidad-section{ margin-top:6px; }
 
   .switch-field{ display:flex; align-items:center; gap:10px; }
   .switch{ position:relative; width:44px; height:24px; }
@@ -488,11 +492,16 @@
     font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.3px;
   }
   .estado-pendiente{ background: rgba(232,185,59,.15); color: var(--dark-gold-accent); }
+  .estado-vencida{ background: rgba(239,68,68,.15); color:#ef4444; }
   .puntaje-pill{
     display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px;
     font-size:14px; font-weight:800; background: rgba(79,163,255,.15); color: var(--dark-blue-accent);
   }
   .estado-activa{ background: rgba(34,197,94,.15); color: var(--dark-green-accent); }
+  .actividad-vence-aviso{
+    font-size:12.5px; font-weight:700; color: var(--dark-gold-accent); margin-top:8px;
+    display:flex; align-items:center; gap:6px;
+  }
 
   /* ============ RÚBRICA (instrumento de evaluación) ============ */
   .rubrica-table{
