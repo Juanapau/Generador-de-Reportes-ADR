@@ -84,6 +84,12 @@
     });
   }
 
+  // ---------- Formato corto de fecha para mostrar al estudiante ----------
+  function formatearFechaCorta(fecha){
+    if(!fecha) return '';
+    return fecha.toLocaleString('es-DO', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  }
+
   function pintarTarjetasRA(items){
     return items.map(({ ra, disponible }) => {
       const info = RA_INFO[ra];
