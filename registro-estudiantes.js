@@ -129,16 +129,17 @@
   });
 
   window.eliminarEstudianteUI = async function(usuario){
-    if(!confirm(`¿Eliminar al estudiante "${usuario}"? Esta acción no se puede deshacer.`)) return;
+    if(!await confirmarAccion(`¿Eliminar al estudiante "${usuario}"? Esta acción no se puede deshacer.`, 'Eliminar estudiante')) return;
     try{
       const data = await apiPost({ action:'eliminarEstudiante', usuario: usuario });
       if(data.success){
+        mostrarNotificacion('Estudiante eliminado correctamente.', 'success');
         cargarEstudiantes();
       } else {
-        alert(data.error || 'No se pudo eliminar.');
+        mostrarNotificacion(data.error || 'No se pudo eliminar.', 'error');
       }
     }catch(err){
-      alert('Error de conexión con el servidor.');
+      mostrarNotificacion('Error de conexión con el servidor.', 'error');
     }
   };
 
@@ -206,7 +207,7 @@
   // ================= EXPORTAR A EXCEL =================
   document.getElementById('btnExportarExcel').addEventListener('click', () => {
     if(estudiantesCache.length === 0){
-      alert('No hay estudiantes para exportar.');
+      mostrarNotificacion('No hay estudiantes para exportar.', 'error');
       return;
     }
     const filas = estudiantesCache.map(e => ({
@@ -245,7 +246,7 @@
         })).filter(x => x.usuario && x.nombre);
 
         if(estudiantes.length === 0){
-          alert('No se encontraron filas válidas. Verifica que el archivo tenga las columnas Usuario y Nombre.');
+          mostrarNotificacion('No se encontraron filas válidas. Verifica que el archivo tenga las columnas Usuario y Nombre.', 'error');
           return;
         }
 
@@ -263,13 +264,13 @@
           if(data.omitidos && data.omitidos.length > 0){
             mensaje += `\nOmitidos (usuario ya existente o datos incompletos): ${data.omitidos.join(', ')}`;
           }
-          alert(mensaje);
+          mostrarNotificacion(mensaje, 'success');
           cargarEstudiantes();
         } else {
-          alert(data.error || 'No se pudo completar la importación.');
+          mostrarNotificacion(data.error || 'No se pudo completar la importación.', 'error');
         }
       }catch(err){
-        alert('No se pudo leer el archivo. Verifica que sea un Excel válido (.xlsx).');
+        mostrarNotificacion('No se pudo leer el archivo. Verifica que sea un Excel válido (.xlsx).', 'error');
       } finally {
         e.target.value = '';
       }
