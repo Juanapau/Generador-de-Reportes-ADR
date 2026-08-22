@@ -119,6 +119,22 @@
     <button type="button" id="btnVolverDocente"><i class="fa-solid fa-arrow-left"></i> Volver a mi panel</button>
   </div>
 
+  <!-- ============ MODAL DE CONFIRMACIÓN (reemplaza confirm() nativo) ============ -->
+  <div id="modalConfirmacion" class="modal-overlay hidden">
+    <div class="modal-box modal-confirmacion">
+      <div class="modal-confirmacion-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+      <div class="modal-title" id="confirmTitulo">¿Estás segura?</div>
+      <p id="confirmMensaje" style="font-size:15px; line-height:1.5; color:var(--dark-text-dim);"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="confirmCancelar">Cancelar</button>
+        <button type="button" class="btn btn-primary btn-confirmar-peligro" id="confirmAceptar">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ NOTIFICACIONES TIPO TOAST (reemplaza alert() nativo) ============ -->
+  <div id="toastContainer" class="toast-container"></div>
+
   <main>
     <!-- ---- PANEL DOCENTE ---- -->
     <div id="panelDocente" class="hidden">
