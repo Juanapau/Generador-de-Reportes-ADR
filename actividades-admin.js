@@ -166,10 +166,10 @@
             okMsg.classList.add('show');
             setTimeout(() => okMsg.classList.remove('show'), 2000);
           } else {
-            alert(data.error || 'No se pudo guardar.');
+            mostrarNotificacion(data.error || 'No se pudo guardar.', 'error');
           }
         }catch(err){
-          alert('Error de conexión con el servidor.');
+          mostrarNotificacion('Error de conexión con el servidor.', 'error');
         }finally{
           btn.disabled = false;
           btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar';
@@ -195,7 +195,7 @@
       btnAdd.addEventListener('click', async () => {
         const nombre = card.querySelector('.input-recurso-nombre').value.trim();
         const url = card.querySelector('.input-recurso-url').value.trim();
-        if(!nombre || !url){ alert('Completa el nombre y el enlace del recurso.'); return; }
+        if(!nombre || !url){ mostrarNotificacion('Completa el nombre y el enlace del recurso.', 'error'); return; }
 
         btnAdd.disabled = true;
         try{
@@ -205,10 +205,10 @@
             card.querySelector('.input-recurso-url').value = '';
             cargarRecursosAdmin(codigo, card);
           } else {
-            alert(data.error || 'No se pudo agregar el recurso.');
+            mostrarNotificacion(data.error || 'No se pudo agregar el recurso.', 'error');
           }
         }catch(err){
-          alert('Error de conexión con el servidor.');
+          mostrarNotificacion('Error de conexión con el servidor.', 'error');
         }finally{
           btnAdd.disabled = false;
         }
@@ -221,8 +221,8 @@
         const fileInput = card.querySelector('.input-recurso-archivo');
         const archivo = fileInput.files[0];
 
-        if(!nombre || !archivo){ alert('Completa el nombre y selecciona un archivo.'); return; }
-        if(archivo.size > 5 * 1024 * 1024){ alert('El archivo supera los 5 MB. Sube uno más liviano o comparte un enlace.'); return; }
+        if(!nombre || !archivo){ mostrarNotificacion('Completa el nombre y selecciona un archivo.', 'error'); return; }
+        if(archivo.size > 5 * 1024 * 1024){ mostrarNotificacion('El archivo supera los 5 MB. Sube uno más liviano o comparte un enlace.', 'error'); return; }
 
         btnAddArchivo.disabled = true;
         msgBox.className = 'form-msg';
@@ -280,8 +280,9 @@
 
       cont.querySelectorAll('.recurso-del').forEach(del => {
         del.addEventListener('click', async () => {
-          if(!confirm('¿Eliminar este recurso?')) return;
+          if(!await confirmarAccion('¿Eliminar este recurso? Esta acción no se puede deshacer.', 'Eliminar recurso')) return;
           await apiPost({ action:'eliminarRecurso', id: del.dataset.id });
+          mostrarNotificacion('Recurso eliminado correctamente.', 'success');
           cargarRecursosAdmin(del.dataset.codigo, card);
         });
       });
