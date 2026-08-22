@@ -520,3 +520,249 @@
   });
 
   registrarActividadInteractiva('A.1.2', abrirActividadA12);
+
+// ============================================================================
+// A.1.3 — VISTAS DE UN REPORTE EMPRESARIAL
+// ============================================================================
+  const ESCENARIOS_A13_BASE = [
+    { id:1, texto:'El diseñador ajusta el ancho de las columnas y el color de fondo del encabezado antes de conectar el reporte a los datos reales.', tipo:'diseno' },
+    { id:2, texto:'Se arrastran los campos de la base de datos hacia la cuadrícula del reporte para definir dónde aparecerá cada dato.', tipo:'diseno' },
+    { id:3, texto:'Se agrega un logotipo y se cambia la fuente del título del reporte mientras aún no hay información cargada.', tipo:'diseno' },
+    { id:4, texto:'Antes de entregar el reporte, el diseñador revisa cómo se verá impreso, usando datos de prueba, sin publicarlo todavía.', tipo:'previsualizacion' },
+    { id:5, texto:'Se simula cómo lucirán los totales y subtotales en la página, sin que el reporte esté disponible aún para los usuarios finales.', tipo:'previsualizacion' },
+    { id:6, texto:'El equipo revisa la distribución de las páginas y los saltos de página antes de liberar el reporte a producción.', tipo:'previsualizacion' },
+    { id:7, texto:'El reporte se ejecuta consultando la base de datos en tiempo real y genera el documento final que verá el gerente.', tipo:'ejecucion' },
+    { id:8, texto:'Un usuario solicita el reporte de ventas del mes y el sistema lo genera al instante con la información actualizada.', tipo:'ejecucion' },
+    { id:9, texto:'El reporte corre automáticamente cada lunes a las 8:00 a.m. y envía los resultados actualizados por correo.', tipo:'ejecucion' }
+  ];
+
+  const CRITERIOS_BASE_A13 = [
+    { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
+    { key:'identificacion', nombre:'2. Identificación de vistas', niveles:{ excelente:'Reconoce con precisión las diferencias entre las tres vistas de un reporte.', bueno:'Reconoce la mayoría de las diferencias entre las vistas.', proceso:'Reconoce algunas diferencias, con confusiones frecuentes.', insuficiente:'No logra diferenciar las vistas del reporte.' } },
+    { key:'clasificacion', nombre:'3. Clasificación correcta', niveles:{ excelente:'Clasifica correctamente el 90%-100% de los escenarios.', bueno:'Clasifica correctamente el 70%-89% de los escenarios.', proceso:'Clasifica correctamente el 50%-69% de los escenarios.', insuficiente:'Clasifica correctamente menos del 50% de los escenarios.' } },
+    { key:'justificacion', nombre:'4. Justificación', niveles:{ excelente:'Explica con claridad y precisión el porqué de su clasificación.', bueno:'Explica de forma general el porqué de su clasificación.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica su clasificación.' } },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
+    { key:'colaborativo', nombre:'6. Trabajo colaborativo', niveles:{ excelente:'Colabora de forma organizada y respetuosa con su pareja de trabajo.', bueno:'Colabora la mayor parte del tiempo con su pareja.', proceso:'Colabora de forma limitada.', insuficiente:'No colabora con su pareja de trabajo.' } }
+  ];
+
+  let asignacionesA13 = {};
+  let seleccionadoA13 = null;
+  let escenariosBarajadosA13 = [];
+  let puntajeMaxA13 = 0;
+  let tiempoEstimadoA13 = 10;
+  let inicioTiempoA13 = null;
+  let timerIntervalA13 = null;
+
+  async function abrirActividadA13(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA13 = puntajeMaximo;
+    tiempoEstimadoA13 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA13').textContent = enunciado || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA13').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.3') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA13').classList.add('hidden');
+        document.getElementById('vistaEjercicioA13').classList.add('hidden');
+        document.getElementById('vistaResultadoA13').classList.remove('hidden');
+        document.getElementById('resultadoDesgloseA13').innerHTML = '';
+        renderRubricaDescriptiva('rubricaResultadoA13', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA13').classList.remove('hidden');
+        document.getElementById('tituloDesgloseA13').classList.add('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA13').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA13').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA13').classList.add('hidden');
+    document.getElementById('vistaResultadoA13').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA13').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA13} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.3', 'recursosEstudianteA13');
+
+    const criteriosPrevios = CRITERIOS_BASE_A13.map(c => ({ nombre:c.nombre, niveles:c.niveles, nivel:null }));
+    renderRubricaDescriptiva('instrumentoPrevioA13', criteriosPrevios, puntajeMaxA13, null);
+  }
+
+  document.getElementById('btnBackFromActividadA13').addEventListener('click', () => {
+    clearInterval(timerIntervalA13);
+    document.getElementById('panelActividadA13').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA13').addEventListener('click', () => {
+    asignacionesA13 = {};
+    seleccionadoA13 = null;
+    escenariosBarajadosA13 = barajar(ESCENARIOS_A13_BASE);
+    document.getElementById('justificacionA13').value = '';
+    document.getElementById('vistaInstrumentoA13').classList.add('hidden');
+    document.getElementById('vistaEjercicioA13').classList.remove('hidden');
+    pintarClasificadorA13();
+
+    inicioTiempoA13 = Date.now();
+    clearInterval(timerIntervalA13);
+    timerIntervalA13 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA13) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA13').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA13} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarClasificadorA13(){
+    const pool = document.getElementById('clasifPoolA13');
+    const zonaDiseno = document.getElementById('zonaDisenoItemsA13');
+    const zonaPrevis = document.getElementById('zonaPrevisualizacionItemsA13');
+    const zonaEjec = document.getElementById('zonaEjecucionItemsA13');
+
+    const enPool = escenariosBarajadosA13.filter(it => !asignacionesA13[it.id]);
+    const enDiseno = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'diseno');
+    const enPrevis = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'previsualizacion');
+    const enEjec = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'ejecucion');
+
+    pool.innerHTML = enPool.map(it => `
+      <div class="clasif-item ${seleccionadoA13 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
+    `).join('') || '<span style="opacity:.5; font-size:14px;">Todos los escenarios han sido clasificados.</span>';
+
+    zonaDiseno.innerHTML = enDiseno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+    zonaPrevis.innerHTML = enPrevis.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+    zonaEjec.innerHTML = enEjec.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+
+    pool.querySelectorAll('.clasif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        seleccionadoA13 = seleccionadoA13 === id ? null : id;
+        pintarClasificadorA13();
+      });
+    });
+
+    [...zonaDiseno.querySelectorAll('.clasif-item'), ...zonaPrevis.querySelectorAll('.clasif-item'), ...zonaEjec.querySelectorAll('.clasif-item')].forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        delete asignacionesA13[id];
+        pintarClasificadorA13();
+      });
+    });
+
+    document.getElementById('btnFinalizarA13').disabled = enPool.length > 0;
+  }
+
+  function asignarZonaA13(tipo){
+    if(seleccionadoA13 === null) return;
+    asignacionesA13[seleccionadoA13] = tipo;
+    seleccionadoA13 = null;
+    pintarClasificadorA13();
+  }
+  document.getElementById('zonaDisenoA13').addEventListener('click', (e) => {
+    if(e.target.closest('.clasif-item')) return;
+    asignarZonaA13('diseno');
+  });
+  document.getElementById('zonaPrevisualizacionA13').addEventListener('click', (e) => {
+    if(e.target.closest('.clasif-item')) return;
+    asignarZonaA13('previsualizacion');
+  });
+  document.getElementById('zonaEjecucionA13').addEventListener('click', (e) => {
+    if(e.target.closest('.clasif-item')) return;
+    asignarZonaA13('ejecucion');
+  });
+
+  document.getElementById('btnFinalizarA13').addEventListener('click', async () => {
+    clearInterval(timerIntervalA13);
+
+    let correctas = 0;
+    escenariosBarajadosA13.forEach(it => { if(asignacionesA13[it.id] === it.tipo) correctas++; });
+    const total = escenariosBarajadosA13.length;
+    const proporcionCorrecta = correctas / total;
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA13) / 60000;
+    const justificacion = document.getElementById('justificacionA13').value.trim();
+
+    function nivelPorProporcion(p, uExc, uBueno, uProceso){
+      if(p >= uExc) return 'excelente';
+      if(p >= uBueno) return 'bueno';
+      if(p >= uProceso) return 'proceso';
+      return 'insuficiente';
+    }
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A13[0].nombre, niveles: CRITERIOS_BASE_A13[0].niveles, nivel: 'excelente' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A13[1].nombre, niveles: CRITERIOS_BASE_A13[1].niveles,
+      nivel: nivelPorProporcion(proporcionCorrecta, 0.75, 0.55, 0.3)
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A13[2].nombre, niveles: CRITERIOS_BASE_A13[2].niveles,
+      nivel: nivelPorProporcion(proporcionCorrecta, 0.9, 0.7, 0.5)
+    });
+
+    let nivelJustificacion = 'insuficiente';
+    if(justificacion.length >= 40) nivelJustificacion = 'excelente';
+    else if(justificacion.length >= 20) nivelJustificacion = 'bueno';
+    else if(justificacion.length > 0) nivelJustificacion = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A13[3].nombre, niveles: CRITERIOS_BASE_A13[3].niveles, nivel: nivelJustificacion });
+
+    let nivelTiempo = 'insuficiente';
+    if(minutosTranscurridos <= tiempoEstimadoA13) nivelTiempo = 'excelente';
+    else if(minutosTranscurridos <= tiempoEstimadoA13 * 1.5) nivelTiempo = 'bueno';
+    else if(minutosTranscurridos <= tiempoEstimadoA13 * 2) nivelTiempo = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A13[4].nombre, niveles: CRITERIOS_BASE_A13[4].niveles, nivel: nivelTiempo });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A13[5].nombre, niveles: CRITERIOS_BASE_A13[5].niveles, nivel: 'excelente' });
+
+    const pesoUnidad = puntajeMaxA13 / criterios.length;
+    const pesosPorNivel = { excelente:1, bueno:0.75, proceso:0.4, insuficiente:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA13').classList.add('hidden');
+    document.getElementById('vistaResultadoA13').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA13').classList.add('hidden');
+    document.getElementById('tituloDesgloseA13').classList.remove('hidden');
+    renderRubricaDescriptiva('rubricaResultadoA13', criterios, puntajeMaxA13, notaCalculada);
+
+    function bloqueResultadoA13(titulo, icono, tipo){
+      const items = escenariosBarajadosA13.filter(it => it.tipo === tipo);
+      return `
+        <div class="clasif-zona zona-${tipo}">
+          <h4><i class="fa-solid ${icono}"></i> ${titulo}</h4>
+          ${items.map(it => `
+            <div class="clasif-item ${asignacionesA13[it.id] === tipo ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+          `).join('')}
+        </div>`;
+    }
+    document.getElementById('resultadoDesgloseA13').innerHTML =
+      bloqueResultadoA13('Vista de diseño', 'fa-pen-ruler', 'diseno') +
+      bloqueResultadoA13('Previsualización', 'fa-eye', 'previsualizacion') +
+      bloqueResultadoA13('Ejecución', 'fa-play', 'ejecucion');
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.3',
+        ra:'RA1',
+        ec:'EC6.1.2',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA13,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnVolverMisActA13').addEventListener('click', () => {
+    document.getElementById('panelActividadA13').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.3', abrirActividadA13);
