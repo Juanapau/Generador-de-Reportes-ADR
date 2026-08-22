@@ -1,536 +1,768 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de Reportes | Módulo ADR — PNSA</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
+// ============================================================================
+// ACTIVIDADES INTERACTIVAS — TODOS los códigos de actividad viven en este
+// único archivo, organizados por secciones (Ctrl+F el código, ej. "A.1.2").
+// Esto evita tener decenas de archivos sueltos a medida que crece el módulo.
+// ============================================================================
 
-<!-- ============ LOGIN ============ -->
-<div id="loginScreen">
-  <div class="login-card">
-    <div class="login-badge"></div>
-    <button type="button" class="theme-toggle-login" id="themeToggleLogin" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">
-      <i class="fa-solid fa-moon" id="themeIconLogin"></i>
-    </button>
+// ============================================================================
+// A.1.1 — CLASIFICADOR DE REPORTES EMPRESARIALES (Interno / Externo)
+// ============================================================================
+  // ================= ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES =================
+  // Contenido pensado para 5to de Bachillerato Técnico en Informática: requiere leer
+  // y analizar el propósito/audiencia de cada reporte, no solo detectar una palabra clave.
+  const ITEMS_A11_BASE = [
+    { id:1, texto:'Resumen semanal de indicadores de productividad, compartido únicamente entre los supervisores de línea de producción.', tipo:'interno' },
+    { id:2, texto:'Boletín trimestral con los resultados financieros consolidados, remitido a la Superintendencia de Valores.', tipo:'externo' },
+    { id:3, texto:'Registro de horas trabajadas y ausencias, utilizado por el área de nómina para calcular los pagos quincenales.', tipo:'interno' },
+    { id:4, texto:'Cotización detallada de servicios de mantenimiento, enviada a una empresa interesada en contratar a la compañía.', tipo:'externo' },
+    { id:5, texto:'Comparativo de existencias entre bodegas, empleado para decidir traslados internos de mercancía.', tipo:'interno' },
+    { id:6, texto:'Memoria anual de responsabilidad social corporativa, disponible para descarga en la página institucional.', tipo:'externo' },
+    { id:7, texto:'Análisis de rotación de personal presentado en la reunión mensual de gerencia.', tipo:'interno' },
+    { id:8, texto:'Certificación de cumplimiento tributario, solicitada por un banco para aprobar una línea de crédito.', tipo:'externo' },
+    { id:9, texto:'Bitácora de incidencias del sistema, revisada por el equipo de soporte técnico para dar seguimiento a fallos.', tipo:'interno' },
+    { id:10, texto:'Carta de confirmación de pedido con el detalle de productos y fechas de entrega, dirigida a un cliente.', tipo:'externo' }
+  ];
 
-    <div class="login-logo">
-      <div class="crest-fallback">PNSA</div>
-      <div class="login-title">Generador de Reportes</div>
-      <div class="login-subtitle">Politécnico Nuestra Señora de la Altagracia</div>
-      <div class="login-module">Módulo: Análisis y Diseño de Reportes</div>
-    </div>
+  const CRITERIOS_BASE_A11 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad de clasificación desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación de tipos', descripcion:'Reconoce las características que distinguen un reporte interno de uno externo.' },
+    { key:'clasificacion', nombre:'3. Clasificación correcta', descripcion:'Ubica cada ejemplo en la categoría correcta según sus características.' },
+    { key:'justificacion', nombre:'4. Justificación del criterio', descripcion:'Explica el motivo de su clasificación con argumentos válidos.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'colaborativo', nombre:'6. Trabajo colaborativo', descripcion:'Colabora de forma organizada con su equipo durante el ejercicio.' }
+  ];
 
-    <div class="role-tabs">
-      <button type="button" class="role-tab active" data-role="estudiante" id="tabEstudiante">
-        <i class="fa-solid fa-user-graduate"></i>&nbsp; Estudiante
-      </button>
-      <button type="button" class="role-tab" data-role="docente" id="tabDocente">
-        <i class="fa-solid fa-chalkboard-user"></i>&nbsp; Docente
-      </button>
-    </div>
+  let ITEMS_A11 = [];
+  let asignacionesA11 = {};
+  let seleccionadoA11 = null;
+  let puntajeMaxA11 = 0;
+  let tiempoEstimadoA11 = 10;
+  let inicioTiempoA11 = null;
+  let timerIntervalA11 = null;
 
-    <form id="loginForm">
-      <div class="field">
-        <label for="loginUser">Usuario</label>
-        <input type="text" id="loginUser" placeholder="Ej. estudiante01" autocomplete="username" required>
+  async function abrirActividadA11(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA11 = puntajeMaximo;
+    tiempoEstimadoA11 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA11').textContent = enunciado || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA11').classList.remove('hidden');
+
+    // ---- Bloqueo de repetición: si ya existe una calificación para esta actividad,
+    // se muestra directamente el resultado guardado y no se permite volver a realizarla.
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.1') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA11').classList.add('hidden');
+        document.getElementById('vistaEjercicioA11').classList.add('hidden');
+        document.getElementById('vistaResultadoA11').classList.remove('hidden');
+        document.getElementById('resultadoDesgloseA11').innerHTML = '';
+        renderRubrica('rubricaResultadoA11', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA11').classList.remove('hidden');
+        document.getElementById('tituloDesgloseA11').classList.add('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA11').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA11').classList.add('hidden');
+    document.getElementById('vistaResultadoA11').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA11').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA11} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosEstudianteA11();
+
+    const criteriosPrevios = CRITERIOS_BASE_A11.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA11', criteriosPrevios, puntajeMaxA11, null);
+  }
+
+  async function cargarRecursosEstudianteA11(){
+    const cont = document.getElementById('recursosEstudianteA11');
+    try{
+      const data = await apiGet({ action:'listarRecursos', codigo:'A.1.1' });
+      if(!data.success || data.recursos.length === 0){
+        cont.innerHTML = '<div style="font-size:15px; opacity:.6; padding:6px 0;">Tu docente no ha agregado recursos para esta actividad.</div>';
+        return;
+      }
+      cont.innerHTML = data.recursos.map(r => `
+        <a href="${r.url}" target="_blank" rel="noopener" class="recurso-item">
+          <i class="fa-solid ${r.tipo === 'archivo' ? 'fa-file-lines' : 'fa-link'}"></i>
+          <span>${r.nombre}</span>
+          <i class="fa-solid fa-arrow-up-right-from-square" style="margin-left:auto; opacity:.6;"></i>
+        </a>
+      `).join('');
+    }catch(err){
+      cont.innerHTML = '<div style="font-size:15px; opacity:.6;">No se pudieron cargar los recursos.</div>';
+    }
+  }
+
+  document.getElementById('btnBackFromActividadA11').addEventListener('click', () => {
+    clearInterval(timerIntervalA11);
+    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA11').addEventListener('click', () => {
+    ITEMS_A11 = barajar(ITEMS_A11_BASE); // orden distinto en cada intento, sin patrón predecible
+    asignacionesA11 = {};
+    seleccionadoA11 = null;
+    document.getElementById('justificacionA11').value = '';
+    document.getElementById('vistaInstrumentoA11').classList.add('hidden');
+    document.getElementById('vistaEjercicioA11').classList.remove('hidden');
+    pintarClasificador();
+
+    inicioTiempoA11 = Date.now();
+    clearInterval(timerIntervalA11);
+    timerIntervalA11 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA11) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA11').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA11} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarClasificador(){
+    const pool = document.getElementById('clasifPool');
+    const zonaInterno = document.getElementById('zonaInternoItems');
+    const zonaExterno = document.getElementById('zonaExternoItems');
+
+    const enPool = ITEMS_A11.filter(it => !asignacionesA11[it.id]);
+    const enInterno = ITEMS_A11.filter(it => asignacionesA11[it.id] === 'interno');
+    const enExterno = ITEMS_A11.filter(it => asignacionesA11[it.id] === 'externo');
+
+    pool.innerHTML = enPool.map(it => `
+      <div class="clasif-item ${seleccionadoA11 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
+    `).join('') || '<span style="opacity:.5; font-size:15px;">Todos los reportes han sido clasificados.</span>';
+
+    zonaInterno.innerHTML = enInterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+    zonaExterno.innerHTML = enExterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+
+    pool.querySelectorAll('.clasif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        seleccionadoA11 = seleccionadoA11 === id ? null : id;
+        pintarClasificador();
+      });
+    });
+
+    [...zonaInterno.querySelectorAll('.clasif-item'), ...zonaExterno.querySelectorAll('.clasif-item')].forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        delete asignacionesA11[id];
+        pintarClasificador();
+      });
+    });
+
+    document.getElementById('btnFinalizarA11').disabled = enPool.length > 0;
+  }
+
+  document.getElementById('zonaInterno').addEventListener('click', (e) => {
+    if(seleccionadoA11 === null) return;
+    if(e.target.closest('.clasif-item')) return;
+    asignacionesA11[seleccionadoA11] = 'interno';
+    seleccionadoA11 = null;
+    pintarClasificador();
+  });
+  document.getElementById('zonaExterno').addEventListener('click', (e) => {
+    if(seleccionadoA11 === null) return;
+    if(e.target.closest('.clasif-item')) return;
+    asignacionesA11[seleccionadoA11] = 'externo';
+    seleccionadoA11 = null;
+    pintarClasificador();
+  });
+
+  document.getElementById('btnFinalizarA11').addEventListener('click', async () => {
+    clearInterval(timerIntervalA11);
+
+    let correctas = 0;
+    ITEMS_A11.forEach(it => { if(asignacionesA11[it.id] === it.tipo) correctas++; });
+    const total = ITEMS_A11.length;
+    const proporcionCorrecta = correctas / total;
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA11) / 60000;
+    const justificacion = document.getElementById('justificacionA11').value.trim();
+
+    const criterios = [];
+
+    criterios.push({ nombre: CRITERIOS_BASE_A11[0].nombre, descripcion: CRITERIOS_BASE_A11[0].descripcion, nivel: 'logrado' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[1].nombre, descripcion: CRITERIOS_BASE_A11[1].descripcion,
+      nivel: proporcionCorrecta >= 0.75 ? 'logrado' : (proporcionCorrecta >= 0.4 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[2].nombre, descripcion: CRITERIOS_BASE_A11[2].descripcion,
+      nivel: proporcionCorrecta >= 0.9 ? 'logrado' : (proporcionCorrecta >= 0.5 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[3].nombre, descripcion: CRITERIOS_BASE_A11[3].descripcion,
+      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A11[4].nombre, descripcion: CRITERIOS_BASE_A11[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA11 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA11 * 2 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A11[5].nombre, descripcion: CRITERIOS_BASE_A11[5].descripcion, nivel: 'logrado' });
+
+    const pesoUnidad = puntajeMaxA11 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => {
+      if(c.nivel === 'logrado') notaCalculada += pesoUnidad;
+      else if(c.nivel === 'proceso') notaCalculada += pesoUnidad / 2;
+    });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA11').classList.add('hidden');
+    document.getElementById('vistaResultadoA11').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
+    document.getElementById('tituloDesgloseA11').classList.remove('hidden');
+    renderRubrica('rubricaResultadoA11', criterios, puntajeMaxA11, notaCalculada);
+
+    document.getElementById('resultadoDesgloseA11').innerHTML = `
+      <div class="clasif-zona zona-interno">
+        <h4><i class="fa-solid fa-building"></i> Interno</h4>
+        ${ITEMS_A11.filter(it => it.tipo === 'interno').map(it => `
+          <div class="clasif-item ${asignacionesA11[it.id] === 'interno' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+        `).join('')}
       </div>
-      <div class="field">
-        <label for="loginPass">Contraseña</label>
-        <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password" required>
+      <div class="clasif-zona zona-externo">
+        <h4><i class="fa-solid fa-globe"></i> Externo</h4>
+        ${ITEMS_A11.filter(it => it.tipo === 'externo').map(it => `
+          <div class="clasif-item ${asignacionesA11[it.id] === 'externo' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+        `).join('')}
       </div>
-      <button type="submit" class="btn btn-primary">
-        <i class="fa-solid fa-right-to-bracket"></i> Ingresar
-      </button>
-      <div class="login-error" id="loginError"></div>
-    </form>
-  </div>
-</div>
+    `;
 
-<!-- ============ CAMBIO OBLIGATORIO DE CONTRASEÑA (primer acceso) ============ -->
-<div id="forcedPasswordScreen" class="hidden">
-  <div id="loginScreenBg2" class="login-bg-wrap">
-    <div class="login-card">
-      <div class="login-badge"></div>
-      <div class="login-logo">
-        <div class="crest-fallback"><i class="fa-solid fa-key"></i></div>
-        <div class="login-title" style="font-size:27.5px;">Cambia tu contraseña</div>
-        <div class="login-subtitle">Es tu primer ingreso al sistema. Por seguridad, debes establecer una nueva contraseña antes de continuar.</div>
-      </div>
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.1',
+        ra:'RA1',
+        ec:'EC6.1.1',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA11,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
 
-      <form id="formCambioPassword">
-        <div class="field">
-          <label for="nuevaPass1">Nueva contraseña</label>
-          <input type="password" id="nuevaPass1" placeholder="Mínimo 4 caracteres" minlength="4" required>
-        </div>
-        <div class="field">
-          <label for="nuevaPass2">Confirmar nueva contraseña</label>
-          <input type="password" id="nuevaPass2" placeholder="Repite la contraseña" minlength="4" required>
-        </div>
-        <button type="submit" class="btn btn-primary">
-          <i class="fa-solid fa-check"></i> Guardar y continuar
-        </button>
-        <div class="login-error" id="cambioPasswordError"></div>
-      </form>
-    </div>
-  </div>
-</div>
+  document.getElementById('btnVolverMisActA11').addEventListener('click', () => {
+    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
 
-<!-- ============ APP SHELL ============ -->
-<div id="appShell" class="hidden">
-  <header class="topbar">
-    <div class="topbar-left">
-      <div class="crest-fallback-sm">PNSA</div>
-      <div class="topbar-title">
-        <h1>Generador de Reportes</h1>
-        <p id="topbarModule">Módulo: Análisis y Diseño de Reportes</p>
-      </div>
-    </div>
-  </header>
+  registrarActividadInteractiva('A.1.1', abrirActividadA11);
 
-  <div class="userbar">
-    <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
-    <div class="user-meta">
-      <div class="u-name" id="userName">—</div>
-      <div class="u-role" id="userRole">—</div>
-    </div>
-    <div class="userbar-actions">
-      <button type="button" class="icon-btn" id="themeToggleApp" title="Cambiar tema">
-        <i class="fa-solid fa-moon" id="themeIconApp"></i>
-      </button>
-      <button type="button" class="icon-btn" title="Notificaciones">
-        <i class="fa-solid fa-bell"></i>
-      </button>
-      <button type="button" class="btn-logout" id="btnLogout">
-        <i class="fa-solid fa-right-from-bracket"></i> Salir
-      </button>
-    </div>
-  </div>
+// ============================================================================
+// A.1.2 — PARTES DE UN REPORTE EMPRESARIAL
+// ============================================================================
+  // ================= ACTIVIDAD A.1.2: PARTES DE UN REPORTE EMPRESARIAL =================
+  // Se muestra un reporte simulado con datos reales (empresa, productos, totales en RD$).
+  // El estudiante debe identificar qué parte del reporte es cada sección, arrastrando/asignando
+  // las etiquetas del banco (que aparecen en orden aleatorio) a la zona correspondiente.
+  const ZONAS_A12_BASE = [
+    {
+      id:1,
+      correcta:'Encabezado de reporte',
+      html:`<div style="font-weight:800; font-size:16px;">TECNOVENTAS RD, S.R.L.</div>
+            <div style="font-size:14px; opacity:.85;">Reporte de Ventas Mensuales — Enero 2026</div>`
+    },
+    {
+      id:2,
+      correcta:'Encabezado de página',
+      html:`<div style="font-size:12.5px; opacity:.8; margin-bottom:6px;">Página 1 &nbsp;·&nbsp; Generado: 31/01/2026 &nbsp;·&nbsp; Vendedor: Todos</div>
+            <div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:6px;">
+              <span style="flex:2;">Producto</span><span style="flex:1;">Cant.</span><span style="flex:1;">Precio Unit.</span><span style="flex:1;">Total</span>
+            </div>`
+    },
+    {
+      id:3,
+      correcta:'Línea de detalle',
+      html:`<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Laptop HP 15</span><span style="flex:1;">3</span><span style="flex:1;">RD$28,500.00</span><span style="flex:1;">RD$85,500.00</span></div>
+            <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Mouse inalámbrico</span><span style="flex:1;">12</span><span style="flex:1;">RD$650.00</span><span style="flex:1;">RD$7,800.00</span></div>
+            <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Teclado mecánico</span><span style="flex:1;">7</span><span style="flex:1;">RD$1,200.00</span><span style="flex:1;">RD$8,400.00</span></div>`
+    },
+    {
+      id:4,
+      correcta:'Pie de página',
+      html:`<div style="font-size:12.5px; opacity:.85;">Página 1 de 2 &nbsp;·&nbsp; Subtotal de esta página: <b>RD$101,700.00</b></div>`
+    },
+    {
+      id:5,
+      correcta:'Pie de reporte',
+      html:`<div style="font-size:14.5px; font-weight:800;">TOTAL GENERAL DEL REPORTE: RD$198,450.00</div>
+            <div style="font-size:12px; opacity:.75;">Elaborado por: Departamento de Ventas</div>`
+    }
+  ];
+  const ETIQUETAS_A12_BASE = ['Encabezado de reporte', 'Encabezado de página', 'Línea de detalle', 'Pie de página', 'Pie de reporte'];
 
-  <div class="impersonation-banner hidden" id="impersonationBanner">
-    <i class="fa-solid fa-user-secret"></i>
-    <span>Estás viendo el perfil de <b id="impersonationNombre">—</b> en modo solo lectura docente.</span>
-    <button type="button" id="btnVolverDocente"><i class="fa-solid fa-arrow-left"></i> Volver a mi panel</button>
-  </div>
+  const CRITERIOS_BASE_A12 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación de partes', descripcion:'Reconoce las partes que componen un reporte empresarial.' },
+    { key:'clasificacion', nombre:'3. Ubicación correcta', descripcion:'Coloca cada etiqueta en la zona correcta del reporte.' },
+    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica la función de al menos dos de las partes identificadas.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
 
-  <!-- ============ MODAL DE CONFIRMACIÓN (reemplaza confirm() nativo) ============ -->
-  <div id="modalConfirmacion" class="modal-overlay hidden">
-    <div class="modal-box modal-confirmacion">
-      <div class="modal-confirmacion-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
-      <div class="modal-title" id="confirmTitulo">¿Estás segura?</div>
-      <p id="confirmMensaje" style="font-size:15px; line-height:1.5; color:var(--dark-text-dim);"></p>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="confirmCancelar">Cancelar</button>
-        <button type="button" class="btn btn-primary btn-confirmar-peligro" id="confirmAceptar">Confirmar</button>
-      </div>
-    </div>
-  </div>
+  let asignacionesA12 = {};
+  let etiquetaSeleccionadaA12 = null;
+  let etiquetasBarajadasA12 = [];
+  let puntajeMaxA12 = 0;
+  let tiempoEstimadoA12 = 10;
+  let inicioTiempoA12 = null;
+  let timerIntervalA12 = null;
 
-  <!-- ============ NOTIFICACIONES TIPO TOAST (reemplaza alert() nativo) ============ -->
-  <div id="toastContainer" class="toast-container"></div>
+  async function abrirActividadA12(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA12 = puntajeMaximo;
+    tiempoEstimadoA12 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA12').textContent = enunciado || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA12').classList.remove('hidden');
 
-  <main>
-    <!-- ---- PANEL DOCENTE ---- -->
-    <div id="panelDocente" class="hidden">
-      <div class="section-heading">Panel del docente — Administración</div>
-      <div class="grid-cards">
-        <button type="button" class="module-card" id="cardRegistroEstudiantes" style="text-align:left;">
-          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-users"></i></div>
-          <h3>Registro de estudiantes</h3>
-          <p>Dar de alta, editar y organizar estudiantes por equipo o pareja de trabajo.</p>
-          <span class="m-tag tag-blue">Disponible</span>
-        </button>
-        <button type="button" class="module-card" id="cardActividadesRA" style="text-align:left;">
-          <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-list-check"></i></div>
-          <h3>Actividades por RA</h3>
-          <p>Configurar cada actividad (A.1.1...), su instrumento de evaluación y su puntaje máximo antes de habilitarla.</p>
-          <span class="m-tag tag-gold">Disponible</span>
-        </button>
-        <div class="module-card">
-          <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-line"></i></div>
-          <h3>Calificaciones y avances</h3>
-          <p>Ver el progreso individual y por equipo de cada estudiante en todas las actividades.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
-        <div class="module-card">
-          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-file-export"></i></div>
-          <h3>Reportes PDF / Excel</h3>
-          <p>Exportar calificaciones individuales o grupales en PDF o Excel.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
-        <div class="module-card">
-          <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-gears"></i></div>
-          <h3>Configuración</h3>
-          <p>Datos generales del módulo, año lectivo y parámetros del sistema.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
-      </div>
-    </div>
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.2') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA12').classList.add('hidden');
+        document.getElementById('vistaEjercicioA12').classList.add('hidden');
+        document.getElementById('vistaResultadoA12').classList.remove('hidden');
+        document.getElementById('resultadoDesgloseA12').innerHTML = '';
+        renderListaCotejo('rubricaResultadoA12', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA12').classList.remove('hidden');
+        document.getElementById('tituloDesgloseA12').classList.add('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
 
-    <!-- ---- REGISTRO DE ESTUDIANTES ---- -->
-    <div id="panelRegistro" class="hidden">
-      <button type="button" class="back-btn" id="btnBackFromRegistro"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
-      <div class="section-heading">Registro de estudiantes</div>
+    document.getElementById('avisoYaCompletadaA12').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA12').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA12').classList.add('hidden');
+    document.getElementById('vistaResultadoA12').classList.add('hidden');
 
-      <div class="panel-toolbar">
-        <div style="font-size:15px; color:var(--dark-text-dim);" id="totalEstudiantesLabel">Cargando...</div>
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-          <button type="button" class="btn-secondary" id="btnExportarExcel" style="padding:10px 14px;">
-            <i class="fa-solid fa-file-arrow-down"></i> Exportar a Excel
-          </button>
-          <button type="button" class="btn-secondary" id="btnImportarExcel" style="padding:10px 14px;">
-            <i class="fa-solid fa-file-arrow-up"></i> Importar desde Excel
-          </button>
-          <input type="file" id="inputImportarExcel" accept=".xlsx,.xls" class="hidden">
-          <button type="button" class="btn-add" id="btnNuevoEstudiante"><i class="fa-solid fa-user-plus"></i> Nuevo estudiante</button>
-        </div>
-      </div>
+    document.getElementById('tiempoEstimadoAvisoA12').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA12} minutos</b> para completar esta actividad una vez que la inicies.`;
 
-      <div class="empty-note" style="margin-top:0; margin-bottom:16px;" id="importFormatNote">
-        <i class="fa-solid fa-circle-info"></i>
-        Para importar, tu archivo Excel debe tener las columnas: <b>Usuario</b>, <b>Nombre</b>, <b>Equipo</b> (opcional) y <b>Contraseña</b> (opcional — si la dejas vacía, se usará el mismo Usuario como contraseña temporal).
-      </div>
+    cargarRecursosActividad('A.1.2', 'recursosEstudianteA12');
 
-      <div class="data-table-wrap">
-        <table class="data-table" id="tablaEstudiantes">
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Nombre</th>
-              <th>Equipo / Pareja</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tbodyEstudiantes">
-            <tr><td colspan="4"><div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando estudiantes...</div></td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    const criteriosPrevios = CRITERIOS_BASE_A12.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderListaCotejo('instrumentoPrevioA12', criteriosPrevios, puntajeMaxA12, null);
+  }
 
-    <!-- ---- MODAL: Agregar / Editar estudiante ---- -->
-    <div id="modalEstudiante" class="modal-overlay hidden">
-      <div class="modal-box">
-        <div class="modal-title" id="modalEstudianteTitle">Nuevo estudiante</div>
-        <form id="formEstudiante">
-          <input type="hidden" id="estUsuarioOriginal">
-          <div class="field">
-            <label for="estUsuario">Usuario (código de acceso)</label>
-            <input type="text" id="estUsuario" placeholder="Ej. jperez01" required>
+  document.getElementById('btnBackFromActividadA12').addEventListener('click', () => {
+    clearInterval(timerIntervalA12);
+    document.getElementById('panelActividadA12').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA12').addEventListener('click', () => {
+    asignacionesA12 = {};
+    etiquetaSeleccionadaA12 = null;
+    etiquetasBarajadasA12 = barajar(ETIQUETAS_A12_BASE); // orden distinto en cada intento
+    document.getElementById('justificacionA12').value = '';
+    document.getElementById('vistaInstrumentoA12').classList.add('hidden');
+    document.getElementById('vistaEjercicioA12').classList.remove('hidden');
+    pintarEsquemaA12();
+
+    inicioTiempoA12 = Date.now();
+    clearInterval(timerIntervalA12);
+    timerIntervalA12 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA12) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA12').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA12} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarEsquemaA12(){
+    const pool = document.getElementById('etiquetasPoolA12');
+    const esquema = document.getElementById('esquemaReporteA12');
+
+    const etiquetasUsadas = Object.values(asignacionesA12);
+    const etiquetasDisponibles = etiquetasBarajadasA12.filter(et => !etiquetasUsadas.includes(et));
+
+    pool.innerHTML = etiquetasDisponibles.map(et => `
+      <div class="clasif-item ${etiquetaSeleccionadaA12 === et ? 'selected' : ''}" data-etiqueta="${et}">${et}</div>
+    `).join('') || '<span style="opacity:.5; font-size:14px;">Todas las etiquetas han sido ubicadas.</span>';
+
+    esquema.innerHTML = ZONAS_A12_BASE.map(z => {
+      const etiqueta = asignacionesA12[z.id];
+      return `
+        <div class="esquema-zona ${etiqueta ? 'esquema-zona-llena' : 'esquema-zona-vacia'}" data-zona="${z.id}">
+          <div style="flex:1;">
+            ${z.html}
+            <div class="esquema-zona-slot">
+              ${etiqueta
+                ? `<span class="esquema-zona-etiqueta"><i class="fa-solid fa-tag"></i> ${etiqueta}</span>`
+                : `<span class="esquema-zona-placeholder">¿Qué parte del reporte es esta? Selecciona una etiqueta y haz clic aquí.</span>`}
+            </div>
           </div>
-          <div class="field">
-            <label for="estNombre">Nombre completo</label>
-            <input type="text" id="estNombre" placeholder="Nombre y apellido" required>
+          ${etiqueta ? '<i class="fa-solid fa-xmark" style="opacity:.5;"></i>' : ''}
+        </div>`;
+    }).join('');
+
+    pool.querySelectorAll('.clasif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const et = el.dataset.etiqueta;
+        etiquetaSeleccionadaA12 = etiquetaSeleccionadaA12 === et ? null : et;
+        pintarEsquemaA12();
+      });
+    });
+
+    esquema.querySelectorAll('.esquema-zona').forEach(el => {
+      el.addEventListener('click', () => {
+        const zonaId = Number(el.dataset.zona);
+        if(asignacionesA12[zonaId]){
+          delete asignacionesA12[zonaId]; // quitar etiqueta ya puesta
+        } else if(etiquetaSeleccionadaA12){
+          asignacionesA12[zonaId] = etiquetaSeleccionadaA12;
+          etiquetaSeleccionadaA12 = null;
+        }
+        pintarEsquemaA12();
+      });
+    });
+
+    document.getElementById('btnFinalizarA12').disabled = Object.keys(asignacionesA12).length < ZONAS_A12_BASE.length;
+  }
+
+  document.getElementById('btnFinalizarA12').addEventListener('click', async () => {
+    clearInterval(timerIntervalA12);
+
+    let correctas = 0;
+    ZONAS_A12_BASE.forEach(z => { if(asignacionesA12[z.id] === z.correcta) correctas++; });
+    const total = ZONAS_A12_BASE.length;
+    const proporcionCorrecta = correctas / total;
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA12) / 60000;
+    const justificacion = document.getElementById('justificacionA12').value.trim();
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A12[0].nombre, descripcion: CRITERIOS_BASE_A12[0].descripcion, nivel: 'cumple' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[1].nombre, descripcion: CRITERIOS_BASE_A12[1].descripcion,
+      nivel: proporcionCorrecta >= 0.6 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[2].nombre, descripcion: CRITERIOS_BASE_A12[2].descripcion,
+      nivel: proporcionCorrecta >= 0.8 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[3].nombre, descripcion: CRITERIOS_BASE_A12[3].descripcion,
+      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A12[4].nombre, descripcion: CRITERIOS_BASE_A12[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA12 * 1.5 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A12[5].nombre, descripcion: CRITERIOS_BASE_A12[5].descripcion, nivel: 'cumple' });
+
+    const pesoUnidad = puntajeMaxA12 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => { if(c.nivel === 'cumple') notaCalculada += pesoUnidad; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA12').classList.add('hidden');
+    document.getElementById('vistaResultadoA12').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA12').classList.add('hidden');
+    document.getElementById('tituloDesgloseA12').classList.remove('hidden');
+    renderListaCotejo('rubricaResultadoA12', criterios, puntajeMaxA12, notaCalculada);
+
+    document.getElementById('resultadoDesgloseA12').innerHTML = ZONAS_A12_BASE.map(z => {
+      const asignada = asignacionesA12[z.id];
+      const ok = asignada === z.correcta;
+      return `
+        <div class="esquema-zona ${ok ? 'correcto' : 'incorrecto'}">
+          <div style="flex:1;">
+            ${z.html}
+            <div class="esquema-zona-slot">
+              <span class="esquema-zona-etiqueta">Tu respuesta: ${asignada || 'Sin responder'} ${!ok ? `(correcta: ${z.correcta})` : ''}</span>
+            </div>
           </div>
-          <div class="field">
-            <label for="estEquipo">Equipo / Pareja (opcional)</label>
-            <input type="text" id="estEquipo" placeholder="Ej. Equipo 1">
-          </div>
-          <div class="field">
-            <label for="estPassword">Contraseña <span id="passHint" style="text-transform:none; font-weight:600;"></span></label>
-            <input type="text" id="estPassword" placeholder="Contraseña de acceso">
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
-            <button type="submit" class="btn btn-primary">Guardar</button>
-          </div>
-          <div class="form-msg" id="formEstudianteMsg"></div>
-        </form>
-      </div>
-    </div>
+          <i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}"></i>
+        </div>`;
+    }).join('');
 
-    <!-- ---- ACTIVIDADES POR RA ---- -->
-    <div id="panelActividades" class="hidden">
-      <button type="button" class="back-btn" id="btnBackFromActividades"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
-      <div class="section-heading">Actividades por RA — Asignación de puntaje</div>
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.2',
+        ra:'RA1',
+        ec:'EC6.1.1',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA12,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
 
-      <!-- Vista 1: selección de RA -->
-      <div id="vistaRaCardsAdmin">
-        <div class="ra-cards-grid" id="raCardsAdminWrap"></div>
-      </div>
+  document.getElementById('btnVolverMisActA12').addEventListener('click', () => {
+    document.getElementById('panelActividadA12').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
 
-      <!-- Vista 2: lista de actividades del RA seleccionado -->
-      <div id="vistaListaActividades" class="hidden">
-        <button type="button" class="back-btn" id="btnBackToRaCardsAdmin"><i class="fa-solid fa-arrow-left"></i> Volver a los RA</button>
-        <div class="panel-toolbar">
-          <div style="font-size:15px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
-        </div>
-        <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
-          <i class="fa-solid fa-circle-info"></i>
-          Asigna el puntaje y tiempo estimado, activa la actividad, y agrega los recursos de apoyo (enlaces) que verán los estudiantes.
-        </div>
-        <div id="listaActividadesWrap"></div>
-      </div>
-    </div>
+  registrarActividadInteractiva('A.1.2', abrirActividadA12);
 
-    <!-- ---- PANEL ESTUDIANTE ---- -->
-    <div id="panelEstudiante" class="hidden">
-      <div class="section-heading">Mi espacio — RA1: Los reportes empresariales</div>
-      <div class="grid-cards">
-        <button type="button" class="module-card" id="cardMisActividades" style="text-align:left;">
-          <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-pen-to-square"></i></div>
-          <h3>Mis actividades</h3>
-          <p>Consulta el instrumento de evaluación de cada actividad y realízala para autocalificarte al instante.</p>
-          <span class="m-tag tag-blue">Disponible</span>
-        </button>
-        <div class="module-card">
-          <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-simple"></i></div>
-          <h3>Mi progreso</h3>
-          <p>Revisa tu historial de calificaciones y avances a lo largo del módulo.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
-      </div>
-      <div class="empty-note">
-        <i class="fa-solid fa-circle-info"></i>
-        Este es tu espacio personal. Las actividades del RA1 se activarán aquí a medida que tu docente las habilite.
-      </div>
-    </div>
+// ============================================================================
+// A.1.3 — VISTAS DE UN REPORTE EMPRESARIAL
+// ============================================================================
+  const ESCENARIOS_A13_BASE = [
+    { id:1, texto:'El diseñador ajusta el ancho de las columnas y el color de fondo del encabezado antes de conectar el reporte a los datos reales.', tipo:'diseno' },
+    { id:2, texto:'Se arrastran los campos de la base de datos hacia la cuadrícula del reporte para definir dónde aparecerá cada dato.', tipo:'diseno' },
+    { id:3, texto:'Se agrega un logotipo y se cambia la fuente del título del reporte mientras aún no hay información cargada.', tipo:'diseno' },
+    { id:4, texto:'Antes de entregar el reporte, el diseñador revisa cómo se verá impreso, usando datos de prueba, sin publicarlo todavía.', tipo:'previsualizacion' },
+    { id:5, texto:'Se simula cómo lucirán los totales y subtotales en la página, sin que el reporte esté disponible aún para los usuarios finales.', tipo:'previsualizacion' },
+    { id:6, texto:'El equipo revisa la distribución de las páginas y los saltos de página antes de liberar el reporte a producción.', tipo:'previsualizacion' },
+    { id:7, texto:'El reporte se ejecuta consultando la base de datos en tiempo real y genera el documento final que verá el gerente.', tipo:'ejecucion' },
+    { id:8, texto:'Un usuario solicita el reporte de ventas del mes y el sistema lo genera al instante con la información actualizada.', tipo:'ejecucion' },
+    { id:9, texto:'El reporte corre automáticamente cada lunes a las 8:00 a.m. y envía los resultados actualizados por correo.', tipo:'ejecucion' }
+  ];
 
-    <!-- ---- MIS ACTIVIDADES (vista estudiante) ---- -->
-    <div id="panelMisActividades" class="hidden">
-      <button type="button" class="back-btn" id="btnBackFromMisActividades"><i class="fa-solid fa-arrow-left"></i> Volver a mi espacio</button>
-      <div class="section-heading">Mis actividades</div>
+  const CRITERIOS_BASE_A13 = [
+    { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
+    { key:'identificacion', nombre:'2. Identificación de vistas', niveles:{ excelente:'Reconoce con precisión las diferencias entre las tres vistas de un reporte.', bueno:'Reconoce la mayoría de las diferencias entre las vistas.', proceso:'Reconoce algunas diferencias, con confusiones frecuentes.', insuficiente:'No logra diferenciar las vistas del reporte.' } },
+    { key:'clasificacion', nombre:'3. Clasificación correcta', niveles:{ excelente:'Clasifica correctamente el 90%-100% de los escenarios.', bueno:'Clasifica correctamente el 70%-89% de los escenarios.', proceso:'Clasifica correctamente el 50%-69% de los escenarios.', insuficiente:'Clasifica correctamente menos del 50% de los escenarios.' } },
+    { key:'justificacion', nombre:'4. Justificación', niveles:{ excelente:'Explica con claridad y precisión el porqué de su clasificación.', bueno:'Explica de forma general el porqué de su clasificación.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica su clasificación.' } },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
+    { key:'colaborativo', nombre:'6. Trabajo colaborativo', niveles:{ excelente:'Colabora de forma organizada y respetuosa con su pareja de trabajo.', bueno:'Colabora la mayor parte del tiempo con su pareja.', proceso:'Colabora de forma limitada.', insuficiente:'No colabora con su pareja de trabajo.' } }
+  ];
 
-      <!-- Vista 1: selección de RA -->
-      <div id="vistaRaCardsEstudiante">
-        <div class="ra-cards-grid" id="raCardsEstudianteWrap"></div>
-      </div>
+  let asignacionesA13 = {};
+  let seleccionadoA13 = null;
+  let escenariosBarajadosA13 = [];
+  let puntajeMaxA13 = 0;
+  let tiempoEstimadoA13 = 10;
+  let inicioTiempoA13 = null;
+  let timerIntervalA13 = null;
 
-      <!-- Vista 2: lista de actividades del RA seleccionado -->
-      <div id="vistaListaMisActividades" class="hidden">
-        <button type="button" class="back-btn" id="btnBackToRaCardsEstudiante"><i class="fa-solid fa-arrow-left"></i> Volver a mis RA</button>
-        <div class="section-heading" id="tituloListaMisActividades" style="font-size:22px;">RA1</div>
-        <div id="listaMisActividadesWrap"></div>
-      </div>
-    </div>
+  async function abrirActividadA13(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA13 = puntajeMaximo;
+    tiempoEstimadoA13 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA13').textContent = enunciado || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA13').classList.remove('hidden');
 
-    <!-- ---- ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES ---- -->
-    <div id="panelActividadA11" class="hidden">
-      <button type="button" class="back-btn" id="btnBackFromActividadA11"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
-      <div class="section-heading">A.1.1 — Clasificador de reportes empresariales</div>
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.3') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA13').classList.add('hidden');
+        document.getElementById('vistaEjercicioA13').classList.add('hidden');
+        document.getElementById('vistaResultadoA13').classList.remove('hidden');
+        document.getElementById('resultadoDesgloseA13').innerHTML = '';
+        renderRubricaDescriptiva('rubricaResultadoA13', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA13').classList.remove('hidden');
+        document.getElementById('tituloDesgloseA13').classList.add('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
 
-      <!-- Vista 1: enunciado + recursos + instrumento (antes de comenzar) -->
-      <div id="vistaInstrumentoA11">
-        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
-        <p id="enunciadoActivoA11" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+    document.getElementById('avisoYaCompletadaA13').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA13').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA13').classList.add('hidden');
+    document.getElementById('vistaResultadoA13').classList.add('hidden');
 
-        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
-        <div id="recursosEstudianteA11" class="recursos-lista">
-          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
-        </div>
+    document.getElementById('tiempoEstimadoAvisoA13').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA13} minutos</b> para completar esta actividad una vez que la inicies.`;
 
-        <div id="instrumentoPrevioA11"></div>
+    cargarRecursosActividad('A.1.3', 'recursosEstudianteA13');
 
-        <div class="empty-note" id="tiempoEstimadoAvisoA11" style="margin-bottom:16px;"></div>
+    const criteriosPrevios = CRITERIOS_BASE_A13.map(c => ({ nombre:c.nombre, niveles:c.niveles, nivel:null }));
+    renderRubricaDescriptiva('instrumentoPrevioA13', criteriosPrevios, puntajeMaxA13, null);
+  }
 
-        <button type="button" class="btn btn-primary" id="btnComenzarA11" style="margin-top:6px; width:auto; padding:12px 28px;">
-          <i class="fa-solid fa-play"></i> Comenzar actividad
-        </button>
-      </div>
+  document.getElementById('btnBackFromActividadA13').addEventListener('click', () => {
+    clearInterval(timerIntervalA13);
+    document.getElementById('panelActividadA13').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
 
-      <!-- Vista 2: el ejercicio en sí -->
-      <div id="vistaEjercicioA11" class="hidden">
-        <div class="timer-badge" id="timerA11"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+  document.getElementById('btnComenzarA13').addEventListener('click', () => {
+    asignacionesA13 = {};
+    seleccionadoA13 = null;
+    escenariosBarajadosA13 = barajar(ESCENARIOS_A13_BASE);
+    document.getElementById('justificacionA13').value = '';
+    document.getElementById('vistaInstrumentoA13').classList.add('hidden');
+    document.getElementById('vistaEjercicioA13').classList.remove('hidden');
+    pintarClasificadorA13();
 
-        <div class="empty-note" style="margin-top:0;">
-          <i class="fa-solid fa-hand-pointer"></i>
-          Haz clic en cada reporte para seleccionarlo, luego haz clic en la zona "Interno" o "Externo" para clasificarlo. Puedes hacer clic en un reporte ya clasificado para regresarlo.
-        </div>
+    inicioTiempoA13 = Date.now();
+    clearInterval(timerIntervalA13);
+    timerIntervalA13 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA13) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA13').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA13} min aprox.)</span>`;
+    }, 1000);
+  });
 
-        <div class="clasif-pool" id="clasifPool"></div>
+  function pintarClasificadorA13(){
+    const pool = document.getElementById('clasifPoolA13');
+    const zonaDiseno = document.getElementById('zonaDisenoItemsA13');
+    const zonaPrevis = document.getElementById('zonaPrevisualizacionItemsA13');
+    const zonaEjec = document.getElementById('zonaEjecucionItemsA13');
 
-        <div class="clasif-zonas">
-          <div class="clasif-zona zona-interno" id="zonaInterno">
-            <h4><i class="fa-solid fa-building"></i> Interno</h4>
-            <div id="zonaInternoItems"></div>
-          </div>
-          <div class="clasif-zona zona-externo" id="zonaExterno">
-            <h4><i class="fa-solid fa-globe"></i> Externo</h4>
-            <div id="zonaExternoItems"></div>
-          </div>
-        </div>
+    const enPool = escenariosBarajadosA13.filter(it => !asignacionesA13[it.id]);
+    const enDiseno = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'diseno');
+    const enPrevis = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'previsualizacion');
+    const enEjec = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'ejecucion');
 
-        <div class="justificacion-box">
-          <label for="justificacionA11"><i class="fa-solid fa-pen"></i> ¿Por qué clasificaste los reportes de esta manera? (criterio 4)</label>
-          <textarea id="justificacionA11" placeholder="Explica brevemente el criterio que usaste para diferenciar los reportes internos de los externos..."></textarea>
-        </div>
+    pool.innerHTML = enPool.map(it => `
+      <div class="clasif-item ${seleccionadoA13 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
+    `).join('') || '<span style="opacity:.5; font-size:14px;">Todos los escenarios han sido clasificados.</span>';
 
-        <button type="button" class="btn btn-primary" id="btnFinalizarA11" style="width:auto; padding:12px 28px;" disabled>
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
-        </button>
-      </div>
+    zonaDiseno.innerHTML = enDiseno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+    zonaPrevis.innerHTML = enPrevis.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
+    zonaEjec.innerHTML = enEjec.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
 
-      <!-- Vista 3: resultado -->
-      <div id="vistaResultadoA11" class="hidden">
-        <div class="empty-note hidden" id="avisoYaCompletadaA11">
-          <i class="fa-solid fa-lock"></i>
-          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
-        </div>
-        <div id="rubricaResultadoA11"></div>
-        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA11">Detalle de tu clasificación</div>
-        <div class="clasif-zonas" id="resultadoDesgloseA11"></div>
-        <button type="button" class="btn btn-primary" id="btnVolverMisActA11" style="width:auto; padding:12px 28px; margin-top:10px;">
-          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
-        </button>
-      </div>
-    </div>
+    pool.querySelectorAll('.clasif-item').forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        seleccionadoA13 = seleccionadoA13 === id ? null : id;
+        pintarClasificadorA13();
+      });
+    });
 
-    <!-- ---- ACTIVIDAD A.1.2: PARTES DEL REPORTE ---- -->
-    <div id="panelActividadA12" class="hidden">
-      <button type="button" class="back-btn" id="btnBackFromActividadA12"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
-      <div class="section-heading">A.1.2 — Partes de un reporte empresarial</div>
+    [...zonaDiseno.querySelectorAll('.clasif-item'), ...zonaPrevis.querySelectorAll('.clasif-item'), ...zonaEjec.querySelectorAll('.clasif-item')].forEach(el => {
+      el.addEventListener('click', () => {
+        const id = Number(el.dataset.id);
+        delete asignacionesA13[id];
+        pintarClasificadorA13();
+      });
+    });
 
-      <!-- Vista 1: enunciado + recursos + instrumento -->
-      <div id="vistaInstrumentoA12">
-        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
-        <p id="enunciadoActivoA12" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+    document.getElementById('btnFinalizarA13').disabled = enPool.length > 0;
+  }
 
-        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
-        <div id="recursosEstudianteA12" class="recursos-lista">
-          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
-        </div>
+  function asignarZonaA13(tipo){
+    if(seleccionadoA13 === null) return;
+    asignacionesA13[seleccionadoA13] = tipo;
+    seleccionadoA13 = null;
+    pintarClasificadorA13();
+  }
+  document.getElementById('zonaDisenoA13').addEventListener('click', (e) => {
+    if(e.target.closest('.clasif-item')) return;
+    asignarZonaA13('diseno');
+  });
+  document.getElementById('zonaPrevisualizacionA13').addEventListener('click', (e) => {
+    if(e.target.closest('.clasif-item')) return;
+    asignarZonaA13('previsualizacion');
+  });
+  document.getElementById('zonaEjecucionA13').addEventListener('click', (e) => {
+    if(e.target.closest('.clasif-item')) return;
+    asignarZonaA13('ejecucion');
+  });
 
-        <div id="instrumentoPrevioA12"></div>
+  document.getElementById('btnFinalizarA13').addEventListener('click', async () => {
+    clearInterval(timerIntervalA13);
 
-        <div class="empty-note" id="tiempoEstimadoAvisoA12" style="margin-bottom:16px;"></div>
+    let correctas = 0;
+    escenariosBarajadosA13.forEach(it => { if(asignacionesA13[it.id] === it.tipo) correctas++; });
+    const total = escenariosBarajadosA13.length;
+    const proporcionCorrecta = correctas / total;
 
-        <button type="button" class="btn btn-primary" id="btnComenzarA12" style="margin-top:6px; width:auto; padding:12px 28px;">
-          <i class="fa-solid fa-play"></i> Comenzar actividad
-        </button>
-      </div>
+    const minutosTranscurridos = (Date.now() - inicioTiempoA13) / 60000;
+    const justificacion = document.getElementById('justificacionA13').value.trim();
 
-      <!-- Vista 2: el ejercicio en sí -->
-      <div id="vistaEjercicioA12" class="hidden">
-        <div class="timer-badge" id="timerA12"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+    function nivelPorProporcion(p, uExc, uBueno, uProceso){
+      if(p >= uExc) return 'excelente';
+      if(p >= uBueno) return 'bueno';
+      if(p >= uProceso) return 'proceso';
+      return 'insuficiente';
+    }
 
-        <div class="empty-note" style="margin-top:0;">
-          <i class="fa-solid fa-hand-pointer"></i>
-          Haz clic en una etiqueta del banco y luego en la zona del reporte donde corresponde. Puedes hacer clic en una zona ya etiquetada para quitarle la etiqueta.
-        </div>
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A13[0].nombre, niveles: CRITERIOS_BASE_A13[0].niveles, nivel: 'excelente' });
 
-        <div class="clasif-pool" id="etiquetasPoolA12"></div>
+    criterios.push({
+      nombre: CRITERIOS_BASE_A13[1].nombre, niveles: CRITERIOS_BASE_A13[1].niveles,
+      nivel: nivelPorProporcion(proporcionCorrecta, 0.75, 0.55, 0.3)
+    });
 
-        <div class="esquema-reporte" id="esquemaReporteA12"></div>
+    criterios.push({
+      nombre: CRITERIOS_BASE_A13[2].nombre, niveles: CRITERIOS_BASE_A13[2].niveles,
+      nivel: nivelPorProporcion(proporcionCorrecta, 0.9, 0.7, 0.5)
+    });
 
-        <div class="justificacion-box">
-          <label for="justificacionA12"><i class="fa-solid fa-pen"></i> ¿Para qué sirve cada parte que ubicaste? (criterio 4)</label>
-          <textarea id="justificacionA12" placeholder="Explica brevemente la función de al menos dos de las partes del reporte que identificaste..."></textarea>
-        </div>
+    let nivelJustificacion = 'insuficiente';
+    if(justificacion.length >= 40) nivelJustificacion = 'excelente';
+    else if(justificacion.length >= 20) nivelJustificacion = 'bueno';
+    else if(justificacion.length > 0) nivelJustificacion = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A13[3].nombre, niveles: CRITERIOS_BASE_A13[3].niveles, nivel: nivelJustificacion });
 
-        <button type="button" class="btn btn-primary" id="btnFinalizarA12" style="width:auto; padding:12px 28px;" disabled>
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
-        </button>
-      </div>
+    let nivelTiempo = 'insuficiente';
+    if(minutosTranscurridos <= tiempoEstimadoA13) nivelTiempo = 'excelente';
+    else if(minutosTranscurridos <= tiempoEstimadoA13 * 1.5) nivelTiempo = 'bueno';
+    else if(minutosTranscurridos <= tiempoEstimadoA13 * 2) nivelTiempo = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A13[4].nombre, niveles: CRITERIOS_BASE_A13[4].niveles, nivel: nivelTiempo });
 
-      <!-- Vista 3: resultado -->
-      <div id="vistaResultadoA12" class="hidden">
-        <div class="empty-note hidden" id="avisoYaCompletadaA12">
-          <i class="fa-solid fa-lock"></i>
-          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
-        </div>
-        <div id="rubricaResultadoA12"></div>
-        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA12">Detalle de tu esquema</div>
-        <div class="esquema-reporte" id="resultadoDesgloseA12"></div>
-        <button type="button" class="btn btn-primary" id="btnVolverMisActA12" style="width:auto; padding:12px 28px; margin-top:10px;">
-          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
-        </button>
-      </div>
-    </div>
+    criterios.push({ nombre: CRITERIOS_BASE_A13[5].nombre, niveles: CRITERIOS_BASE_A13[5].niveles, nivel: 'excelente' });
 
-    <!-- ---- ACTIVIDAD A.1.3: VISTAS DE UN REPORTE ---- -->
-    <div id="panelActividadA13" class="hidden">
-      <button type="button" class="back-btn" id="btnBackFromActividadA13"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
-      <div class="section-heading">A.1.3 — Vistas de un reporte empresarial</div>
+    const pesoUnidad = puntajeMaxA13 / criterios.length;
+    const pesosPorNivel = { excelente:1, bueno:0.75, proceso:0.4, insuficiente:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
 
-      <!-- Vista 1: enunciado + recursos + instrumento -->
-      <div id="vistaInstrumentoA13">
-        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
-        <p id="enunciadoActivoA13" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+    document.getElementById('vistaEjercicioA13').classList.add('hidden');
+    document.getElementById('vistaResultadoA13').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA13').classList.add('hidden');
+    document.getElementById('tituloDesgloseA13').classList.remove('hidden');
+    renderRubricaDescriptiva('rubricaResultadoA13', criterios, puntajeMaxA13, notaCalculada);
 
-        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
-        <div id="recursosEstudianteA13" class="recursos-lista">
-          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
-        </div>
+    function bloqueResultadoA13(titulo, icono, tipo){
+      const items = escenariosBarajadosA13.filter(it => it.tipo === tipo);
+      return `
+        <div class="clasif-zona zona-${tipo}">
+          <h4><i class="fa-solid ${icono}"></i> ${titulo}</h4>
+          ${items.map(it => `
+            <div class="clasif-item ${asignacionesA13[it.id] === tipo ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+          `).join('')}
+        </div>`;
+    }
+    document.getElementById('resultadoDesgloseA13').innerHTML =
+      bloqueResultadoA13('Vista de diseño', 'fa-pen-ruler', 'diseno') +
+      bloqueResultadoA13('Previsualización', 'fa-eye', 'previsualizacion') +
+      bloqueResultadoA13('Ejecución', 'fa-play', 'ejecucion');
 
-        <div id="instrumentoPrevioA13"></div>
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.3',
+        ra:'RA1',
+        ec:'EC6.1.2',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA13,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
 
-        <div class="empty-note" id="tiempoEstimadoAvisoA13" style="margin-bottom:16px;"></div>
+  document.getElementById('btnVolverMisActA13').addEventListener('click', () => {
+    document.getElementById('panelActividadA13').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
 
-        <button type="button" class="btn btn-primary" id="btnComenzarA13" style="margin-top:6px; width:auto; padding:12px 28px;">
-          <i class="fa-solid fa-play"></i> Comenzar actividad
-        </button>
-      </div>
-
-      <!-- Vista 2: el ejercicio en sí -->
-      <div id="vistaEjercicioA13" class="hidden">
-        <div class="timer-badge" id="timerA13"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
-
-        <div class="empty-note" style="margin-top:0;">
-          <i class="fa-solid fa-hand-pointer"></i>
-          Haz clic en un escenario y luego en la vista a la que corresponde. Puedes hacer clic en un escenario ya clasificado para regresarlo.
-        </div>
-
-        <div class="clasif-pool" id="clasifPoolA13"></div>
-
-        <div class="clasif-zonas clasif-zonas-3">
-          <div class="clasif-zona zona-diseno" id="zonaDisenoA13">
-            <h4><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</h4>
-            <div id="zonaDisenoItemsA13"></div>
-          </div>
-          <div class="clasif-zona zona-previsualizacion" id="zonaPrevisualizacionA13">
-            <h4><i class="fa-solid fa-eye"></i> Previsualización</h4>
-            <div id="zonaPrevisualizacionItemsA13"></div>
-          </div>
-          <div class="clasif-zona zona-ejecucion" id="zonaEjecucionA13">
-            <h4><i class="fa-solid fa-play"></i> Ejecución</h4>
-            <div id="zonaEjecucionItemsA13"></div>
-          </div>
-        </div>
-
-        <div class="justificacion-box">
-          <label for="justificacionA13"><i class="fa-solid fa-pen"></i> ¿Cómo diferenciaste una vista de otra? (criterio 4)</label>
-          <textarea id="justificacionA13" placeholder="Explica brevemente qué característica te ayudó a identificar cada vista..."></textarea>
-        </div>
-
-        <button type="button" class="btn btn-primary" id="btnFinalizarA13" style="width:auto; padding:12px 28px;" disabled>
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
-        </button>
-      </div>
-
-      <!-- Vista 3: resultado -->
-      <div id="vistaResultadoA13" class="hidden">
-        <div class="empty-note hidden" id="avisoYaCompletadaA13">
-          <i class="fa-solid fa-lock"></i>
-          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
-        </div>
-        <div id="rubricaResultadoA13"></div>
-        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA13">Detalle de tu clasificación</div>
-        <div class="clasif-zonas clasif-zonas-3" id="resultadoDesgloseA13"></div>
-        <button type="button" class="btn btn-primary" id="btnVolverMisActA13" style="width:auto; padding:12px 28px; margin-top:10px;">
-          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
-</div>
-
-<script src="config.js"></script>
-<script src="rubrica.js"></script>
-<script src="lista-cotejo.js"></script>
-<script src="rubrica-descriptiva.js"></script>
-<script src="theme.js"></script>
-<script src="auth.js"></script>
-<script src="registro-estudiantes.js"></script>
-<script src="actividades-admin.js"></script>
-<script src="mis-actividades.js"></script>
-<script src="actividades.js"></script>
-</body>
-</html>
+  registrarActividadInteractiva('A.1.3', abrirActividadA13);
