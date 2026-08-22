@@ -133,7 +133,7 @@
     const enExterno = ITEMS_A11.filter(it => asignacionesA11[it.id] === 'externo');
 
     pool.innerHTML = enPool.map(it => `
-      <div class="clasif-item ${seleccionadoA11 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
+      <div class="clasif-item ${seleccionadoA11 === it.id ? 'selected' : ''}" draggable="true" data-id="${it.id}">${it.texto}</div>
     `).join('') || '<span style="opacity:.5; font-size:15px;">Todos los reportes han sido clasificados.</span>';
 
     zonaInterno.innerHTML = enInterno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
@@ -155,6 +155,18 @@
       });
     });
 
+    // Arrastrar y soltar (además del clic-seleccionar-y-asignar, que sigue funcionando igual)
+    habilitarArrastre(
+      pool.querySelectorAll('.clasif-item[draggable="true"]'),
+      [document.getElementById('zonaInterno'), document.getElementById('zonaExterno')],
+      (idArrastrado, zonaEl) => {
+        asignacionesA11[Number(idArrastrado)] = zonaEl.id === 'zonaInterno' ? 'interno' : 'externo';
+        seleccionadoA11 = null;
+        pintarClasificador();
+      }
+    );
+
+    actualizarBarraProgreso('progresoA11', ITEMS_A11.length - enPool.length, ITEMS_A11.length);
     document.getElementById('btnFinalizarA11').disabled = enPool.length > 0;
   }
 
@@ -223,6 +235,10 @@
     document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
     document.getElementById('tituloDesgloseA11').classList.remove('hidden');
     renderRubrica('rubricaResultadoA11', criterios, puntajeMaxA11, notaCalculada);
+
+    const proporcionFinalA11 = puntajeMaxA11 > 0 ? notaCalculada / puntajeMaxA11 : 0;
+    mostrarLogro(proporcionFinalA11 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA11 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA11 >= 0.8) dispararConfeti();
 
     document.getElementById('resultadoDesgloseA11').innerHTML = `
       <div class="clasif-zona zona-interno">
@@ -392,7 +408,7 @@
     const etiquetasDisponibles = etiquetasBarajadasA12.filter(et => !etiquetasUsadas.includes(et));
 
     pool.innerHTML = etiquetasDisponibles.map(et => `
-      <div class="clasif-item ${etiquetaSeleccionadaA12 === et ? 'selected' : ''}" data-etiqueta="${et}">${et}</div>
+      <div class="clasif-item ${etiquetaSeleccionadaA12 === et ? 'selected' : ''}" draggable="true" data-etiqueta="${et}">${et}</div>
     `).join('') || '<span style="opacity:.5; font-size:14px;">Todas las etiquetas han sido ubicadas.</span>';
 
     esquema.innerHTML = ZONAS_A12_BASE.map(z => {
@@ -432,6 +448,19 @@
       });
     });
 
+    // Arrastrar y soltar (además del clic-seleccionar-y-asignar)
+    habilitarArrastre(
+      pool.querySelectorAll('.clasif-item[draggable="true"]'),
+      Array.from(esquema.querySelectorAll('.esquema-zona')),
+      (etiquetaArrastrada, zonaEl) => {
+        const zonaId = Number(zonaEl.dataset.zona);
+        asignacionesA12[zonaId] = etiquetaArrastrada;
+        etiquetaSeleccionadaA12 = null;
+        pintarEsquemaA12();
+      }
+    );
+
+    actualizarBarraProgreso('progresoA12', Object.keys(asignacionesA12).length, ZONAS_A12_BASE.length);
     document.getElementById('btnFinalizarA12').disabled = Object.keys(asignacionesA12).length < ZONAS_A12_BASE.length;
   }
 
@@ -481,6 +510,10 @@
     document.getElementById('avisoYaCompletadaA12').classList.add('hidden');
     document.getElementById('tituloDesgloseA12').classList.remove('hidden');
     renderListaCotejo('rubricaResultadoA12', criterios, puntajeMaxA12, notaCalculada);
+
+    const proporcionFinalA12 = puntajeMaxA12 > 0 ? notaCalculada / puntajeMaxA12 : 0;
+    mostrarLogro(proporcionFinalA12 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA12 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA12 >= 0.8) dispararConfeti();
 
     document.getElementById('resultadoDesgloseA12').innerHTML = ZONAS_A12_BASE.map(z => {
       const asignada = asignacionesA12[z.id];
@@ -626,7 +659,7 @@
     const enEjec = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'ejecucion');
 
     pool.innerHTML = enPool.map(it => `
-      <div class="clasif-item ${seleccionadoA13 === it.id ? 'selected' : ''}" data-id="${it.id}">${it.texto}</div>
+      <div class="clasif-item ${seleccionadoA13 === it.id ? 'selected' : ''}" draggable="true" data-id="${it.id}">${it.texto}</div>
     `).join('') || '<span style="opacity:.5; font-size:14px;">Todos los escenarios han sido clasificados.</span>';
 
     zonaDiseno.innerHTML = enDiseno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
@@ -649,6 +682,19 @@
       });
     });
 
+    // Arrastrar y soltar (además del clic-seleccionar-y-asignar)
+    habilitarArrastre(
+      pool.querySelectorAll('.clasif-item[draggable="true"]'),
+      [document.getElementById('zonaDisenoA13'), document.getElementById('zonaPrevisualizacionA13'), document.getElementById('zonaEjecucionA13')],
+      (idArrastrado, zonaEl) => {
+        const mapaZona = { zonaDisenoA13:'diseno', zonaPrevisualizacionA13:'previsualizacion', zonaEjecucionA13:'ejecucion' };
+        asignacionesA13[Number(idArrastrado)] = mapaZona[zonaEl.id];
+        seleccionadoA13 = null;
+        pintarClasificadorA13();
+      }
+    );
+
+    actualizarBarraProgreso('progresoA13', escenariosBarajadosA13.length - enPool.length, escenariosBarajadosA13.length);
     document.getElementById('btnFinalizarA13').disabled = enPool.length > 0;
   }
 
@@ -727,6 +773,10 @@
     document.getElementById('avisoYaCompletadaA13').classList.add('hidden');
     document.getElementById('tituloDesgloseA13').classList.remove('hidden');
     renderRubricaDescriptiva('rubricaResultadoA13', criterios, puntajeMaxA13, notaCalculada);
+
+    const proporcionFinalA13 = puntajeMaxA13 > 0 ? notaCalculada / puntajeMaxA13 : 0;
+    mostrarLogro(proporcionFinalA13 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA13 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA13 >= 0.8) dispararConfeti();
 
     function bloqueResultadoA13(titulo, icono, tipo){
       const items = escenariosBarajadosA13.filter(it => it.tipo === tipo);
