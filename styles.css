@@ -440,6 +440,13 @@
   .save-ok-msg{ font-size:14px; font-weight:700; color: var(--dark-green-accent); opacity:0; transition:.3s; }
   .save-ok-msg.show{ opacity:1; }
 
+  .actividad-guardar-final{
+    display:flex; align-items:center; gap:14px; justify-content:flex-end;
+    margin-top:18px; padding-top:16px; border-top:1px solid var(--dark-border);
+  }
+  body.light .actividad-guardar-final{ border-top:1px solid #eef1f8; }
+  .actividad-guardar-final .btn-save-act{ margin-left:0; padding:11px 20px; }
+
   .estado-badge{
     display:inline-flex; align-items:center; gap:6px; padding:5px 12px; border-radius:20px;
     font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.3px;
