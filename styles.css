@@ -390,6 +390,42 @@
   .loading-note{ text-align:center; padding:26px; color:var(--dark-text-dim); font-size:15.5px; }
   body.light .loading-note{ color:var(--light-text-dim); }
 
+  /* ============ MODAL DE CONFIRMACIÓN ============ */
+  .modal-confirmacion{ text-align:center; }
+  .modal-confirmacion-icon{
+    width:56px; height:56px; border-radius:50%; margin:0 auto 14px;
+    background: rgba(232,185,59,.15); color: var(--dark-gold-accent);
+    display:flex; align-items:center; justify-content:center; font-size:24px;
+  }
+  .modal-confirmacion .modal-title{ text-align:center; }
+  .btn-confirmar-peligro{
+    background: linear-gradient(120deg, #ef4444, #b91c1c) !important;
+  }
+
+  /* ============ NOTIFICACIONES TOAST ============ */
+  .toast-container{
+    position:fixed; top:20px; right:20px; z-index:200;
+    display:flex; flex-direction:column; gap:10px; max-width:360px;
+  }
+  @media (max-width:640px){
+    .toast-container{ top:auto; bottom:16px; right:16px; left:16px; max-width:none; }
+  }
+  .toast{
+    display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:12px;
+    background: var(--dark-card); border:1px solid var(--dark-border); box-shadow: var(--shadow);
+    font-size:14.5px; font-weight:600; line-height:1.4; color:var(--dark-text);
+    opacity:0; transform:translateX(30px); transition: opacity .25s ease, transform .25s ease;
+  }
+  body.light .toast{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
+  .toast.show{ opacity:1; transform:translateX(0); }
+  .toast i{ font-size:17px; margin-top:1px; flex-shrink:0; }
+  .toast-success{ border-left:4px solid var(--dark-green-accent); }
+  .toast-success i{ color: var(--dark-green-accent); }
+  .toast-error{ border-left:4px solid #ef4444; }
+  .toast-error i{ color:#ef4444; }
+  .toast-info{ border-left:4px solid var(--dark-blue-accent); }
+  .toast-info i{ color: var(--dark-blue-accent); }
+
   /* ============ ACTIVIDADES POR RA ============ */
   .actividad-card{
     background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius);
