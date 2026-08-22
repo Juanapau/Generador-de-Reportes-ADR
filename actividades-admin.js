@@ -94,6 +94,26 @@
           </div>
         </div>
 
+        <div class="disponibilidad-section">
+          <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:14px 0 8px;">
+            <i class="fa-solid fa-calendar-days"></i> Ventana de disponibilidad para el estudiante (opcional)
+          </label>
+          <div class="actividad-controls" style="margin-top:0;">
+            <div class="puntaje-field">
+              <label>Disponible desde</label>
+              <input type="datetime-local" class="input-fecha-inicio" value="${act.fechaInicio || ''}">
+            </div>
+            <div class="puntaje-field">
+              <label>Disponible hasta</label>
+              <input type="datetime-local" class="input-fecha-fin" value="${act.fechaFin || ''}">
+            </div>
+          </div>
+          <div class="empty-note" style="margin:10px 0 0; padding:10px 14px; font-size:12.5px;">
+            <i class="fa-solid fa-circle-info"></i>
+            Si dejas estos campos vacíos, la actividad estará disponible sin límite de fecha mientras esté habilitada.
+          </div>
+        </div>
+
         <div class="recursos-section">
           <div style="font-weight:800; font-size:15px; margin-top:16px; margin-bottom:8px;">
             <i class="fa-solid fa-paperclip"></i> Recursos de apoyo
@@ -155,13 +175,20 @@
         const tiempoEstimado = card.querySelector('.input-tiempo').value;
         const habilitada = card.querySelector('.input-habilitada').checked;
         const enunciado = card.querySelector('.input-enunciado').value.trim();
+        const fechaInicio = card.querySelector('.input-fecha-inicio').value;
+        const fechaFin = card.querySelector('.input-fecha-fin').value;
+
+        if(fechaInicio && fechaFin && new Date(fechaFin) <= new Date(fechaInicio)){
+          mostrarNotificacion('La fecha "hasta" debe ser posterior a la fecha "desde".', 'error');
+          return;
+        }
 
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
         okMsg.classList.remove('show');
 
         try{
-          const data = await apiPost({ action:'actualizarActividad', codigo, puntaje, tiempoEstimado, habilitada, enunciado });
+          const data = await apiPost({ action:'actualizarActividad', codigo, puntaje, tiempoEstimado, habilitada, enunciado, fechaInicio, fechaFin });
           if(data.success){
             okMsg.classList.add('show');
             setTimeout(() => okMsg.classList.remove('show'), 2000);
