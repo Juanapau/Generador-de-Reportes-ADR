@@ -442,6 +442,81 @@
         </button>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.3: VISTAS DE UN REPORTE ---- -->
+    <div id="panelActividadA13" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromActividadA13"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.3 — Vistas de un reporte empresarial</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA13">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA13" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA13" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA13"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA13" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA13" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA13" class="hidden">
+        <div class="timer-badge" id="timerA13"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Haz clic en un escenario y luego en la vista a la que corresponde. Puedes hacer clic en un escenario ya clasificado para regresarlo.
+        </div>
+
+        <div class="clasif-pool" id="clasifPoolA13"></div>
+
+        <div class="clasif-zonas clasif-zonas-3">
+          <div class="clasif-zona zona-diseno" id="zonaDisenoA13">
+            <h4><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</h4>
+            <div id="zonaDisenoItemsA13"></div>
+          </div>
+          <div class="clasif-zona zona-previsualizacion" id="zonaPrevisualizacionA13">
+            <h4><i class="fa-solid fa-eye"></i> Previsualización</h4>
+            <div id="zonaPrevisualizacionItemsA13"></div>
+          </div>
+          <div class="clasif-zona zona-ejecucion" id="zonaEjecucionA13">
+            <h4><i class="fa-solid fa-play"></i> Ejecución</h4>
+            <div id="zonaEjecucionItemsA13"></div>
+          </div>
+        </div>
+
+        <div class="justificacion-box">
+          <label for="justificacionA13"><i class="fa-solid fa-pen"></i> ¿Cómo diferenciaste una vista de otra? (criterio 4)</label>
+          <textarea id="justificacionA13" placeholder="Explica brevemente qué característica te ayudó a identificar cada vista..."></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="btnFinalizarA13" style="width:auto; padding:12px 28px;" disabled>
+          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        </button>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA13" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA13">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA13"></div>
+        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA13">Detalle de tu clasificación</div>
+        <div class="clasif-zonas clasif-zonas-3" id="resultadoDesgloseA13"></div>
+        <button type="button" class="btn btn-primary" id="btnVolverMisActA13" style="width:auto; padding:12px 28px; margin-top:10px;">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
