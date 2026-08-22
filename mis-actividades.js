@@ -66,14 +66,29 @@
       wrap.innerHTML = habilitadas.map(act => {
         const completada = calificacionesPorCodigo[act.codigo];
         const esInteractiva = !!actividadesInteractivas[act.codigo];
+
+        // Ventana de disponibilidad (si el docente la configuró)
+        const ahora = new Date();
+        const inicio = act.fechaInicio ? new Date(act.fechaInicio) : null;
+        const fin = act.fechaFin ? new Date(act.fechaFin) : null;
+        const aunNoInicia = inicio && ahora < inicio;
+        const yaVencio = fin && ahora > fin;
+        const fueraDeVentana = (aunNoInicia || yaVencio) && !completada;
+
         let estadoBadge;
         if(completada){
           estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Completada — ${completada.nota}/${completada.puntajeMaximo}</span>`;
+        } else if(aunNoInicia){
+          estadoBadge = `<span class="estado-badge estado-pendiente"><i class="fa-solid fa-clock"></i> Disponible desde ${formatearFechaCorta(inicio)}</span>`;
+        } else if(yaVencio){
+          estadoBadge = `<span class="estado-badge estado-vencida"><i class="fa-solid fa-lock"></i> Cerrada desde ${formatearFechaCorta(fin)}</span>`;
         } else if(esInteractiva){
           estadoBadge = '<span class="estado-badge estado-activa"><i class="fa-solid fa-play"></i> Disponible</span>';
         } else {
           estadoBadge = '<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Próximamente interactiva</span>';
         }
+
+        const mostrarBoton = esInteractiva && !fueraDeVentana;
 
         return `
         <div class="actividad-card">
@@ -89,7 +104,8 @@
           </div>
           <div class="actividad-enunciado">${act.enunciado}</div>
           <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
-          ${esInteractiva ? `
+          ${fin && !completada && !yaVencio ? `<div class="actividad-vence-aviso"><i class="fa-solid fa-hourglass-half"></i> Disponible hasta ${formatearFechaCorta(fin)}</div>` : ''}
+          ${mostrarBoton ? `
             <button type="button" class="btn-add abrir-actividad-btn" data-codigo="${act.codigo}" style="margin-top:12px;">
               <i class="fa-solid ${completada ? 'fa-eye' : 'fa-play'}"></i> ${completada ? 'Ver resultado' : 'Realizar actividad'}
             </button>` : ''}
