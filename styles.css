@@ -695,6 +695,9 @@
   body.light .asistente-opcion{ background:#eef2fb; color:var(--light-text); border:1px solid #d7e0f2; }
   .asistente-opcion:disabled{ cursor:default; opacity:.75; }
   .asistente-opcion.correcta-marcada{ border-color: var(--dark-green-accent); background: rgba(34,197,94,.18); font-weight:700; }
+  .asistente-opcion.seleccionada{ border-color: var(--dark-blue-accent); background: rgba(79,163,255,.18); font-weight:700; }
+  .quiz-pregunta-bloque{ margin-bottom:22px; }
+  .quiz-pregunta-texto{ font-weight:800; font-size:15px; margin-bottom:10px; }
   .asistente-opcion.incorrecta-marcada{ border-color:#ef4444; background: rgba(239,68,68,.18); }
   .asistente-feedback{
     margin-top:14px; padding:12px 14px; border-radius:10px; font-size:13.5px; font-weight:600; line-height:1.5;
