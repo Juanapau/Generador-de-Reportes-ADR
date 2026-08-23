@@ -26,13 +26,49 @@
 
   const CRITERIOS_BASE_A11 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad de clasificación desde el inicio.' },
-    { key:'identificacion', nombre:'2. Identificación de tipos', descripcion:'Reconoce, según lo estudiado en el recurso, las características que distinguen un reporte interno de uno externo.' },
+    { key:'identificacion', nombre:'2. Conceptos clave', descripcion:'Responde correctamente las preguntas sobre qué son, cuál es su objetivo y por qué son importantes los reportes empresariales, según el recurso.' },
     { key:'clasificacion', nombre:'3. Clasificación correcta', descripcion:'Ubica cada ejemplo del recurso en la categoría correcta según su destinatario.' },
     { key:'justificacion', nombre:'4. Justificación del criterio', descripcion:'Explica el motivo de su clasificación con argumentos válidos.' },
     { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
     { key:'colaborativo', nombre:'6. Trabajo colaborativo', descripcion:'Colabora de forma organizada con su equipo durante el ejercicio.' }
   ];
 
+  // Sección 1: preguntas de selección múltiple sobre el recurso (qué son, objetivo, importancia)
+  const PREGUNTAS_A11_BASE = [
+    {
+      pregunta: '¿Qué son los reportes empresariales, según el recurso?',
+      opciones: [
+        'Documentos que recopilan, organizan y presentan información relevante para la toma de decisiones.',
+        'Documentos exclusivos del departamento de contabilidad.',
+        'Registros que solo contienen datos financieros.',
+        'Presentaciones visuales sin datos numéricos.'
+      ],
+      correctaIdx: 0
+    },
+    {
+      pregunta: '¿Cuál es el objetivo principal de un reporte empresarial?',
+      opciones: [
+        'Aumentar las ventas de forma directa.',
+        'Sustituir las reuniones de trabajo.',
+        'Ofrecer una visión clara y ordenada de lo que ocurre en la organización para apoyar la toma de decisiones.',
+        'Cumplir un requisito legal únicamente.'
+      ],
+      correctaIdx: 2
+    },
+    {
+      pregunta: '¿Cuál de las siguientes NO es una razón por la que los reportes empresariales son importantes?',
+      opciones: [
+        'Facilitan la toma de decisiones.',
+        'Promueven la transparencia.',
+        'Permiten medir el desempeño.',
+        'Garantizan que la empresa nunca tendrá pérdidas.'
+      ],
+      correctaIdx: 3
+    }
+  ];
+
+  let preguntasBarajadasA11 = [];
+  let respuestasQuizA11 = [];
   let ITEMS_A11 = [];
   let asignacionesA11 = {};
   let seleccionadoA11 = null;
@@ -109,9 +145,12 @@
     ITEMS_A11 = barajar(ITEMS_A11_BASE); // orden distinto en cada intento, sin patrón predecible
     asignacionesA11 = {};
     seleccionadoA11 = null;
+    preguntasBarajadasA11 = barajar(PREGUNTAS_A11_BASE);
+    respuestasQuizA11 = new Array(preguntasBarajadasA11.length).fill(null);
     document.getElementById('justificacionA11').value = '';
     document.getElementById('vistaInstrumentoA11').classList.add('hidden');
     document.getElementById('vistaEjercicioA11').classList.remove('hidden');
+    pintarQuizA11();
     pintarClasificador();
 
     inicioTiempoA11 = Date.now();
@@ -123,6 +162,36 @@
       document.getElementById('timerA11').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA11} min aprox.)</span>`;
     }, 1000);
   });
+
+  function pintarQuizA11(){
+    const cont = document.getElementById('quizA11');
+    cont.innerHTML = preguntasBarajadasA11.map((p, i) => `
+      <div class="quiz-pregunta-bloque">
+        <div class="quiz-pregunta-texto">${i + 1}. ${p.pregunta}</div>
+        <div class="asistente-opciones">
+          ${p.opciones.map((op, j) => `
+            <button type="button" class="asistente-opcion quiz-opcion ${respuestasQuizA11[i] === j ? 'seleccionada' : ''}" data-pregunta="${i}" data-opcion="${j}">
+              ${op}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    cont.querySelectorAll('.quiz-opcion').forEach(btn => {
+      btn.addEventListener('click', () => {
+        respuestasQuizA11[Number(btn.dataset.pregunta)] = Number(btn.dataset.opcion);
+        pintarQuizA11();
+        actualizarBotonFinalizarA11();
+      });
+    });
+  }
+
+  function actualizarBotonFinalizarA11(){
+    const quizCompleto = respuestasQuizA11.every(r => r !== null);
+    const clasificacionCompleta = ITEMS_A11.filter(it => !asignacionesA11[it.id]).length === 0;
+    document.getElementById('btnFinalizarA11').disabled = !(quizCompleto && clasificacionCompleta);
+  }
 
   function pintarClasificador(){
     const pool = document.getElementById('clasifPool');
@@ -168,7 +237,7 @@
     );
 
     actualizarBarraProgreso('progresoA11', ITEMS_A11.length - enPool.length, ITEMS_A11.length);
-    document.getElementById('btnFinalizarA11').disabled = enPool.length > 0;
+    actualizarBotonFinalizarA11();
   }
 
   document.getElementById('zonaInterno').addEventListener('click', (e) => {
@@ -194,6 +263,10 @@
     const total = ITEMS_A11.length;
     const proporcionCorrecta = correctas / total;
 
+    let aciertosQuiz = 0;
+    preguntasBarajadasA11.forEach((p, i) => { if(respuestasQuizA11[i] === p.correctaIdx) aciertosQuiz++; });
+    const proporcionQuiz = preguntasBarajadasA11.length > 0 ? aciertosQuiz / preguntasBarajadasA11.length : 0;
+
     const minutosTranscurridos = (Date.now() - inicioTiempoA11) / 60000;
     const justificacion = document.getElementById('justificacionA11').value.trim();
 
@@ -203,7 +276,7 @@
 
     criterios.push({
       nombre: CRITERIOS_BASE_A11[1].nombre, descripcion: CRITERIOS_BASE_A11[1].descripcion,
-      nivel: proporcionCorrecta >= 0.75 ? 'logrado' : (proporcionCorrecta >= 0.4 ? 'proceso' : 'no_logrado')
+      nivel: proporcionQuiz >= 1 ? 'logrado' : (proporcionQuiz >= 0.5 ? 'proceso' : 'no_logrado')
     });
 
     criterios.push({
@@ -241,18 +314,38 @@
     mostrarLogro(proporcionFinalA11 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA11 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA11 >= 0.8) dispararConfeti();
 
+    const desgloseQuizHtml = preguntasBarajadasA11.map((p, i) => {
+      const ok = respuestasQuizA11[i] === p.correctaIdx;
+      return `
+        <div class="esquema-zona ${ok ? 'correcto' : 'incorrecto'}">
+          <div style="flex:1;">
+            <div class="esquema-zona-tag">${i + 1}. ${p.pregunta}</div>
+            <div class="esquema-zona-slot">
+              <span class="esquema-zona-etiqueta">Tu respuesta: ${p.opciones[respuestasQuizA11[i]]}</span>
+              ${!ok ? `<div style="margin-top:6px; font-size:12.5px; opacity:.8;">Correcta: ${p.opciones[p.correctaIdx]}</div>` : ''}
+            </div>
+          </div>
+          <i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}"></i>
+        </div>`;
+    }).join('');
+
     document.getElementById('resultadoDesgloseA11').innerHTML = `
-      <div class="clasif-zona zona-interno">
-        <h4><i class="fa-solid fa-building"></i> Interno</h4>
-        ${ITEMS_A11.filter(it => it.tipo === 'interno').map(it => `
-          <div class="clasif-item ${asignacionesA11[it.id] === 'interno' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
-        `).join('')}
-      </div>
-      <div class="clasif-zona zona-externo">
-        <h4><i class="fa-solid fa-globe"></i> Externo</h4>
-        ${ITEMS_A11.filter(it => it.tipo === 'externo').map(it => `
-          <div class="clasif-item ${asignacionesA11[it.id] === 'externo' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
-        `).join('')}
+      <div class="section-heading" style="font-size:16px; margin-top:0;">Sección 1 — Conceptos clave</div>
+      ${desgloseQuizHtml}
+      <div class="section-heading" style="font-size:16px;">Sección 2 — Clasificación</div>
+      <div class="clasif-zonas">
+        <div class="clasif-zona zona-interno">
+          <h4><i class="fa-solid fa-building"></i> Interno</h4>
+          ${ITEMS_A11.filter(it => it.tipo === 'interno').map(it => `
+            <div class="clasif-item ${asignacionesA11[it.id] === 'interno' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+          `).join('')}
+        </div>
+        <div class="clasif-zona zona-externo">
+          <h4><i class="fa-solid fa-globe"></i> Externo</h4>
+          ${ITEMS_A11.filter(it => it.tipo === 'externo').map(it => `
+            <div class="clasif-item ${asignacionesA11[it.id] === 'externo' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+          `).join('')}
+        </div>
       </div>
     `;
 
