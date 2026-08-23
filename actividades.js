@@ -816,3 +816,298 @@
   });
 
   registrarActividadInteractiva('A.1.3', abrirActividadA13);
+
+// ============================================================================
+// A.1.4 — EJECUTAR UN REPORTE Y CAMBIAR DE VISTA (SIMULADOR TIPO ASISTENTE)
+// ============================================================================
+  // A diferencia de las anteriores, aquí el estudiante avanza por pasos de un
+  // asistente simulado, tomando decisiones en cada pantalla (no clasificación).
+  const PASOS_A14 = [
+    {
+      indicador: 'Paso 1 de 3 — Vista de diseño',
+      mockup: `
+        <div class="asistente-toolbar">
+          <span class="asistente-toolbar-btn activo"><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</span>
+          <span class="asistente-toolbar-btn"><i class="fa-solid fa-eye"></i> Vista previa</span>
+          <span class="asistente-toolbar-btn"><i class="fa-solid fa-play"></i> Ejecutar</span>
+        </div>
+        <div style="font-size:13px; opacity:.7; margin-bottom:8px;">Reporte: Ventas Mensuales — TECNOVENTAS RD, S.R.L.</div>
+        <div style="border:1px dashed var(--dark-border); border-radius:8px; padding:14px; font-size:12.5px; opacity:.6;">
+          [ Encabezado ] &nbsp;·&nbsp; [ Columnas: Producto, Cantidad, Precio ] &nbsp;·&nbsp; [ Pie de página ]
+          <br><span style="opacity:.7;">Estructura del reporte lista, sin datos cargados todavía.</span>
+        </div>`,
+      pregunta: 'Ya terminaste de diseñar la estructura del reporte. ¿Qué deberías hacer antes de ejecutarlo con los datos reales de la empresa?',
+      opciones: [
+        { texto: 'Seguir hasta ejecutar el reporte de inmediato.', correcta: false },
+        { texto: 'Cambiar a la vista de previsualización para revisar cómo se verá con datos de muestra.', correcta: true },
+        { texto: 'Cerrar el programa sin guardar los cambios.', correcta: false }
+      ],
+      feedback: 'La vista de previsualización permite revisar el diseño con datos de muestra antes de ejecutar el reporte con información real, evitando errores costosos.'
+    },
+    {
+      indicador: 'Paso 2 de 3 — Vista de previsualización',
+      mockup: `
+        <div class="asistente-toolbar">
+          <span class="asistente-toolbar-btn"><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</span>
+          <span class="asistente-toolbar-btn activo"><i class="fa-solid fa-eye"></i> Vista previa</span>
+          <span class="asistente-toolbar-btn"><i class="fa-solid fa-play"></i> Ejecutar</span>
+        </div>
+        <div style="font-size:13px; opacity:.7; margin-bottom:8px;">Reporte: Ventas Mensuales — TECNOVENTAS RD, S.R.L. (datos de muestra)</div>
+        <div style="border:1px dashed var(--dark-border); border-radius:8px; padding:14px; font-size:12.5px;">
+          <div style="display:flex; gap:14px; font-weight:700; opacity:.6;"><span style="flex:2;">Producto</span><span style="flex:1;">Cant.</span><span style="flex:1;">Precio</span></div>
+          <div style="display:flex; gap:14px; opacity:.5;"><span style="flex:2;">[Producto de ejemplo]</span><span style="flex:1;">XX</span><span style="flex:1;">RD$X,XXX</span></div>
+          <div style="display:flex; gap:14px; opacity:.5;"><span style="flex:2;">[Producto de ejemplo]</span><span style="flex:1;">XX</span><span style="flex:1;">RD$X,XXX</span></div>
+        </div>`,
+      pregunta: 'Estás viendo la vista previa con datos de muestra (no reales). ¿Cuál es tu siguiente paso para obtener el reporte final?',
+      opciones: [
+        { texto: 'Ejecutar el reporte para consultar la base de datos real.', correcta: true },
+        { texto: 'Volver a la vista de diseño y empezar de nuevo.', correcta: false },
+        { texto: 'Guardar la vista previa como el reporte definitivo.', correcta: false }
+      ],
+      feedback: 'Al ejecutar el reporte, el programa consulta la base de datos real y reemplaza los datos de muestra por la información actualizada de la empresa.'
+    },
+    {
+      indicador: 'Paso 3 de 3 — Vista de ejecución',
+      mockup: `
+        <div class="asistente-toolbar">
+          <span class="asistente-toolbar-btn"><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</span>
+          <span class="asistente-toolbar-btn"><i class="fa-solid fa-eye"></i> Vista previa</span>
+          <span class="asistente-toolbar-btn activo"><i class="fa-solid fa-play"></i> Ejecutar</span>
+        </div>
+        <div style="font-size:13px; opacity:.7; margin-bottom:8px;">Reporte: Ventas Mensuales — TECNOVENTAS RD, S.R.L. (datos reales)</div>
+        <div style="border:1px dashed var(--dark-border); border-radius:8px; padding:14px; font-size:12.5px;">
+          <div style="display:flex; gap:14px; font-weight:700; opacity:.85;"><span style="flex:2;">Producto</span><span style="flex:1;">Cant.</span><span style="flex:1;">Precio</span></div>
+          <div style="display:flex; gap:14px;"><span style="flex:2;">Laptop HP 15</span><span style="flex:1;">3</span><span style="flex:1;">RD$28,500.00</span></div>
+          <div style="display:flex; gap:14px;"><span style="flex:2;">Mouse inalámbrico</span><span style="flex:1;">12</span><span style="flex:1;">RD$650.00</span></div>
+        </div>`,
+      pregunta: 'El reporte ya se ejecutó con datos reales. ¿Cuál es la diferencia principal respecto a la vista previa?',
+      opciones: [
+        { texto: 'Los datos ahora provienen de la base de datos real de la empresa, no son de muestra.', correcta: true },
+        { texto: 'La estructura del reporte cambió por completo.', correcta: false },
+        { texto: 'El reporte ya no puede imprimirse ni publicarse.', correcta: false },
+        { texto: 'No hay ninguna diferencia entre ambas vistas.', correcta: false }
+      ],
+      feedback: 'La ejecución consulta la base de datos en tiempo real: el diseño y la estructura son los mismos, pero los datos ya son reales y actualizados.'
+    }
+  ];
+
+  const CRITERIOS_BASE_A14 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación de la secuencia', descripcion:'Reconoce el orden correcto en que se usan las vistas de un reporte.' },
+    { key:'ejecucion', nombre:'3. Ejecución correcta del asistente', descripcion:'Toma la decisión correcta en cada paso del asistente, idealmente al primer intento.' },
+    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con claridad la diferencia entre las tres vistas del reporte.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'colaborativo', nombre:'6. Trabajo colaborativo', descripcion:'Colabora de forma organizada con su pareja de trabajo.' }
+  ];
+
+  let pasoActualA14 = 0;
+  let respuestasA14 = []; // por paso: true (acertó al primer intento), false (acertó pero no al primer intento)
+  let intentosPasoA14 = [];
+  let puntajeMaxA14 = 0;
+  let tiempoEstimadoA14 = 10;
+  let inicioTiempoA14 = null;
+  let timerIntervalA14 = null;
+
+  async function abrirActividadA14(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA14 = puntajeMaximo;
+    tiempoEstimadoA14 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA14').textContent = enunciado || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA14').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.4') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA14').classList.add('hidden');
+        document.getElementById('vistaEjercicioA14').classList.add('hidden');
+        document.getElementById('vistaResultadoA14').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA14', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA14').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA14').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA14').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA14').classList.add('hidden');
+    document.getElementById('vistaResultadoA14').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA14').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA14} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.4', 'recursosEstudianteA14');
+
+    const criteriosPrevios = CRITERIOS_BASE_A14.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA14', criteriosPrevios, puntajeMaxA14, null);
+  }
+
+  document.getElementById('btnBackFromActividadA14').addEventListener('click', () => {
+    clearInterval(timerIntervalA14);
+    document.getElementById('panelActividadA14').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA14').addEventListener('click', () => {
+    pasoActualA14 = 0;
+    respuestasA14 = [];
+    intentosPasoA14 = [];
+    document.getElementById('justificacionA14').value = '';
+    document.getElementById('justificacionBoxA14').classList.add('hidden');
+    document.getElementById('btnFinalizarA14').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA14').classList.add('hidden');
+    document.getElementById('vistaEjercicioA14').classList.remove('hidden');
+    renderPasoA14();
+
+    inicioTiempoA14 = Date.now();
+    clearInterval(timerIntervalA14);
+    timerIntervalA14 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA14) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA14').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA14} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function renderPasoA14(){
+    actualizarBarraProgreso('progresoA14', pasoActualA14, PASOS_A14.length + 1); // +1 por el paso final de justificación
+
+    if(pasoActualA14 >= PASOS_A14.length){
+      // Último paso: justificación
+      document.getElementById('asistenteA14').innerHTML = `
+        <div class="asistente-mockup">
+          <div class="asistente-paso-indicador">Paso final</div>
+          <div class="asistente-pregunta"><i class="fa-solid fa-flag-checkered"></i> ¡Completaste el recorrido por las 3 vistas del reporte!</div>
+          <p style="font-size:14px; opacity:.8;">Ahora responde la reflexión final para terminar la actividad.</p>
+        </div>`;
+      document.getElementById('justificacionBoxA14').classList.remove('hidden');
+      document.getElementById('btnFinalizarA14').classList.remove('hidden');
+      return;
+    }
+
+    const paso = PASOS_A14[pasoActualA14];
+    const yaResuelto = respuestasA14[pasoActualA14] !== undefined;
+
+    document.getElementById('asistenteA14').innerHTML = `
+      <div class="asistente-mockup">
+        <div class="asistente-paso-indicador">${paso.indicador}</div>
+        ${paso.mockup}
+        <div class="asistente-pregunta">${paso.pregunta}</div>
+        <div class="asistente-opciones">
+          ${paso.opciones.map((op, i) => `
+            <button type="button" class="asistente-opcion" data-idx="${i}" ${yaResuelto ? 'disabled' : ''}>${op.texto}</button>
+          `).join('')}
+        </div>
+        <div id="feedbackA14"></div>
+      </div>
+      ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePasoA14" style="width:auto; padding:11px 24px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+    `;
+
+    if(yaResuelto){
+      // Volver a marcar visualmente la opción correcta al reabrir el paso ya resuelto
+      const idxCorrecta = paso.opciones.findIndex(o => o.correcta);
+      const btnCorrecta = document.querySelector(`.asistente-opcion[data-idx="${idxCorrecta}"]`);
+      if(btnCorrecta) btnCorrecta.classList.add('correcta-marcada');
+      document.getElementById('feedbackA14').innerHTML = `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ${paso.feedback}</div>`;
+      document.getElementById('btnSiguientePasoA14').addEventListener('click', () => {
+        pasoActualA14++;
+        renderPasoA14();
+      });
+    } else {
+      document.querySelectorAll('.asistente-opcion').forEach(btn => {
+        btn.addEventListener('click', () => manejarOpcionA14(Number(btn.dataset.idx), btn));
+      });
+    }
+  }
+
+  function manejarOpcionA14(idx, btnEl){
+    const paso = PASOS_A14[pasoActualA14];
+    const opcion = paso.opciones[idx];
+
+    if(intentosPasoA14[pasoActualA14] === undefined) intentosPasoA14[pasoActualA14] = 0;
+    intentosPasoA14[pasoActualA14]++;
+
+    if(opcion.correcta){
+      respuestasA14[pasoActualA14] = intentosPasoA14[pasoActualA14] === 1; // true = acertó al primer intento
+      renderPasoA14();
+    } else {
+      btnEl.classList.add('incorrecta-marcada');
+      sacudir(btnEl);
+      setTimeout(() => btnEl.classList.remove('incorrecta-marcada'), 500);
+    }
+  }
+
+  document.getElementById('btnFinalizarA14').addEventListener('click', async () => {
+    clearInterval(timerIntervalA14);
+
+    const aciertosPrimerIntento = respuestasA14.filter(r => r === true).length;
+    const proporcionCorrecta = respuestasA14.length > 0 ? aciertosPrimerIntento / respuestasA14.length : 0;
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA14) / 60000;
+    const justificacion = document.getElementById('justificacionA14').value.trim();
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A14[0].nombre, descripcion: CRITERIOS_BASE_A14[0].descripcion, nivel: 'logrado' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A14[1].nombre, descripcion: CRITERIOS_BASE_A14[1].descripcion,
+      nivel: proporcionCorrecta >= 0.65 ? 'logrado' : (proporcionCorrecta > 0 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A14[2].nombre, descripcion: CRITERIOS_BASE_A14[2].descripcion,
+      nivel: proporcionCorrecta >= 1 ? 'logrado' : (proporcionCorrecta >= 0.5 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A14[3].nombre, descripcion: CRITERIOS_BASE_A14[3].descripcion,
+      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A14[4].nombre, descripcion: CRITERIOS_BASE_A14[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA14 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA14 * 2 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A14[5].nombre, descripcion: CRITERIOS_BASE_A14[5].descripcion, nivel: 'logrado' });
+
+    const pesoUnidad = puntajeMaxA14 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => {
+      if(c.nivel === 'logrado') notaCalculada += pesoUnidad;
+      else if(c.nivel === 'proceso') notaCalculada += pesoUnidad / 2;
+    });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA14').classList.add('hidden');
+    document.getElementById('vistaResultadoA14').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA14').classList.add('hidden');
+    renderRubrica('rubricaResultadoA14', criterios, puntajeMaxA14, notaCalculada);
+
+    const proporcionFinalA14 = puntajeMaxA14 > 0 ? notaCalculada / puntajeMaxA14 : 0;
+    mostrarLogro(proporcionFinalA14 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA14 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA14 >= 0.8) dispararConfeti();
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.4',
+        ra:'RA1',
+        ec:'EC6.1.2',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA14,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnVolverMisActA14').addEventListener('click', () => {
+    document.getElementById('panelActividadA14').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.4', abrirActividadA14);
