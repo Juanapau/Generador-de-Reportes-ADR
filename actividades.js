@@ -417,15 +417,44 @@
   ];
   const ETIQUETAS_A12_BASE = ['Encabezado de reporte', 'Encabezado de página', 'Línea de detalle', 'Pie de página', 'Pie de reporte'];
 
+  // Camino del aprendizaje: 3 personajes, cada uno hace una pregunta con 3 opciones,
+  // basada en el recurso "Partes de un Reporte Empresarial".
+  const PERSONAJES_A12 = [
+    {
+      nombre: 'El Gerente General',
+      avatar: '🧑‍💼',
+      pregunta: 'Quiero ver el nombre de mi empresa y el título del reporte apenas lo abra, sin importar en qué página esté. ¿Qué parte del reporte debo revisar?',
+      opciones: ['Encabezado de reporte', 'Encabezado de página', 'Pie de página'],
+      correctaIdx: 0
+    },
+    {
+      nombre: 'La Diseñadora de Reportes',
+      avatar: '👩‍💻',
+      pregunta: 'Necesito la sección que se repite una vez por cada producto vendido, mostrando su cantidad y su precio. ¿Cuál es?',
+      opciones: ['Encabezado de reporte', 'Línea de detalle', 'Pie de reporte'],
+      correctaIdx: 1
+    },
+    {
+      nombre: 'El Contador',
+      avatar: '🧑‍🔬',
+      pregunta: 'Quiero saber el total general de todo el reporte, no solo el subtotal de una página. ¿Dónde lo encuentro?',
+      opciones: ['Pie de página', 'Encabezado de página', 'Pie de reporte'],
+      correctaIdx: 2
+    }
+  ];
+
   const CRITERIOS_BASE_A12 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'identificacion', nombre:'2. Identificación de partes', descripcion:'Reconoce las partes que componen un reporte empresarial.' },
+    { key:'identificacion', nombre:'2. Identificación de partes', descripcion:'Responde correctamente las preguntas del camino del aprendizaje sobre las partes de un reporte.' },
     { key:'clasificacion', nombre:'3. Ubicación correcta', descripcion:'Coloca cada etiqueta en la zona correcta del reporte.' },
     { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica la función de al menos dos de las partes identificadas.' },
     { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
     { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
   ];
 
+  let pasoCaminoA12 = 0;
+  let respuestasCaminoA12 = [];
+  let intentosCaminoA12 = [];
   let asignacionesA12 = {};
   let etiquetaSeleccionadaA12 = null;
   let etiquetasBarajadasA12 = [];
@@ -451,7 +480,6 @@
         document.getElementById('resultadoDesgloseA12').innerHTML = '';
         renderListaCotejo('rubricaResultadoA12', previa.criterios, previa.puntajeMaximo, previa.nota);
         document.getElementById('avisoYaCompletadaA12').classList.remove('hidden');
-        document.getElementById('tituloDesgloseA12').classList.add('hidden');
         return;
       }
     }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
@@ -477,12 +505,17 @@
   });
 
   document.getElementById('btnComenzarA12').addEventListener('click', () => {
+    pasoCaminoA12 = 0;
+    respuestasCaminoA12 = [];
+    intentosCaminoA12 = [];
     asignacionesA12 = {};
     etiquetaSeleccionadaA12 = null;
     etiquetasBarajadasA12 = barajar(ETIQUETAS_A12_BASE); // orden distinto en cada intento
     document.getElementById('justificacionA12').value = '';
+    document.getElementById('seccion2A12').classList.add('hidden');
     document.getElementById('vistaInstrumentoA12').classList.add('hidden');
     document.getElementById('vistaEjercicioA12').classList.remove('hidden');
+    pintarCaminoA12();
     pintarEsquemaA12();
 
     inicioTiempoA12 = Date.now();
@@ -494,6 +527,95 @@
       document.getElementById('timerA12').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA12} min aprox.)</span>`;
     }, 1000);
   });
+
+  function pintarCaminoA12(){
+    const cont = document.getElementById('caminoA12');
+
+    // Barra de nodos del camino (círculos conectados por líneas)
+    const nodosHtml = PERSONAJES_A12.map((p, i) => {
+      let claseNodo = '';
+      if(i < pasoCaminoA12) claseNodo = 'completado';
+      else if(i === pasoCaminoA12) claseNodo = 'activo';
+      const linea = i < PERSONAJES_A12.length - 1
+        ? `<div class="camino-linea ${i < pasoCaminoA12 ? 'completada' : ''}"></div>` : '';
+      return `<div class="camino-nodo ${claseNodo}">${i < pasoCaminoA12 ? '<i class="fa-solid fa-check" style="color:var(--dark-green-accent);"></i>' : p.avatar}</div>${linea}`;
+    }).join('');
+
+    if(pasoCaminoA12 >= PERSONAJES_A12.length){
+      cont.innerHTML = `
+        <div class="camino-wrap">
+          <div class="camino-progreso">${nodosHtml}</div>
+          <div class="camino-tarjeta">
+            <div class="camino-avatar">🎉</div>
+            <div style="flex:1;">
+              <div class="camino-completa-msg"><i class="fa-solid fa-circle-check"></i> ¡Completaste el camino! Ya puedes continuar con la Sección 2.</div>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('seccion2A12').classList.remove('hidden');
+      actualizarBotonFinalizarA12();
+      return;
+    }
+
+    const p = PERSONAJES_A12[pasoCaminoA12];
+    const yaResuelto = respuestasCaminoA12[pasoCaminoA12] !== undefined;
+
+    cont.innerHTML = `
+      <div class="camino-wrap">
+        <div class="camino-progreso">${nodosHtml}</div>
+        <div class="camino-tarjeta">
+          <div class="camino-avatar">${p.avatar}</div>
+          <div style="flex:1;">
+            <div class="camino-nombre-personaje">${p.nombre}</div>
+            <div class="camino-burbuja">${p.pregunta}</div>
+            <div class="asistente-opciones">
+              ${p.opciones.map((op, i) => `
+                <button type="button" class="asistente-opcion camino-opcion" data-opcion="${i}" ${yaResuelto ? 'disabled' : ''}>${op}</button>
+              `).join('')}
+            </div>
+            <div id="caminoFeedbackA12"></div>
+            ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePersonajeA12" style="width:auto; padding:10px 22px; margin-top:14px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+          </div>
+        </div>
+      </div>`;
+
+    if(yaResuelto){
+      const idxCorrecta = p.correctaIdx;
+      const btnCorrecta = document.querySelector(`.camino-opcion[data-opcion="${idxCorrecta}"]`);
+      if(btnCorrecta) btnCorrecta.classList.add('correcta-marcada');
+      document.getElementById('caminoFeedbackA12').innerHTML =
+        `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ¡Correcto! Esa es: <b>${p.opciones[idxCorrecta]}</b>.</div>`;
+      document.getElementById('btnSiguientePersonajeA12').addEventListener('click', () => {
+        pasoCaminoA12++;
+        pintarCaminoA12();
+      });
+    } else {
+      document.querySelectorAll('.camino-opcion').forEach(btn => {
+        btn.addEventListener('click', () => manejarOpcionCaminoA12(Number(btn.dataset.opcion), btn));
+      });
+    }
+  }
+
+  function manejarOpcionCaminoA12(idx, btnEl){
+    const p = PERSONAJES_A12[pasoCaminoA12];
+    if(intentosCaminoA12[pasoCaminoA12] === undefined) intentosCaminoA12[pasoCaminoA12] = 0;
+    intentosCaminoA12[pasoCaminoA12]++;
+
+    if(idx === p.correctaIdx){
+      respuestasCaminoA12[pasoCaminoA12] = intentosCaminoA12[pasoCaminoA12] === 1; // true = acertó al primer intento
+      pintarCaminoA12();
+    } else {
+      btnEl.classList.add('incorrecta-marcada');
+      sacudir(btnEl);
+      setTimeout(() => btnEl.classList.remove('incorrecta-marcada'), 500);
+    }
+  }
+
+  function actualizarBotonFinalizarA12(){
+    const caminoCompleto = pasoCaminoA12 >= PERSONAJES_A12.length;
+    const enPool = ETIQUETAS_A12_BASE.filter(et => !Object.values(asignacionesA12).includes(et));
+    document.getElementById('btnFinalizarA12').disabled = !(caminoCompleto && enPool.length === 0);
+  }
 
   function pintarEsquemaA12(){
     const pool = document.getElementById('etiquetasPoolA12');
@@ -556,7 +678,7 @@
     );
 
     actualizarBarraProgreso('progresoA12', Object.keys(asignacionesA12).length, ZONAS_A12_BASE.length);
-    document.getElementById('btnFinalizarA12').disabled = Object.keys(asignacionesA12).length < ZONAS_A12_BASE.length;
+    actualizarBotonFinalizarA12();
   }
 
   document.getElementById('btnFinalizarA12').addEventListener('click', async () => {
@@ -567,6 +689,9 @@
     const total = ZONAS_A12_BASE.length;
     const proporcionCorrecta = correctas / total;
 
+    const aciertosCamino = respuestasCaminoA12.filter(r => r === true).length;
+    const proporcionCamino = PERSONAJES_A12.length > 0 ? aciertosCamino / PERSONAJES_A12.length : 0;
+
     const minutosTranscurridos = (Date.now() - inicioTiempoA12) / 60000;
     const justificacion = document.getElementById('justificacionA12').value.trim();
 
@@ -575,7 +700,7 @@
 
     criterios.push({
       nombre: CRITERIOS_BASE_A12[1].nombre, descripcion: CRITERIOS_BASE_A12[1].descripcion,
-      nivel: proporcionCorrecta >= 0.6 ? 'cumple' : 'no_cumple'
+      nivel: proporcionCamino >= 0.66 ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
@@ -603,14 +728,26 @@
     document.getElementById('vistaEjercicioA12').classList.add('hidden');
     document.getElementById('vistaResultadoA12').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA12').classList.add('hidden');
-    document.getElementById('tituloDesgloseA12').classList.remove('hidden');
     renderListaCotejo('rubricaResultadoA12', criterios, puntajeMaxA12, notaCalculada);
 
     const proporcionFinalA12 = puntajeMaxA12 > 0 ? notaCalculada / puntajeMaxA12 : 0;
     mostrarLogro(proporcionFinalA12 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA12 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA12 >= 0.8) dispararConfeti();
 
-    document.getElementById('resultadoDesgloseA12').innerHTML = ZONAS_A12_BASE.map(z => {
+    const desgloseCaminoHtml = PERSONAJES_A12.map((p, i) => `
+      <div class="esquema-zona">
+        <div style="flex:1;">
+          <div class="esquema-zona-tag">${p.nombre} preguntó:</div>
+          <div style="font-size:13.5px; margin:4px 0;">${p.pregunta}</div>
+          <div class="esquema-zona-slot">
+            <span class="esquema-zona-etiqueta">Respuesta correcta: ${p.opciones[p.correctaIdx]}</span>
+          </div>
+        </div>
+        <i class="fa-solid fa-check" style="color:var(--dark-green-accent);"></i>
+      </div>
+    `).join('');
+
+    const desgloseEtiquetadoHtml = ZONAS_A12_BASE.map(z => {
       const asignada = asignacionesA12[z.id];
       const ok = asignada === z.correcta;
       return `
@@ -624,6 +761,13 @@
           <i class="fa-solid ${ok ? 'fa-check' : 'fa-xmark'}"></i>
         </div>`;
     }).join('');
+
+    document.getElementById('resultadoDesgloseA12').innerHTML = `
+      <div class="section-heading" style="font-size:16px; margin-top:0;">Sección 1 — Camino del aprendizaje</div>
+      <div class="esquema-reporte">${desgloseCaminoHtml}</div>
+      <div class="section-heading" style="font-size:16px;">Sección 2 — Etiquetado del reporte</div>
+      <div class="esquema-reporte">${desgloseEtiquetadoHtml}</div>
+    `;
 
     try{
       await apiPost({
