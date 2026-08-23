@@ -168,17 +168,18 @@
     cont.innerHTML = preguntasBarajadasA11.map((p, i) => `
       <div class="quiz-pregunta-bloque">
         <div class="quiz-pregunta-texto">${i + 1}. ${p.pregunta}</div>
-        <div class="asistente-opciones">
+        <div class="quiz-opciones">
           ${p.opciones.map((op, j) => `
-            <button type="button" class="asistente-opcion quiz-opcion ${respuestasQuizA11[i] === j ? 'seleccionada' : ''}" data-pregunta="${i}" data-opcion="${j}">
-              ${op}
+            <button type="button" class="quiz-opcion-radio ${respuestasQuizA11[i] === j ? 'seleccionada' : ''}" data-pregunta="${i}" data-opcion="${j}">
+              <span class="quiz-radio-circulo"></span>
+              <span class="quiz-opcion-texto">${op}</span>
             </button>
           `).join('')}
         </div>
       </div>
     `).join('');
 
-    cont.querySelectorAll('.quiz-opcion').forEach(btn => {
+    cont.querySelectorAll('.quiz-opcion-radio').forEach(btn => {
       btn.addEventListener('click', () => {
         respuestasQuizA11[Number(btn.dataset.pregunta)] = Number(btn.dataset.opcion);
         pintarQuizA11();
@@ -331,7 +332,7 @@
 
     document.getElementById('resultadoDesgloseA11').innerHTML = `
       <div class="section-heading" style="font-size:16px; margin-top:0;">Sección 1 — Conceptos clave</div>
-      ${desgloseQuizHtml}
+      <div class="esquema-reporte">${desgloseQuizHtml}</div>
       <div class="section-heading" style="font-size:16px;">Sección 2 — Clasificación</div>
       <div class="clasif-zonas">
         <div class="clasif-zona zona-interno">
