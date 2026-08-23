@@ -8,25 +8,26 @@
 // A.1.1 — CLASIFICADOR DE REPORTES EMPRESARIALES (Interno / Externo)
 // ============================================================================
   // ================= ACTIVIDAD A.1.1: CLASIFICADOR DE REPORTES =================
-  // Contenido pensado para 5to de Bachillerato Técnico en Informática: requiere leer
-  // y analizar el propósito/audiencia de cada reporte, no solo detectar una palabra clave.
+  // Contenido anclado directamente al recurso de lectura "Reportes Empresariales"
+  // (con los 9 ejemplos "en papel" que el estudiante ya estudió). Se parafrasea
+  // el destinatario de cada uno para que la actividad exija comprensión real del
+  // recurso, no solo repetir la palabra "interno"/"externo" que aparecía en el PDF.
   const ITEMS_A11_BASE = [
-    { id:1, texto:'Resumen semanal de indicadores de productividad, compartido únicamente entre los supervisores de línea de producción.', tipo:'interno' },
-    { id:2, texto:'Boletín trimestral con los resultados financieros consolidados, remitido a la Superintendencia de Valores.', tipo:'externo' },
-    { id:3, texto:'Registro de horas trabajadas y ausencias, utilizado por el área de nómina para calcular los pagos quincenales.', tipo:'interno' },
-    { id:4, texto:'Cotización detallada de servicios de mantenimiento, enviada a una empresa interesada en contratar a la compañía.', tipo:'externo' },
-    { id:5, texto:'Comparativo de existencias entre bodegas, empleado para decidir traslados internos de mercancía.', tipo:'interno' },
-    { id:6, texto:'Memoria anual de responsabilidad social corporativa, disponible para descarga en la página institucional.', tipo:'externo' },
-    { id:7, texto:'Análisis de rotación de personal presentado en la reunión mensual de gerencia.', tipo:'interno' },
-    { id:8, texto:'Certificación de cumplimiento tributario, solicitada por un banco para aprobar una línea de crédito.', tipo:'externo' },
-    { id:9, texto:'Bitácora de incidencias del sistema, revisada por el equipo de soporte técnico para dar seguimiento a fallos.', tipo:'interno' },
-    { id:10, texto:'Carta de confirmación de pedido con el detalle de productos y fechas de entrega, dirigida a un cliente.', tipo:'externo' }
+    { id:1, texto:'TECNOVENTAS RD, S.R.L. — Reporte de Ventas Diarias: resume las ventas del día en la sucursal de Santiago Centro, para el departamento de ventas de la empresa.', tipo:'interno' },
+    { id:2, texto:'INDUSTRIAS DEL CIBAO, S.A. — Reporte de Producción: compara la meta de producción del turno con lo realmente fabricado, dirigido a la gerencia de operaciones.', tipo:'interno' },
+    { id:3, texto:'COMERCIAL ALTAGRACIA, S.R.L. — Reporte de Asistencia: registra las horas de entrada y salida del personal administrativo durante la semana.', tipo:'interno' },
+    { id:4, texto:'FERRETERÍA EL PROGRESO — Informe de Inventario: detalla las existencias del almacén principal y qué productos deben reordenarse.', tipo:'interno' },
+    { id:5, texto:'SEGUROS CONFIANZA, S.A. — Reporte de Desempeño: presenta los indicadores de atención al cliente, ventas y cobranza en la reunión mensual de gerencia.', tipo:'interno' },
+    { id:6, texto:'GRUPO CARIBE INVERSIONES, S.A. — Balance General: resume los activos, pasivos y patrimonio de la empresa; auditado y entregado a los accionistas y al banco acreedor.', tipo:'externo' },
+    { id:7, texto:'DISTRIBUIDORA NORTE, EIRL — Declaración Jurada de ITBIS: detalla las ventas gravadas y el impuesto a pagar, presentado ante la Dirección General de Impuestos Internos (DGII).', tipo:'externo' },
+    { id:8, texto:'AGROEXPORT DOMINICANA, S.A. — Informe Trimestral: resume los ingresos y la utilidad del trimestre, enviado por correo certificado a los socios accionistas.', tipo:'externo' },
+    { id:9, texto:'CEMENTOS DEL ESTE, S.A. — Informe de Responsabilidad Social: describe los programas de reforestación y becas escolares, publicado en el sitio web institucional para la comunidad.', tipo:'externo' }
   ];
 
   const CRITERIOS_BASE_A11 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad de clasificación desde el inicio.' },
-    { key:'identificacion', nombre:'2. Identificación de tipos', descripcion:'Reconoce las características que distinguen un reporte interno de uno externo.' },
-    { key:'clasificacion', nombre:'3. Clasificación correcta', descripcion:'Ubica cada ejemplo en la categoría correcta según sus características.' },
+    { key:'identificacion', nombre:'2. Identificación de tipos', descripcion:'Reconoce, según lo estudiado en el recurso, las características que distinguen un reporte interno de uno externo.' },
+    { key:'clasificacion', nombre:'3. Clasificación correcta', descripcion:'Ubica cada ejemplo del recurso en la categoría correcta según su destinatario.' },
     { key:'justificacion', nombre:'4. Justificación del criterio', descripcion:'Explica el motivo de su clasificación con argumentos válidos.' },
     { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
     { key:'colaborativo', nombre:'6. Trabajo colaborativo', descripcion:'Colabora de forma organizada con su equipo durante el ejercicio.' }
