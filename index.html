@@ -520,6 +520,60 @@
         </button>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.4: EJECUTAR Y CAMBIAR DE VISTA (SIMULADOR TIPO ASISTENTE) ---- -->
+    <div id="panelActividadA14" class="hidden">
+      <button type="button" class="back-btn" id="btnBackFromActividadA14"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.4 — Ejecutar un reporte y cambiar de vista</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA14">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA14" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA14" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA14"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA14" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA14" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el asistente interactivo -->
+      <div id="vistaEjercicioA14" class="hidden">
+        <div class="timer-badge" id="timerA14"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+        <div id="progresoA14"></div>
+
+        <div class="asistente-wrap" id="asistenteA14"></div>
+
+        <div class="justificacion-box hidden" id="justificacionBoxA14">
+          <label for="justificacionA14"><i class="fa-solid fa-pen"></i> ¿Qué diferencia notaste entre las tres vistas del reporte? (criterio 4)</label>
+          <textarea id="justificacionA14" placeholder="Explica brevemente en qué se diferencian diseño, previsualización y ejecución..."></textarea>
+        </div>
+
+        <button type="button" class="btn btn-primary hidden" id="btnFinalizarA14" style="width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        </button>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA14" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA14">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA14"></div>
+        <button type="button" class="btn btn-primary" id="btnVolverMisActA14" style="width:auto; padding:12px 28px; margin-top:10px;">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
