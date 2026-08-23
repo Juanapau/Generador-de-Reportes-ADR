@@ -338,13 +338,13 @@
         <div class="clasif-zona zona-interno">
           <h4><i class="fa-solid fa-building"></i> Interno</h4>
           ${ITEMS_A11.filter(it => it.tipo === 'interno').map(it => `
-            <div class="clasif-item ${asignacionesA11[it.id] === 'interno' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+            <div class="clasif-item clasif-item-compacto ${asignacionesA11[it.id] === 'interno' ? 'correcto' : 'incorrecto'}">${it.texto.split(':')[0]}</div>
           `).join('')}
         </div>
         <div class="clasif-zona zona-externo">
           <h4><i class="fa-solid fa-globe"></i> Externo</h4>
           ${ITEMS_A11.filter(it => it.tipo === 'externo').map(it => `
-            <div class="clasif-item ${asignacionesA11[it.id] === 'externo' ? 'correcto' : 'incorrecto'}">${it.texto}</div>
+            <div class="clasif-item clasif-item-compacto ${asignacionesA11[it.id] === 'externo' ? 'correcto' : 'incorrecto'}">${it.texto.split(':')[0]}</div>
           `).join('')}
         </div>
       </div>
