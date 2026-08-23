@@ -62,7 +62,7 @@
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelActividades').classList.add('hidden');
     document.getElementById('panelMisActividades').classList.add('hidden');
-    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.querySelectorAll('.panel-actividad-interactiva').forEach(p => p.classList.add('hidden'));
     document.getElementById('modalEstudiante').classList.add('hidden');
 
     document.getElementById('panelDocente').classList.toggle('hidden', currentUser.rol !== 'docente');
@@ -79,7 +79,7 @@
     document.getElementById('panelRegistro').classList.add('hidden');
     document.getElementById('panelActividades').classList.add('hidden');
     document.getElementById('panelMisActividades').classList.add('hidden');
-    document.getElementById('panelActividadA11').classList.add('hidden');
+    document.querySelectorAll('.panel-actividad-interactiva').forEach(p => p.classList.add('hidden'));
     document.getElementById('modalEstudiante').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
     document.getElementById('loginForm').reset();
