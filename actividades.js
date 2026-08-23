@@ -794,32 +794,39 @@
   registrarActividadInteractiva('A.1.2', abrirActividadA12);
 
 // ============================================================================
-// A.1.3 — VISTAS DE UN REPORTE EMPRESARIAL
+// A.1.3 — VISTAS DE UN REPORTE EMPRESARIAL (simulador de construcción)
 // ============================================================================
-  const ESCENARIOS_A13_BASE = [
-    { id:1, texto:'El diseñador ajusta el ancho de las columnas y el color de fondo del encabezado antes de conectar el reporte a los datos reales.', tipo:'diseno' },
-    { id:2, texto:'Se arrastran los campos de la base de datos hacia la cuadrícula del reporte para definir dónde aparecerá cada dato.', tipo:'diseno' },
-    { id:3, texto:'Se agrega un logotipo y se cambia la fuente del título del reporte mientras aún no hay información cargada.', tipo:'diseno' },
-    { id:4, texto:'Antes de entregar el reporte, el diseñador revisa cómo se verá impreso, usando datos de prueba, sin publicarlo todavía.', tipo:'previsualizacion' },
-    { id:5, texto:'Se simula cómo lucirán los totales y subtotales en la página, sin que el reporte esté disponible aún para los usuarios finales.', tipo:'previsualizacion' },
-    { id:6, texto:'El equipo revisa la distribución de las páginas y los saltos de página antes de liberar el reporte a producción.', tipo:'previsualizacion' },
-    { id:7, texto:'El reporte se ejecuta consultando la base de datos en tiempo real y genera el documento final que verá el gerente.', tipo:'ejecucion' },
-    { id:8, texto:'Un usuario solicita el reporte de ventas del mes y el sistema lo genera al instante con la información actualizada.', tipo:'ejecucion' },
-    { id:9, texto:'El reporte corre automáticamente cada lunes a las 8:00 a.m. y envía los resultados actualizados por correo.', tipo:'ejecucion' }
+  // El estudiante configura un reporte real (eligiendo columnas de la tabla
+  // compartida DB_Ventas) y lo navega en sus 3 vistas: Diseño, Previsualización
+  // (datos de muestra) y Ejecución (datos reales consultados del sistema).
+  const CAMPOS_DISPONIBLES_A13 = [
+    { campo:'Producto', etiqueta:'Producto', obligatorio:true, muestra:'[Producto de ejemplo]' },
+    { campo:'Cantidad', etiqueta:'Cantidad', obligatorio:true, muestra:'XX' },
+    { campo:'PrecioUnitario', etiqueta:'Precio Unitario', obligatorio:true, muestra:'RD$X,XXX.XX' },
+    { campo:'Categoria', etiqueta:'Categoría', obligatorio:false, muestra:'[Categoría]' },
+    { campo:'Vendedor', etiqueta:'Vendedor', obligatorio:false, muestra:'[Vendedor]' },
+    { campo:'Fecha', etiqueta:'Fecha', obligatorio:false, muestra:'[Fecha]' }
   ];
 
   const CRITERIOS_BASE_A13 = [
     { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
-    { key:'identificacion', nombre:'2. Identificación de vistas', niveles:{ excelente:'Reconoce con precisión las diferencias entre las tres vistas de un reporte.', bueno:'Reconoce la mayoría de las diferencias entre las vistas.', proceso:'Reconoce algunas diferencias, con confusiones frecuentes.', insuficiente:'No logra diferenciar las vistas del reporte.' } },
-    { key:'clasificacion', nombre:'3. Clasificación correcta', niveles:{ excelente:'Clasifica correctamente el 90%-100% de los escenarios.', bueno:'Clasifica correctamente el 70%-89% de los escenarios.', proceso:'Clasifica correctamente el 50%-69% de los escenarios.', insuficiente:'Clasifica correctamente menos del 50% de los escenarios.' } },
-    { key:'justificacion', nombre:'4. Justificación', niveles:{ excelente:'Explica con claridad y precisión el porqué de su clasificación.', bueno:'Explica de forma general el porqué de su clasificación.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica su clasificación.' } },
+    { key:'identificacion', nombre:'2. Identificación de las vistas', niveles:{ excelente:'Recorre y reconoce correctamente las 3 vistas de su reporte.', bueno:'Recorre las 3 vistas con algunas dudas sobre sus diferencias.', proceso:'Recorre las vistas de forma superficial.', insuficiente:'No logra diferenciar las vistas de su reporte.' } },
+    { key:'clasificacion', nombre:'3. Construcción del reporte', niveles:{ excelente:'Construye un reporte completo, agregando columnas opcionales además de las obligatorias.', bueno:'Construye el reporte con la mayoría de las columnas disponibles.', proceso:'Construye el reporte solo con las columnas obligatorias.', insuficiente:'No logra construir un reporte válido.' } },
+    { key:'justificacion', nombre:'4. Justificación', niveles:{ excelente:'Explica con claridad y precisión las diferencias entre las 3 vistas de su reporte.', bueno:'Explica de forma general las diferencias entre las vistas.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica las diferencias observadas.' } },
     { key:'tiempo', nombre:'5. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
     { key:'colaborativo', nombre:'6. Trabajo colaborativo', niveles:{ excelente:'Colabora de forma organizada y respetuosa con su pareja de trabajo.', bueno:'Colabora la mayor parte del tiempo con su pareja.', proceso:'Colabora de forma limitada.', insuficiente:'No colabora con su pareja de trabajo.' } }
   ];
 
-  let asignacionesA13 = {};
-  let seleccionadoA13 = null;
-  let escenariosBarajadosA13 = [];
+  const COLOR_VISTA_A13 = {
+    diseno: { nombre:'Vista de Diseño', icono:'fa-pen-ruler', bg:'rgba(168,85,247,.15)', color:'#a855f7' },
+    previsualizacion: { nombre:'Vista de Previsualización', icono:'fa-eye', bg:'rgba(232,185,59,.15)', color:'var(--dark-gold-accent)' },
+    ejecucion: { nombre:'Vista de Ejecución', icono:'fa-play', bg:'rgba(34,197,94,.15)', color:'var(--dark-green-accent)' }
+  };
+
+  let camposSeleccionadosA13 = {};
+  let vistasVisitadasA13 = new Set();
+  let vistaActualA13 = null;
+  let datosRealesA13 = null;
   let puntajeMaxA13 = 0;
   let tiempoEstimadoA13 = 10;
   let inicioTiempoA13 = null;
@@ -839,10 +846,8 @@
         document.getElementById('vistaInstrumentoA13').classList.add('hidden');
         document.getElementById('vistaEjercicioA13').classList.add('hidden');
         document.getElementById('vistaResultadoA13').classList.remove('hidden');
-        document.getElementById('resultadoDesgloseA13').innerHTML = '';
         renderRubricaDescriptiva('rubricaResultadoA13', previa.criterios, previa.puntajeMaximo, previa.nota);
         document.getElementById('avisoYaCompletadaA13').classList.remove('hidden');
-        document.getElementById('tituloDesgloseA13').classList.add('hidden');
         return;
       }
     }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
@@ -868,13 +873,17 @@
   });
 
   document.getElementById('btnComenzarA13').addEventListener('click', () => {
-    asignacionesA13 = {};
-    seleccionadoA13 = null;
-    escenariosBarajadosA13 = barajar(ESCENARIOS_A13_BASE);
+    camposSeleccionadosA13 = {};
+    CAMPOS_DISPONIBLES_A13.forEach(c => { camposSeleccionadosA13[c.campo] = c.obligatorio; });
+    vistasVisitadasA13 = new Set();
+    vistaActualA13 = null;
+    datosRealesA13 = null;
     document.getElementById('justificacionA13').value = '';
+    document.getElementById('navegadorVistasA13').classList.add('hidden');
+    document.getElementById('seccionFinalA13').classList.add('hidden');
     document.getElementById('vistaInstrumentoA13').classList.add('hidden');
     document.getElementById('vistaEjercicioA13').classList.remove('hidden');
-    pintarClasificadorA13();
+    pintarConfigCamposA13();
 
     inicioTiempoA13 = Date.now();
     clearInterval(timerIntervalA13);
@@ -886,106 +895,143 @@
     }, 1000);
   });
 
-  function pintarClasificadorA13(){
-    const pool = document.getElementById('clasifPoolA13');
-    const zonaDiseno = document.getElementById('zonaDisenoItemsA13');
-    const zonaPrevis = document.getElementById('zonaPrevisualizacionItemsA13');
-    const zonaEjec = document.getElementById('zonaEjecucionItemsA13');
+  function pintarConfigCamposA13(){
+    const cont = document.getElementById('configCamposA13');
+    cont.innerHTML = `
+      <div class="campos-checklist">
+        ${CAMPOS_DISPONIBLES_A13.map(c => `
+          <div class="campo-check-item ${c.obligatorio ? 'obligatorio' : ''}">
+            <input type="checkbox" id="campoA13-${c.campo}" ${camposSeleccionadosA13[c.campo] ? 'checked' : ''} ${c.obligatorio ? 'disabled' : ''}>
+            <label for="campoA13-${c.campo}">${c.etiqueta}</label>
+            ${c.obligatorio ? '<span class="campo-obligatorio-tag">Obligatoria</span>' : ''}
+          </div>
+        `).join('')}
+      </div>`;
 
-    const enPool = escenariosBarajadosA13.filter(it => !asignacionesA13[it.id]);
-    const enDiseno = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'diseno');
-    const enPrevis = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'previsualizacion');
-    const enEjec = escenariosBarajadosA13.filter(it => asignacionesA13[it.id] === 'ejecucion');
-
-    pool.innerHTML = enPool.map(it => `
-      <div class="clasif-item ${seleccionadoA13 === it.id ? 'selected' : ''}" draggable="true" data-id="${it.id}">${it.texto}</div>
-    `).join('') || '<span style="opacity:.5; font-size:14px;">Todos los escenarios han sido clasificados.</span>';
-
-    zonaDiseno.innerHTML = enDiseno.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
-    zonaPrevis.innerHTML = enPrevis.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
-    zonaEjec.innerHTML = enEjec.map(it => `<div class="clasif-item" data-id="${it.id}">${it.texto}</div>`).join('');
-
-    pool.querySelectorAll('.clasif-item').forEach(el => {
-      el.addEventListener('click', () => {
-        const id = Number(el.dataset.id);
-        seleccionadoA13 = seleccionadoA13 === id ? null : id;
-        pintarClasificadorA13();
+    cont.querySelectorAll('input[type="checkbox"]:not([disabled])').forEach(input => {
+      input.addEventListener('change', () => {
+        const campo = input.id.replace('campoA13-', '');
+        camposSeleccionadosA13[campo] = input.checked;
       });
     });
+  }
 
-    [...zonaDiseno.querySelectorAll('.clasif-item'), ...zonaPrevis.querySelectorAll('.clasif-item'), ...zonaEjec.querySelectorAll('.clasif-item')].forEach(el => {
-      el.addEventListener('click', () => {
-        const id = Number(el.dataset.id);
-        delete asignacionesA13[id];
-        pintarClasificadorA13();
-      });
+  document.getElementById('btnConstruirA13').addEventListener('click', async () => {
+    const btn = document.getElementById('btnConstruirA13');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Consultando datos...';
+
+    datosRealesA13 = await cargarTablaDatos('DB_Ventas');
+
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-hammer"></i> Construir reporte';
+
+    if(!datosRealesA13){
+      mostrarNotificacion('No se pudo conectar con la base de datos. Intenta de nuevo.', 'error');
+      return;
+    }
+
+    document.getElementById('navegadorVistasA13').classList.remove('hidden');
+    pintarVistasTabsA13();
+    cambiarVistaA13('diseno');
+  });
+
+  function pintarVistasTabsA13(){
+    const cont = document.getElementById('vistasTabsA13');
+    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
+      const info = COLOR_VISTA_A13[v];
+      const visitada = vistasVisitadasA13.has(v);
+      const activa = vistaActualA13 === v;
+      return `
+        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
+        </button>`;
+    }).join('');
+
+    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => cambiarVistaA13(btn.dataset.vista));
     });
+  }
 
-    // Arrastrar y soltar (además del clic-seleccionar-y-asignar)
-    habilitarArrastre(
-      pool.querySelectorAll('.clasif-item[draggable="true"]'),
-      [document.getElementById('zonaDisenoA13'), document.getElementById('zonaPrevisualizacionA13'), document.getElementById('zonaEjecucionA13')],
-      (idArrastrado, zonaEl) => {
-        const mapaZona = { zonaDisenoA13:'diseno', zonaPrevisualizacionA13:'previsualizacion', zonaEjecucionA13:'ejecucion' };
-        asignacionesA13[Number(idArrastrado)] = mapaZona[zonaEl.id];
-        seleccionadoA13 = null;
-        pintarClasificadorA13();
+  function cambiarVistaA13(vista){
+    vistaActualA13 = vista;
+    vistasVisitadasA13.add(vista);
+    pintarVistasTabsA13();
+    pintarContenidoVistaA13(vista);
+    actualizarBotonFinalizarA13();
+  }
+
+  function camposActivosA13(){
+    return CAMPOS_DISPONIBLES_A13.filter(c => camposSeleccionadosA13[c.campo]);
+  }
+
+  function pintarContenidoVistaA13(vista){
+    const cont = document.getElementById('vistaContenidoA13');
+    const info = COLOR_VISTA_A13[vista];
+    const campos = camposActivosA13();
+
+    let filasHtml = '';
+    if(vista === 'diseno'){
+      filasHtml = `<tr>${campos.map(() => `<td class="simulador-placeholder-cell">—</td>`).join('')}</tr>`;
+    } else if(vista === 'previsualizacion'){
+      filasHtml = [1,2,3].map(() => `<tr>${campos.map(c => `<td class="simulador-placeholder-cell">${c.muestra}</td>`).join('')}</tr>`).join('');
+    } else if(vista === 'ejecucion'){
+      const filas = (datosRealesA13 && datosRealesA13.datos) ? datosRealesA13.datos.slice(0, 8) : [];
+      filasHtml = filas.map(fila => `
+        <tr>${campos.map(c => {
+          let valor = fila[c.campo];
+          if(c.campo === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
+          return `<td>${valor !== undefined ? valor : ''}</td>`;
+        }).join('')}</tr>
+      `).join('');
+
+      if(camposSeleccionadosA13['Cantidad'] && camposSeleccionadosA13['PrecioUnitario']){
+        const total = filas.reduce((sum, f) => sum + (Number(f.Cantidad)||0) * (Number(f.PrecioUnitario)||0), 0);
+        filasHtml += `<tr class="simulador-total-fila">${campos.map((c,i) => {
+          if(i === 0) return `<td>TOTAL</td>`;
+          if(c.campo === 'PrecioUnitario') return `<td>RD$${total.toLocaleString('es-DO', {minimumFractionDigits:2})}</td>`;
+          return `<td></td>`;
+        }).join('')}</tr>`;
       }
-    );
+    }
 
-    actualizarBarraProgreso('progresoA13', escenariosBarajadosA13.length - enPool.length, escenariosBarajadosA13.length);
-    document.getElementById('btnFinalizarA13').disabled = enPool.length > 0;
+    cont.innerHTML = `
+      <div class="simulador-pantalla">
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+        </span>
+        <div style="font-weight:800; font-size:15px;">TECNOVENTAS RD, S.R.L. — Reporte de Ventas</div>
+        <table class="simulador-tabla">
+          <thead><tr>${campos.map(c => `<th>${c.etiqueta}</th>`).join('')}</tr></thead>
+          <tbody>${filasHtml}</tbody>
+        </table>
+      </div>`;
   }
 
-  function asignarZonaA13(tipo){
-    if(seleccionadoA13 === null) return;
-    asignacionesA13[seleccionadoA13] = tipo;
-    seleccionadoA13 = null;
-    pintarClasificadorA13();
+  function actualizarBotonFinalizarA13(){
+    if(vistasVisitadasA13.size >= 3){
+      document.getElementById('seccionFinalA13').classList.remove('hidden');
+      document.getElementById('btnFinalizarA13').disabled = false;
+    }
   }
-  document.getElementById('zonaDisenoA13').addEventListener('click', (e) => {
-    if(e.target.closest('.clasif-item')) return;
-    asignarZonaA13('diseno');
-  });
-  document.getElementById('zonaPrevisualizacionA13').addEventListener('click', (e) => {
-    if(e.target.closest('.clasif-item')) return;
-    asignarZonaA13('previsualizacion');
-  });
-  document.getElementById('zonaEjecucionA13').addEventListener('click', (e) => {
-    if(e.target.closest('.clasif-item')) return;
-    asignarZonaA13('ejecucion');
-  });
 
   document.getElementById('btnFinalizarA13').addEventListener('click', async () => {
     clearInterval(timerIntervalA13);
 
-    let correctas = 0;
-    escenariosBarajadosA13.forEach(it => { if(asignacionesA13[it.id] === it.tipo) correctas++; });
-    const total = escenariosBarajadosA13.length;
-    const proporcionCorrecta = correctas / total;
-
     const minutosTranscurridos = (Date.now() - inicioTiempoA13) / 60000;
     const justificacion = document.getElementById('justificacionA13').value.trim();
-
-    function nivelPorProporcion(p, uExc, uBueno, uProceso){
-      if(p >= uExc) return 'excelente';
-      if(p >= uBueno) return 'bueno';
-      if(p >= uProceso) return 'proceso';
-      return 'insuficiente';
-    }
+    const opcionalesSeleccionados = CAMPOS_DISPONIBLES_A13.filter(c => !c.obligatorio && camposSeleccionadosA13[c.campo]).length;
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A13[0].nombre, niveles: CRITERIOS_BASE_A13[0].niveles, nivel: 'excelente' });
+    criterios.push({ nombre: CRITERIOS_BASE_A13[1].nombre, niveles: CRITERIOS_BASE_A13[1].niveles, nivel: 'excelente' });
 
-    criterios.push({
-      nombre: CRITERIOS_BASE_A13[1].nombre, niveles: CRITERIOS_BASE_A13[1].niveles,
-      nivel: nivelPorProporcion(proporcionCorrecta, 0.75, 0.55, 0.3)
-    });
-
-    criterios.push({
-      nombre: CRITERIOS_BASE_A13[2].nombre, niveles: CRITERIOS_BASE_A13[2].niveles,
-      nivel: nivelPorProporcion(proporcionCorrecta, 0.9, 0.7, 0.5)
-    });
+    let nivelConstruccion = 'insuficiente';
+    if(opcionalesSeleccionados >= 3) nivelConstruccion = 'excelente';
+    else if(opcionalesSeleccionados >= 2) nivelConstruccion = 'bueno';
+    else if(opcionalesSeleccionados >= 1) nivelConstruccion = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A13[2].nombre, niveles: CRITERIOS_BASE_A13[2].niveles, nivel: nivelConstruccion });
 
     let nivelJustificacion = 'insuficiente';
     if(justificacion.length >= 40) nivelJustificacion = 'excelente';
@@ -1010,27 +1056,11 @@
     document.getElementById('vistaEjercicioA13').classList.add('hidden');
     document.getElementById('vistaResultadoA13').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA13').classList.add('hidden');
-    document.getElementById('tituloDesgloseA13').classList.remove('hidden');
     renderRubricaDescriptiva('rubricaResultadoA13', criterios, puntajeMaxA13, notaCalculada);
 
     const proporcionFinalA13 = puntajeMaxA13 > 0 ? notaCalculada / puntajeMaxA13 : 0;
     mostrarLogro(proporcionFinalA13 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA13 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA13 >= 0.8) dispararConfeti();
-
-    function bloqueResultadoA13(titulo, icono, tipo){
-      const items = escenariosBarajadosA13.filter(it => it.tipo === tipo);
-      return `
-        <div class="clasif-zona zona-${tipo}">
-          <h4><i class="fa-solid ${icono}"></i> ${titulo}</h4>
-          ${items.map(it => `
-            <div class="clasif-item ${asignacionesA13[it.id] === tipo ? 'correcto' : 'incorrecto'}">${it.texto}</div>
-          `).join('')}
-        </div>`;
-    }
-    document.getElementById('resultadoDesgloseA13').innerHTML =
-      bloqueResultadoA13('Vista de diseño', 'fa-pen-ruler', 'diseno') +
-      bloqueResultadoA13('Previsualización', 'fa-eye', 'previsualizacion') +
-      bloqueResultadoA13('Ejecución', 'fa-play', 'ejecucion');
 
     try{
       await apiPost({
