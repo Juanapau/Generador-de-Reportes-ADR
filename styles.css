@@ -670,6 +670,37 @@
   }
   body.light .esquema-zona-slot .esquema-zona-etiqueta{ color: var(--light-blue-accent); }
 
+  /* ============ SIMULADOR TIPO ASISTENTE (A.1.4 y futuras) ============ */
+  .asistente-wrap{ max-width:620px; margin:0 auto 20px; }
+  .asistente-paso-indicador{ font-size:12.5px; opacity:.6; font-weight:700; margin-bottom:10px; text-transform:uppercase; letter-spacing:.4px; }
+  .asistente-mockup{
+    border:2px solid var(--dark-border); border-radius:14px; padding:22px; margin-bottom:18px;
+    background: var(--dark-card);
+  }
+  body.light .asistente-mockup{ background:#fff; }
+  .asistente-toolbar{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .asistente-toolbar-btn{
+    padding:8px 14px; border-radius:8px; font-size:12.5px; font-weight:700;
+    background: rgba(255,255,255,0.06); border:1px solid var(--dark-border); color:var(--dark-text-dim);
+  }
+  body.light .asistente-toolbar-btn{ background:#f2f5fc; color:var(--light-text-dim); border:1px solid #dde5f6; }
+  .asistente-toolbar-btn.activo{ background: var(--dark-blue-accent); color:#fff; border-color: var(--dark-blue-accent); }
+
+  .asistente-pregunta{ font-weight:800; font-size:15px; margin:16px 0 12px; }
+  .asistente-opciones{ display:flex; flex-direction:column; gap:10px; }
+  .asistente-opcion{
+    text-align:left; padding:13px 16px; border-radius:10px; background: var(--dark-card-hover);
+    border:1px solid var(--dark-border); cursor:pointer; font-size:14.5px; color:var(--dark-text); font-family:inherit;
+  }
+  body.light .asistente-opcion{ background:#eef2fb; color:var(--light-text); border:1px solid #d7e0f2; }
+  .asistente-opcion:disabled{ cursor:default; opacity:.75; }
+  .asistente-opcion.correcta-marcada{ border-color: var(--dark-green-accent); background: rgba(34,197,94,.18); font-weight:700; }
+  .asistente-opcion.incorrecta-marcada{ border-color:#ef4444; background: rgba(239,68,68,.18); }
+  .asistente-feedback{
+    margin-top:14px; padding:12px 14px; border-radius:10px; font-size:13.5px; font-weight:600; line-height:1.5;
+    background: rgba(34,197,94,.1); border:1px solid var(--dark-green-accent); color: var(--dark-green-accent);
+  }
+
   /* ============ GAMIFICACIÓN: progreso, confeti, sacudida, logros, arrastre ============ */
   .progreso-barra-texto{ font-size:13px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px; }
   body.light .progreso-barra-texto{ color:var(--light-text-dim); }
