@@ -727,21 +727,31 @@
   .vista-tab-btn .check-visitada{ font-size:11px; }
 
   .simulador-pantalla{
-    background: var(--dark-card); border:2px solid var(--dark-border); border-radius:14px; padding:20px 24px;
-    max-width:620px; margin:0 auto;
+    background: var(--dark-card); border:2px solid var(--dark-border); border-radius:14px; padding:22px 26px;
+    max-width:960px; margin:0 auto; overflow-x:auto;
   }
   body.light .simulador-pantalla{ background:#fff; }
   .simulador-etiqueta-vista{
     font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px;
     padding:4px 12px; border-radius:20px; display:inline-block; margin-bottom:14px;
   }
-  .simulador-tabla{ width:100%; border-collapse:collapse; margin-top:10px; }
-  .simulador-tabla th{ text-align:left; padding:8px 10px; font-size:12.5px; border-bottom:2px solid var(--dark-border); font-weight:800; }
-  .simulador-tabla td{ padding:8px 10px; font-size:13px; border-bottom:1px solid var(--dark-border); }
+  .simulador-tabla{ width:100%; min-width:560px; border-collapse:collapse; margin-top:10px; }
+  .simulador-tabla th{ text-align:left; padding:10px 16px; font-size:12.5px; border-bottom:2px solid var(--dark-border); font-weight:800; white-space:nowrap; }
+  .simulador-tabla td{ padding:10px 16px; font-size:13px; border-bottom:1px solid var(--dark-border); white-space:nowrap; }
   body.light .simulador-tabla th{ border-bottom:2px solid #dde5f6; }
   body.light .simulador-tabla td{ border-bottom:1px solid #eef1f8; }
   .simulador-placeholder-cell{ color:var(--dark-text-dim); font-style:italic; opacity:.7; }
   .simulador-total-fila td{ font-weight:800; border-top:2px solid var(--dark-border); }
+
+  /* ============ REPASO TEÓRICO CON DESPLEGABLES ============ */
+  .teoria-pregunta-bloque{ margin-bottom:18px; max-width:640px; }
+  .teoria-pregunta-texto{ font-weight:700; font-size:14.5px; margin-bottom:8px; }
+  .teoria-select{
+    width:100%; padding:11px 14px; border-radius:10px; background: var(--dark-card);
+    border:1px solid var(--dark-border); color:var(--dark-text); font-size:14px; font-family:inherit;
+  }
+  body.light .teoria-select{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
+  .teoria-select.respondida{ border-color: var(--dark-blue-accent); }
 
   /* ============ SIMULADOR TIPO ASISTENTE (A.1.4 y futuras) ============ */
   .asistente-wrap{ max-width:620px; margin:0 auto 20px; }
