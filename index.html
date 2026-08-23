@@ -491,36 +491,36 @@
         <div class="timer-badge" id="timerA13"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
         <div id="progresoA13"></div>
 
+        <div class="section-heading" style="font-size:18.5px;">Paso 1 — Configura tu reporte</div>
         <div class="empty-note" style="margin-top:0;">
           <i class="fa-solid fa-hand-pointer"></i>
-          Arrastra cada escenario hacia la vista a la que corresponde (también puedes hacer clic para seleccionarlo y luego hacer clic en la zona). Haz clic en un escenario ya clasificado para regresarlo al banco.
+          Marca las columnas que tendrá tu "Reporte de Ventas". Debes incluir al menos <b>Producto, Cantidad y Precio Unitario</b> (son obligatorias); las demás son opcionales.
         </div>
-
-        <div class="clasif-pool" id="clasifPoolA13"></div>
-
-        <div class="clasif-zonas clasif-zonas-3">
-          <div class="clasif-zona zona-diseno" id="zonaDisenoA13">
-            <h4><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</h4>
-            <div id="zonaDisenoItemsA13"></div>
-          </div>
-          <div class="clasif-zona zona-previsualizacion" id="zonaPrevisualizacionA13">
-            <h4><i class="fa-solid fa-eye"></i> Previsualización</h4>
-            <div id="zonaPrevisualizacionItemsA13"></div>
-          </div>
-          <div class="clasif-zona zona-ejecucion" id="zonaEjecucionA13">
-            <h4><i class="fa-solid fa-play"></i> Ejecución</h4>
-            <div id="zonaEjecucionItemsA13"></div>
-          </div>
-        </div>
-
-        <div class="justificacion-box">
-          <label for="justificacionA13"><i class="fa-solid fa-pen"></i> ¿Cómo diferenciaste una vista de otra? (criterio 4)</label>
-          <textarea id="justificacionA13" placeholder="Explica brevemente qué característica te ayudó a identificar cada vista..."></textarea>
-        </div>
-
-        <button type="button" class="btn btn-primary" id="btnFinalizarA13" style="width:auto; padding:12px 28px;" disabled>
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        <div id="configCamposA13"></div>
+        <button type="button" class="btn btn-add" id="btnConstruirA13" style="margin:14px 0 24px;">
+          <i class="fa-solid fa-hammer"></i> Construir reporte
         </button>
+
+        <div id="navegadorVistasA13" class="hidden">
+          <div class="section-heading" style="font-size:18.5px;">Paso 2 — Navega las 3 vistas de tu reporte</div>
+          <div class="empty-note" style="margin-top:0;">
+            <i class="fa-solid fa-hand-pointer"></i>
+            Haz clic en cada pestaña para ver tu mismo reporte en sus 3 etapas. Debes visitar las 3 antes de continuar.
+          </div>
+          <div class="vistas-tabs" id="vistasTabsA13"></div>
+          <div id="vistaContenidoA13"></div>
+        </div>
+
+        <div id="seccionFinalA13" class="hidden">
+          <div class="justificacion-box">
+            <label for="justificacionA13"><i class="fa-solid fa-pen"></i> ¿Qué diferencia notaste entre las 3 vistas de tu reporte? (criterio 4)</label>
+            <textarea id="justificacionA13" placeholder="Explica brevemente qué cambió al pasar de diseño a previsualización, y de previsualización a ejecución..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA13" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
       </div>
 
       <!-- Vista 3: resultado -->
@@ -530,8 +530,6 @@
           Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
         </div>
         <div id="rubricaResultadoA13"></div>
-        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA13">Detalle de tu clasificación</div>
-        <div class="clasif-zonas clasif-zonas-3" id="resultadoDesgloseA13"></div>
         <button type="button" class="btn btn-primary" id="btnVolverMisActA13" style="width:auto; padding:12px 28px; margin-top:10px;">
           <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
         </button>
