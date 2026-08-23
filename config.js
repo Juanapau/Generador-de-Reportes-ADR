@@ -119,6 +119,18 @@
     return copia;
   }
 
+  // ---------- Tablas de datos compartidas (reutilizable por cualquier actividad) ----------
+  // Devuelve { campos: [...], datos: [...] } o null si falla.
+  async function cargarTablaDatos(tabla){
+    try{
+      const data = await apiGet({ action:'listarTablaDatos', tabla });
+      if(!data.success) return null;
+      return { campos: data.campos, datos: data.datos };
+    }catch(err){
+      return null;
+    }
+  }
+
   async function cargarRecursosActividad(codigo, containerId){
     const cont = document.getElementById(containerId);
     if(!cont) return;
