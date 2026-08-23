@@ -419,23 +419,33 @@
         <div class="timer-badge" id="timerA12"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
         <div id="progresoA12"></div>
 
+        <div class="section-heading" style="font-size:18.5px;">Sección 1 — El camino del aprendizaje</div>
         <div class="empty-note" style="margin-top:0;">
           <i class="fa-solid fa-hand-pointer"></i>
-          Arrastra cada etiqueta hacia la zona del reporte donde corresponda (también puedes hacer clic para seleccionarla y luego hacer clic en la zona). Haz clic en una zona ya etiquetada para quitarle la etiqueta.
+          Avanza por el camino conversando con cada personaje. Cada uno te hará una pregunta con 3 opciones — haz clic en la que consideres correcta. Si te equivocas, puedes intentarlo de nuevo.
         </div>
+        <div id="caminoA12"></div>
 
-        <div class="clasif-pool" id="etiquetasPoolA12"></div>
+        <div id="seccion2A12" class="hidden">
+          <div class="section-heading" style="font-size:18.5px;">Sección 2 — Etiqueta el reporte</div>
+          <div class="empty-note" style="margin-top:0;">
+            <i class="fa-solid fa-hand-pointer"></i>
+            Arrastra cada etiqueta hacia la zona del reporte donde corresponda (también puedes hacer clic para seleccionarla y luego hacer clic en la zona). Haz clic en una zona ya etiquetada para quitarle la etiqueta.
+          </div>
 
-        <div class="esquema-reporte" id="esquemaReporteA12"></div>
+          <div class="clasif-pool" id="etiquetasPoolA12"></div>
 
-        <div class="justificacion-box">
-          <label for="justificacionA12"><i class="fa-solid fa-pen"></i> ¿Para qué sirve cada parte que ubicaste? (criterio 4)</label>
-          <textarea id="justificacionA12" placeholder="Explica brevemente la función de al menos dos de las partes del reporte que identificaste..."></textarea>
+          <div class="esquema-reporte" id="esquemaReporteA12"></div>
+
+          <div class="justificacion-box">
+            <label for="justificacionA12"><i class="fa-solid fa-pen"></i> ¿Para qué sirve cada parte que ubicaste? (criterio 4)</label>
+            <textarea id="justificacionA12" placeholder="Explica brevemente la función de al menos dos de las partes del reporte que identificaste..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA12" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
         </div>
-
-        <button type="button" class="btn btn-primary" id="btnFinalizarA12" style="width:auto; padding:12px 28px;" disabled>
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
-        </button>
       </div>
 
       <!-- Vista 3: resultado -->
@@ -445,8 +455,7 @@
           Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
         </div>
         <div id="rubricaResultadoA12"></div>
-        <div class="section-heading" style="font-size:18.5px;" id="tituloDesgloseA12">Detalle de tu esquema</div>
-        <div class="esquema-reporte" id="resultadoDesgloseA12"></div>
+        <div id="resultadoDesgloseA12"></div>
         <button type="button" class="btn btn-primary" id="btnVolverMisActA12" style="width:auto; padding:12px 28px; margin-top:10px;">
           <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
         </button>
