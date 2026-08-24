@@ -551,7 +551,7 @@
     <!-- ---- ACTIVIDAD A.1.4: EJECUTAR Y CAMBIAR DE VISTA (SIMULADOR TIPO ASISTENTE) ---- -->
     <div id="panelActividadA14" class="hidden panel-actividad-interactiva">
       <button type="button" class="back-btn" id="btnBackFromActividadA14"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
-      <div class="section-heading">A.1.4 — Ejecutar un reporte y cambiar de vista</div>
+      <div class="section-heading">A.1.4 — Ejecutar y verificar un reporte filtrado</div>
 
       <!-- Vista 1: enunciado + recursos + instrumento -->
       <div id="vistaInstrumentoA14">
@@ -572,21 +572,76 @@
         </button>
       </div>
 
-      <!-- Vista 2: el asistente interactivo -->
+      <!-- Vista 2: el ejercicio en sí -->
       <div id="vistaEjercicioA14" class="hidden">
         <div class="timer-badge" id="timerA14"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
         <div id="progresoA14"></div>
 
-        <div class="asistente-wrap" id="asistenteA14"></div>
-
-        <div class="justificacion-box hidden" id="justificacionBoxA14">
-          <label for="justificacionA14"><i class="fa-solid fa-pen"></i> ¿Qué diferencia notaste entre las tres vistas del reporte? (criterio 4)</label>
-          <textarea id="justificacionA14" placeholder="Explica brevemente en qué se diferencian diseño, previsualización y ejecución..."></textarea>
+        <div class="section-heading" style="font-size:18.5px;">Sección 1 — Repaso: filtrar y verificar</div>
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Selecciona la opción correcta en cada pregunta desplegable.
         </div>
-
-        <button type="button" class="btn btn-primary hidden" id="btnFinalizarA14" style="width:auto; padding:12px 28px;">
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        <div id="teoriaA14"></div>
+        <button type="button" class="btn btn-add" id="btnContinuarTeoriaA14" style="margin:14px 0 24px;" disabled>
+          <i class="fa-solid fa-arrow-right"></i> Continuar
         </button>
+
+        <div id="seccionConfigA14" class="hidden">
+          <div class="section-heading" style="font-size:18.5px;">Sección 2 — Configura y filtra tu reporte</div>
+          <div class="empty-note" style="margin-top:0;">
+            <i class="fa-solid fa-hand-pointer"></i>
+            Marca las columnas de tu reporte y elige un vendedor para filtrar los resultados. Producto, Cantidad y Precio Unitario son obligatorias.
+          </div>
+          <div id="configCamposA14"></div>
+          <div class="campo-check-item" style="max-width:320px; margin-top:6px;">
+            <label for="filtroVendedorA14" style="font-weight:700; font-size:13.5px;">🔍 Filtrar por vendedor:</label>
+          </div>
+          <select class="teoria-select" id="filtroVendedorA14" style="max-width:320px; margin-top:6px;">
+            <option value="">Cargando vendedores...</option>
+          </select>
+          <div>
+            <button type="button" class="btn btn-add" id="btnConstruirA14" style="margin:14px 0 24px;">
+              <i class="fa-solid fa-hammer"></i> Construir reporte filtrado
+            </button>
+          </div>
+
+          <div id="navegadorVistasA14" class="hidden">
+            <div class="section-heading" style="font-size:18.5px;">Sección 3 — Navega las 3 vistas de tu reporte</div>
+            <div class="empty-note" style="margin-top:0;">
+              <i class="fa-solid fa-hand-pointer"></i>
+              Haz clic en cada pestaña. En la Vista de Ejecución verás los datos reales ya filtrados — fíjate bien, no aparece el total.
+            </div>
+            <div class="vistas-tabs" id="vistasTabsA14"></div>
+            <div id="vistaContenidoA14"></div>
+          </div>
+
+          <div id="seccionVerificacionA14" class="hidden">
+            <div class="section-heading" style="font-size:18.5px;">Sección 4 — Verifica el total</div>
+            <div class="empty-note" style="margin-top:0;">
+              <i class="fa-solid fa-calculator"></i>
+              Suma manualmente (Cantidad × Precio Unitario) de cada fila de tu reporte ejecutado y escribe el total aquí.
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; max-width:420px;">
+              <input type="number" step="0.01" id="totalCalculadoA14" placeholder="Escribe el total en RD$" style="flex:1; padding:11px 14px; border-radius:10px; background:rgba(255,255,255,0.05); border:1px solid var(--dark-border); color:var(--dark-text); font-size:14px;">
+              <button type="button" class="btn-add" id="btnVerificarA14">
+                <i class="fa-solid fa-check"></i> Verificar
+              </button>
+            </div>
+            <div id="feedbackVerificacionA14"></div>
+          </div>
+
+          <div id="seccionFinalA14" class="hidden">
+            <div class="justificacion-box">
+              <label for="justificacionA14"><i class="fa-solid fa-pen"></i> ¿Qué diferencia notaste entre las 3 vistas, y por qué fue útil verificar el total? (criterio 5)</label>
+              <textarea id="justificacionA14" placeholder="Explica brevemente lo que aprendiste al filtrar, ejecutar y verificar tu reporte..."></textarea>
+            </div>
+
+            <button type="button" class="btn btn-primary" id="btnFinalizarA14" style="width:auto; padding:12px 28px;" disabled>
+              <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- Vista 3: resultado -->
