@@ -1231,6 +1231,7 @@
   let datosFiltradosA14 = [];
   let totalRealA14 = 0;
   let verificacionCorrectaA14 = null; // true = correcta al primer intento
+  let calcExpresionA14 = '';
   let intentosVerificacionA14 = 0;
   let puntajeMaxA14 = 0;
   let tiempoEstimadoA14 = 10;
@@ -1425,6 +1426,58 @@
     return CAMPOS_DISPONIBLES_A14.filter(c => camposSeleccionadosA14[c.campo]);
   }
 
+  function renderCalculadoraA14(){
+    return `
+      <div class="calculadora-mini">
+        <div class="calc-titulo"><i class="fa-solid fa-calculator"></i> Calculadora</div>
+        <div class="calc-display" id="calcDisplayA14">${calcExpresionA14 || '0'}</div>
+        <div class="calc-teclado">
+          <button type="button" class="calc-btn" data-calc="7">7</button>
+          <button type="button" class="calc-btn" data-calc="8">8</button>
+          <button type="button" class="calc-btn" data-calc="9">9</button>
+          <button type="button" class="calc-btn calc-op" data-calc="/">÷</button>
+          <button type="button" class="calc-btn" data-calc="4">4</button>
+          <button type="button" class="calc-btn" data-calc="5">5</button>
+          <button type="button" class="calc-btn" data-calc="6">6</button>
+          <button type="button" class="calc-btn calc-op" data-calc="*">×</button>
+          <button type="button" class="calc-btn" data-calc="1">1</button>
+          <button type="button" class="calc-btn" data-calc="2">2</button>
+          <button type="button" class="calc-btn" data-calc="3">3</button>
+          <button type="button" class="calc-btn calc-op" data-calc="-">−</button>
+          <button type="button" class="calc-btn calc-clear" data-calc="C">C</button>
+          <button type="button" class="calc-btn" data-calc="0">0</button>
+          <button type="button" class="calc-btn" data-calc=".">.</button>
+          <button type="button" class="calc-btn calc-op" data-calc="+">+</button>
+          <button type="button" class="calc-btn calc-eq" data-calc="=" style="grid-column:span 4;">=</button>
+        </div>
+        <div style="font-size:10.5px; opacity:.6; margin-top:8px; text-align:center;">Uso interno — no se envía al sistema.</div>
+      </div>`;
+  }
+
+  function wireCalculadoraA14(){
+    document.querySelectorAll('.calc-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.dataset.calc;
+        if(val === 'C'){
+          calcExpresionA14 = '';
+        } else if(val === '='){
+          if(calcExpresionA14.trim() !== '' && /^[0-9+\-*/.() ]+$/.test(calcExpresionA14)){
+            try{
+              const resultado = Function('"use strict"; return (' + calcExpresionA14 + ')')();
+              calcExpresionA14 = Number.isFinite(resultado) ? String(Math.round(resultado * 100) / 100) : 'Error';
+            }catch(err){
+              calcExpresionA14 = 'Error';
+            }
+          }
+        } else {
+          if(calcExpresionA14 === 'Error') calcExpresionA14 = '';
+          calcExpresionA14 += val;
+        }
+        document.getElementById('calcDisplayA14').textContent = calcExpresionA14 || '0';
+      });
+    });
+  }
+
   function pintarContenidoVistaA14(vista){
     const cont = document.getElementById('vistaContenidoA14');
     const info = COLOR_VISTA_A14[vista];
@@ -1447,20 +1500,41 @@
       `).join('');
     }
 
-    cont.innerHTML = `
-      <div class="simulador-pantalla">
-        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};">
-          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
-        </span>
-        <div style="font-weight:800; font-size:15px;">TECNOVENTAS RD, S.R.L. — Reporte de Ventas
-          ${vista !== 'diseno' ? `<span style="font-weight:600; font-size:12.5px; opacity:.7;"> · Filtrado por: ${vendedorFiltroA14}</span>` : ''}
-        </div>
-        <table class="simulador-tabla">
-          <thead><tr>${campos.map(c => `<th>${c.etiqueta}</th>`).join('')}</tr></thead>
-          <tbody>${filasHtml}</tbody>
-        </table>
-        ${vista === 'ejecucion' ? '<div style="margin-top:10px; font-size:12.5px; opacity:.7;"><i class="fa-solid fa-circle-info"></i> El total no se muestra aquí — calcúlalo en la Sección 4.</div>' : ''}
+    const tituloReporte = `
+      <div style="font-weight:800; font-size:15px;">TECNOVENTAS RD, S.R.L. — Reporte de Ventas
+        ${vista !== 'diseno' ? `<span style="font-weight:600; font-size:12.5px; opacity:.7;"> · Filtrado por: ${vendedorFiltroA14}</span>` : ''}
       </div>`;
+
+    const tablaHtml = `
+      <table class="simulador-tabla">
+        <thead><tr>${campos.map(c => `<th>${c.etiqueta}</th>`).join('')}</tr></thead>
+        <tbody>${filasHtml}</tbody>
+      </table>
+      ${vista === 'ejecucion' ? '<div style="margin-top:10px; font-size:12.5px; opacity:.7;"><i class="fa-solid fa-circle-info"></i> El total no se muestra aquí — usa la calculadora y anota el resultado en la Sección 4.</div>' : ''}`;
+
+    if(vista === 'ejecucion'){
+      cont.innerHTML = `
+        <div class="simulador-pantalla">
+          <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};">
+            <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          </span>
+          ${tituloReporte}
+          <div class="simulador-ejecucion-layout">
+            <div class="simulador-tabla-wrap">${tablaHtml}</div>
+            ${renderCalculadoraA14()}
+          </div>
+        </div>`;
+      wireCalculadoraA14();
+    } else {
+      cont.innerHTML = `
+        <div class="simulador-pantalla">
+          <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};">
+            <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          </span>
+          ${tituloReporte}
+          ${tablaHtml}
+        </div>`;
+    }
   }
 
   document.getElementById('btnVerificarA14').addEventListener('click', () => {
