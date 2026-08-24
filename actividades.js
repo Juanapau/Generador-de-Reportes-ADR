@@ -1163,91 +1163,75 @@
   registrarActividadInteractiva('A.1.3', abrirActividadA13);
 
 // ============================================================================
-// A.1.4 — EJECUTAR UN REPORTE Y CAMBIAR DE VISTA (SIMULADOR TIPO ASISTENTE)
 // ============================================================================
-  // A diferencia de las anteriores, aquí el estudiante avanza por pasos de un
-  // asistente simulado, tomando decisiones en cada pantalla (no clasificación).
-  const PASOS_A14 = [
+// A.1.4 — EJECUTAR Y VERIFICAR UN REPORTE FILTRADO (más compleja que A.1.3)
+// ============================================================================
+  // El estudiante repasa el flujo filtrar→ejecutar→verificar con preguntas de
+  // aplicación (no solo definición), configura un reporte con un FILTRO real
+  // por vendedor, navega sus 3 vistas (la Ejecución no muestra el total ya
+  // calculado), y debe VERIFICAR manualmente el total sumando los datos reales.
+  const PREGUNTAS_TEORIA_A14 = [
     {
-      indicador: 'Paso 1 de 3 — Vista de diseño',
-      mockup: `
-        <div class="asistente-toolbar">
-          <span class="asistente-toolbar-btn activo"><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</span>
-          <span class="asistente-toolbar-btn"><i class="fa-solid fa-eye"></i> Vista previa</span>
-          <span class="asistente-toolbar-btn"><i class="fa-solid fa-play"></i> Ejecutar</span>
-        </div>
-        <div style="font-size:13px; opacity:.7; margin-bottom:8px;">Reporte: Ventas Mensuales — TECNOVENTAS RD, S.R.L.</div>
-        <div style="border:1px dashed var(--dark-border); border-radius:8px; padding:14px; font-size:12.5px; opacity:.6;">
-          [ Encabezado ] &nbsp;·&nbsp; [ Columnas: Producto, Cantidad, Precio ] &nbsp;·&nbsp; [ Pie de página ]
-          <br><span style="opacity:.7;">Estructura del reporte lista, sin datos cargados todavía.</span>
-        </div>`,
-      pregunta: 'Ya terminaste de diseñar la estructura del reporte. ¿Qué deberías hacer antes de ejecutarlo con los datos reales de la empresa?',
-      opciones: [
-        { texto: 'Seguir hasta ejecutar el reporte de inmediato.', correcta: false },
-        { texto: 'Cambiar a la vista de previsualización para revisar cómo se verá con datos de muestra.', correcta: true },
-        { texto: 'Cerrar el programa sin guardar los cambios.', correcta: false }
-      ],
-      feedback: 'La vista de previsualización permite revisar el diseño con datos de muestra antes de ejecutar el reporte con información real, evitando errores costosos.'
+      pregunta: 'Antes de ejecutar un reporte filtrado por vendedor, ¿en qué vista defines qué columnas tendrá el reporte?',
+      opciones: ['Vista de Ejecución', 'Vista de Previsualización', 'Vista de Diseño'],
+      correctaIdx: 2
     },
     {
-      indicador: 'Paso 2 de 3 — Vista de previsualización',
-      mockup: `
-        <div class="asistente-toolbar">
-          <span class="asistente-toolbar-btn"><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</span>
-          <span class="asistente-toolbar-btn activo"><i class="fa-solid fa-eye"></i> Vista previa</span>
-          <span class="asistente-toolbar-btn"><i class="fa-solid fa-play"></i> Ejecutar</span>
-        </div>
-        <div style="font-size:13px; opacity:.7; margin-bottom:8px;">Reporte: Ventas Mensuales — TECNOVENTAS RD, S.R.L. (datos de muestra)</div>
-        <div style="border:1px dashed var(--dark-border); border-radius:8px; padding:14px; font-size:12.5px;">
-          <div style="display:flex; gap:14px; font-weight:700; opacity:.6;"><span style="flex:2;">Producto</span><span style="flex:1;">Cant.</span><span style="flex:1;">Precio</span></div>
-          <div style="display:flex; gap:14px; opacity:.5;"><span style="flex:2;">[Producto de ejemplo]</span><span style="flex:1;">XX</span><span style="flex:1;">RD$X,XXX</span></div>
-          <div style="display:flex; gap:14px; opacity:.5;"><span style="flex:2;">[Producto de ejemplo]</span><span style="flex:1;">XX</span><span style="flex:1;">RD$X,XXX</span></div>
-        </div>`,
-      pregunta: 'Estás viendo la vista previa con datos de muestra (no reales). ¿Cuál es tu siguiente paso para obtener el reporte final?',
-      opciones: [
-        { texto: 'Ejecutar el reporte para consultar la base de datos real.', correcta: true },
-        { texto: 'Volver a la vista de diseño y empezar de nuevo.', correcta: false },
-        { texto: 'Guardar la vista previa como el reporte definitivo.', correcta: false }
-      ],
-      feedback: 'Al ejecutar el reporte, el programa consulta la base de datos real y reemplaza los datos de muestra por la información actualizada de la empresa.'
+      pregunta: 'Si aplicas un filtro por vendedor y luego ejecutas el reporte, ¿qué información verás?',
+      opciones: ['Todas las ventas de todos los vendedores', 'Solo las ventas del vendedor que elegiste', 'Ninguna venta'],
+      correctaIdx: 1
     },
     {
-      indicador: 'Paso 3 de 3 — Vista de ejecución',
-      mockup: `
-        <div class="asistente-toolbar">
-          <span class="asistente-toolbar-btn"><i class="fa-solid fa-pen-ruler"></i> Vista de diseño</span>
-          <span class="asistente-toolbar-btn"><i class="fa-solid fa-eye"></i> Vista previa</span>
-          <span class="asistente-toolbar-btn activo"><i class="fa-solid fa-play"></i> Ejecutar</span>
-        </div>
-        <div style="font-size:13px; opacity:.7; margin-bottom:8px;">Reporte: Ventas Mensuales — TECNOVENTAS RD, S.R.L. (datos reales)</div>
-        <div style="border:1px dashed var(--dark-border); border-radius:8px; padding:14px; font-size:12.5px;">
-          <div style="display:flex; gap:14px; font-weight:700; opacity:.85;"><span style="flex:2;">Producto</span><span style="flex:1;">Cant.</span><span style="flex:1;">Precio</span></div>
-          <div style="display:flex; gap:14px;"><span style="flex:2;">Laptop HP 15</span><span style="flex:1;">3</span><span style="flex:1;">RD$28,500.00</span></div>
-          <div style="display:flex; gap:14px;"><span style="flex:2;">Mouse inalámbrico</span><span style="flex:1;">12</span><span style="flex:1;">RD$650.00</span></div>
-        </div>`,
-      pregunta: 'El reporte ya se ejecutó con datos reales. ¿Cuál es la diferencia principal respecto a la vista previa?',
-      opciones: [
-        { texto: 'Los datos ahora provienen de la base de datos real de la empresa, no son de muestra.', correcta: true },
-        { texto: 'La estructura del reporte cambió por completo.', correcta: false },
-        { texto: 'El reporte ya no puede imprimirse ni publicarse.', correcta: false },
-        { texto: 'No hay ninguna diferencia entre ambas vistas.', correcta: false }
-      ],
-      feedback: 'La ejecución consulta la base de datos en tiempo real: el diseño y la estructura son los mismos, pero los datos ya son reales y actualizados.'
+      pregunta: '¿Por qué es importante verificar manualmente el total de un reporte ya ejecutado?',
+      opciones: ['Para practicar sumas en clase', 'Para confirmar que los datos y cálculos del reporte son correctos', 'Porque el sistema nunca calcula bien'],
+      correctaIdx: 1
+    },
+    {
+      pregunta: 'Un gerente te pide el reporte de ventas de un solo vendedor, no de todos. ¿Qué debes hacer antes de ejecutar el reporte?',
+      opciones: ['Ejecutar el reporte completo y luego borrar manualmente las demás filas', 'Aplicar un filtro por vendedor antes de ejecutar el reporte', 'Pedirle al vendedor que envíe sus propios datos'],
+      correctaIdx: 1
+    },
+    {
+      pregunta: '¿En qué vista podrías detectar que elegiste una columna equivocada, antes de ejecutar con datos reales?',
+      opciones: ['Vista de Ejecución', 'Vista de Diseño o Previsualización', 'No se puede detectar antes de ejecutar'],
+      correctaIdx: 1
     }
+  ];
+
+  const CAMPOS_DISPONIBLES_A14 = [
+    { campo:'Producto', etiqueta:'Producto', obligatorio:true, muestra:'[Producto de ejemplo]' },
+    { campo:'Cantidad', etiqueta:'Cantidad', obligatorio:true, muestra:'XX' },
+    { campo:'PrecioUnitario', etiqueta:'Precio Unitario', obligatorio:true, muestra:'RD$X,XXX.XX' },
+    { campo:'Categoria', etiqueta:'Categoría', obligatorio:false, muestra:'[Categoría]' },
+    { campo:'Vendedor', etiqueta:'Vendedor', obligatorio:false, muestra:'[Vendedor]' },
+    { campo:'Fecha', etiqueta:'Fecha', obligatorio:false, muestra:'[Fecha]' }
   ];
 
   const CRITERIOS_BASE_A14 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'identificacion', nombre:'2. Identificación de la secuencia', descripcion:'Reconoce el orden correcto en que se usan las vistas de un reporte.' },
-    { key:'ejecucion', nombre:'3. Ejecución correcta del asistente', descripcion:'Toma la decisión correcta en cada paso del asistente, idealmente al primer intento.' },
-    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con claridad la diferencia entre las tres vistas del reporte.' },
-    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'colaborativo', nombre:'6. Trabajo colaborativo', descripcion:'Colabora de forma organizada con su pareja de trabajo.' }
+    { key:'repaso', nombre:'2. Repaso: filtrar y verificar', descripcion:'Responde correctamente las preguntas de aplicación sobre filtrar y verificar un reporte.' },
+    { key:'filtrado', nombre:'3. Configuración y filtrado', descripcion:'Configura correctamente las columnas y aplica un filtro válido por vendedor.' },
+    { key:'verificacion', nombre:'4. Verificación numérica', descripcion:'Calcula correctamente el total real de su reporte filtrado.' },
+    { key:'justificacion', nombre:'5. Justificación', descripcion:'Explica con claridad lo aprendido sobre filtrar, ejecutar y verificar un reporte.' },
+    { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' }
   ];
 
-  let pasoActualA14 = 0;
-  let respuestasA14 = []; // por paso: true (acertó al primer intento), false (acertó pero no al primer intento)
-  let intentosPasoA14 = [];
+  const COLOR_VISTA_A14 = {
+    diseno: { nombre:'Vista de Diseño', icono:'fa-pen-ruler', bg:'rgba(168,85,247,.15)', color:'#a855f7' },
+    previsualizacion: { nombre:'Vista de Previsualización', icono:'fa-eye', bg:'rgba(232,185,59,.15)', color:'var(--dark-gold-accent)' },
+    ejecucion: { nombre:'Vista de Ejecución', icono:'fa-play', bg:'rgba(34,197,94,.15)', color:'var(--dark-green-accent)' }
+  };
+
+  let respuestasTeoriaA14 = [];
+  let camposSeleccionadosA14 = {};
+  let vendedorFiltroA14 = '';
+  let vistasVisitadasA14 = new Set();
+  let vistaActualA14 = null;
+  let datosRealesA14 = null;
+  let datosFiltradosA14 = [];
+  let totalRealA14 = 0;
+  let verificacionCorrectaA14 = null; // true = correcta al primer intento
+  let intentosVerificacionA14 = 0;
   let puntajeMaxA14 = 0;
   let tiempoEstimadoA14 = 10;
   let inicioTiempoA14 = null;
@@ -1294,15 +1278,29 @@
   });
 
   document.getElementById('btnComenzarA14').addEventListener('click', () => {
-    pasoActualA14 = 0;
-    respuestasA14 = [];
-    intentosPasoA14 = [];
+    respuestasTeoriaA14 = new Array(PREGUNTAS_TEORIA_A14.length).fill(null);
+    camposSeleccionadosA14 = {};
+    CAMPOS_DISPONIBLES_A14.forEach(c => { camposSeleccionadosA14[c.campo] = c.obligatorio; });
+    vendedorFiltroA14 = '';
+    vistasVisitadasA14 = new Set();
+    vistaActualA14 = null;
+    datosRealesA14 = null;
+    datosFiltradosA14 = [];
+    totalRealA14 = 0;
+    verificacionCorrectaA14 = null;
+    intentosVerificacionA14 = 0;
     document.getElementById('justificacionA14').value = '';
-    document.getElementById('justificacionBoxA14').classList.add('hidden');
-    document.getElementById('btnFinalizarA14').classList.add('hidden');
+    document.getElementById('totalCalculadoA14').value = '';
+    document.getElementById('feedbackVerificacionA14').innerHTML = '';
+    document.getElementById('seccionConfigA14').classList.add('hidden');
+    document.getElementById('navegadorVistasA14').classList.add('hidden');
+    document.getElementById('seccionVerificacionA14').classList.add('hidden');
+    document.getElementById('seccionFinalA14').classList.add('hidden');
     document.getElementById('vistaInstrumentoA14').classList.add('hidden');
     document.getElementById('vistaEjercicioA14').classList.remove('hidden');
-    renderPasoA14();
+    pintarTeoriaA14();
+    pintarConfigCamposA14();
+    cargarVendedoresA14();
 
     inicioTiempoA14 = Date.now();
     clearInterval(timerIntervalA14);
@@ -1314,107 +1312,221 @@
     }, 1000);
   });
 
-  function renderPasoA14(){
-    actualizarBarraProgreso('progresoA14', pasoActualA14, PASOS_A14.length + 1); // +1 por el paso final de justificación
+  function pintarTeoriaA14(){
+    const cont = document.getElementById('teoriaA14');
+    cont.innerHTML = PREGUNTAS_TEORIA_A14.map((p, i) => `
+      <div class="teoria-pregunta-bloque">
+        <div class="teoria-pregunta-texto">${i + 1}. ${p.pregunta}</div>
+        <select class="teoria-select ${respuestasTeoriaA14[i] !== null ? 'respondida' : ''}" data-pregunta="${i}">
+          <option value="" ${respuestasTeoriaA14[i] === null ? 'selected' : ''} disabled>Selecciona una opción...</option>
+          ${p.opciones.map((op, j) => `
+            <option value="${j}" ${respuestasTeoriaA14[i] === j ? 'selected' : ''}>${op}</option>
+          `).join('')}
+        </select>
+      </div>
+    `).join('');
 
-    if(pasoActualA14 >= PASOS_A14.length){
-      // Último paso: justificación
-      document.getElementById('asistenteA14').innerHTML = `
-        <div class="asistente-mockup">
-          <div class="asistente-paso-indicador">Paso final</div>
-          <div class="asistente-pregunta"><i class="fa-solid fa-flag-checkered"></i> ¡Completaste el recorrido por las 3 vistas del reporte!</div>
-          <p style="font-size:14px; opacity:.8;">Ahora responde la reflexión final para terminar la actividad.</p>
-        </div>`;
-      document.getElementById('justificacionBoxA14').classList.remove('hidden');
-      document.getElementById('btnFinalizarA14').classList.remove('hidden');
+    cont.querySelectorAll('.teoria-select').forEach(sel => {
+      sel.addEventListener('change', () => {
+        respuestasTeoriaA14[Number(sel.dataset.pregunta)] = Number(sel.value);
+        sel.classList.add('respondida');
+        document.getElementById('btnContinuarTeoriaA14').disabled = respuestasTeoriaA14.some(r => r === null);
+      });
+    });
+  }
+
+  document.getElementById('btnContinuarTeoriaA14').addEventListener('click', () => {
+    document.getElementById('seccionConfigA14').classList.remove('hidden');
+  });
+
+  function pintarConfigCamposA14(){
+    const cont = document.getElementById('configCamposA14');
+    cont.innerHTML = `
+      <div class="campos-checklist">
+        ${CAMPOS_DISPONIBLES_A14.map(c => `
+          <div class="campo-check-item ${c.obligatorio ? 'obligatorio' : ''}">
+            <input type="checkbox" id="campoA14-${c.campo}" ${camposSeleccionadosA14[c.campo] ? 'checked' : ''} ${c.obligatorio ? 'disabled' : ''}>
+            <label for="campoA14-${c.campo}">${c.etiqueta}</label>
+            ${c.obligatorio ? '<span class="campo-obligatorio-tag">Obligatoria</span>' : ''}
+          </div>
+        `).join('')}
+      </div>`;
+
+    cont.querySelectorAll('input[type="checkbox"]:not([disabled])').forEach(input => {
+      input.addEventListener('change', () => {
+        const campo = input.id.replace('campoA14-', '');
+        camposSeleccionadosA14[campo] = input.checked;
+      });
+    });
+  }
+
+  async function cargarVendedoresA14(){
+    const sel = document.getElementById('filtroVendedorA14');
+    const data = await cargarTablaDatos('DB_Ventas');
+    if(!data){
+      sel.innerHTML = '<option value="">Error al cargar vendedores</option>';
+      return;
+    }
+    datosRealesA14 = data;
+    const vendedoresUnicos = [...new Set(data.datos.map(d => d.Vendedor))].filter(Boolean);
+    sel.innerHTML = `<option value="" selected disabled>Selecciona un vendedor...</option>` +
+      vendedoresUnicos.map(v => `<option value="${v}">${v}</option>`).join('');
+
+    sel.addEventListener('change', () => { vendedorFiltroA14 = sel.value; });
+  }
+
+  document.getElementById('btnConstruirA14').addEventListener('click', () => {
+    if(!vendedorFiltroA14){
+      mostrarNotificacion('Selecciona un vendedor para filtrar el reporte.', 'error');
+      return;
+    }
+    if(!datosRealesA14){
+      mostrarNotificacion('Los datos aún se están cargando, espera un momento e intenta de nuevo.', 'error');
       return;
     }
 
-    const paso = PASOS_A14[pasoActualA14];
-    const yaResuelto = respuestasA14[pasoActualA14] !== undefined;
+    datosFiltradosA14 = datosRealesA14.datos.filter(d => d.Vendedor === vendedorFiltroA14);
+    totalRealA14 = datosFiltradosA14.reduce((sum, f) => sum + (Number(f.Cantidad)||0) * (Number(f.PrecioUnitario)||0), 0);
 
-    document.getElementById('asistenteA14').innerHTML = `
-      <div class="asistente-mockup">
-        <div class="asistente-paso-indicador">${paso.indicador}</div>
-        ${paso.mockup}
-        <div class="asistente-pregunta">${paso.pregunta}</div>
-        <div class="asistente-opciones">
-          ${paso.opciones.map((op, i) => `
-            <button type="button" class="asistente-opcion" data-idx="${i}" ${yaResuelto ? 'disabled' : ''}>${op.texto}</button>
-          `).join('')}
+    document.getElementById('navegadorVistasA14').classList.remove('hidden');
+    pintarVistasTabsA14();
+    cambiarVistaA14('diseno');
+  });
+
+  function pintarVistasTabsA14(){
+    const cont = document.getElementById('vistasTabsA14');
+    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
+      const info = COLOR_VISTA_A14[v];
+      const visitada = vistasVisitadasA14.has(v);
+      const activa = vistaActualA14 === v;
+      return `
+        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
+        </button>`;
+    }).join('');
+
+    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => cambiarVistaA14(btn.dataset.vista));
+    });
+  }
+
+  function cambiarVistaA14(vista){
+    vistaActualA14 = vista;
+    vistasVisitadasA14.add(vista);
+    pintarVistasTabsA14();
+    pintarContenidoVistaA14(vista);
+    if(vistasVisitadasA14.size >= 3){
+      document.getElementById('seccionVerificacionA14').classList.remove('hidden');
+    }
+  }
+
+  function camposActivosA14(){
+    return CAMPOS_DISPONIBLES_A14.filter(c => camposSeleccionadosA14[c.campo]);
+  }
+
+  function pintarContenidoVistaA14(vista){
+    const cont = document.getElementById('vistaContenidoA14');
+    const info = COLOR_VISTA_A14[vista];
+    const campos = camposActivosA14();
+
+    let filasHtml = '';
+    if(vista === 'diseno'){
+      filasHtml = `<tr>${campos.map(() => `<td class="simulador-placeholder-cell">—</td>`).join('')}</tr>`;
+    } else if(vista === 'previsualizacion'){
+      filasHtml = [1,2,3].map(() => `<tr>${campos.map(c => `<td class="simulador-placeholder-cell">${c.muestra}</td>`).join('')}</tr>`).join('');
+    } else if(vista === 'ejecucion'){
+      // A diferencia de A.1.3, aquí NO se muestra el total: el estudiante debe calcularlo.
+      filasHtml = datosFiltradosA14.slice(0, 10).map(fila => `
+        <tr>${campos.map(c => {
+          let valor = fila[c.campo];
+          if(c.campo === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
+          if(c.campo === 'Fecha') valor = formatearFechaSimpleA13(valor);
+          return `<td>${valor !== undefined ? valor : ''}</td>`;
+        }).join('')}</tr>
+      `).join('');
+    }
+
+    cont.innerHTML = `
+      <div class="simulador-pantalla">
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+        </span>
+        <div style="font-weight:800; font-size:15px;">TECNOVENTAS RD, S.R.L. — Reporte de Ventas
+          ${vista !== 'diseno' ? `<span style="font-weight:600; font-size:12.5px; opacity:.7;"> · Filtrado por: ${vendedorFiltroA14}</span>` : ''}
         </div>
-        <div id="feedbackA14"></div>
-      </div>
-      ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePasoA14" style="width:auto; padding:11px 24px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
-    `;
-
-    if(yaResuelto){
-      // Volver a marcar visualmente la opción correcta al reabrir el paso ya resuelto
-      const idxCorrecta = paso.opciones.findIndex(o => o.correcta);
-      const btnCorrecta = document.querySelector(`.asistente-opcion[data-idx="${idxCorrecta}"]`);
-      if(btnCorrecta) btnCorrecta.classList.add('correcta-marcada');
-      document.getElementById('feedbackA14').innerHTML = `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ${paso.feedback}</div>`;
-      document.getElementById('btnSiguientePasoA14').addEventListener('click', () => {
-        pasoActualA14++;
-        renderPasoA14();
-      });
-    } else {
-      document.querySelectorAll('.asistente-opcion').forEach(btn => {
-        btn.addEventListener('click', () => manejarOpcionA14(Number(btn.dataset.idx), btn));
-      });
-    }
+        <table class="simulador-tabla">
+          <thead><tr>${campos.map(c => `<th>${c.etiqueta}</th>`).join('')}</tr></thead>
+          <tbody>${filasHtml}</tbody>
+        </table>
+        ${vista === 'ejecucion' ? '<div style="margin-top:10px; font-size:12.5px; opacity:.7;"><i class="fa-solid fa-circle-info"></i> El total no se muestra aquí — calcúlalo en la Sección 4.</div>' : ''}
+      </div>`;
   }
 
-  function manejarOpcionA14(idx, btnEl){
-    const paso = PASOS_A14[pasoActualA14];
-    const opcion = paso.opciones[idx];
+  document.getElementById('btnVerificarA14').addEventListener('click', () => {
+    const valorIngresado = Number(document.getElementById('totalCalculadoA14').value);
+    const feedback = document.getElementById('feedbackVerificacionA14');
 
-    if(intentosPasoA14[pasoActualA14] === undefined) intentosPasoA14[pasoActualA14] = 0;
-    intentosPasoA14[pasoActualA14]++;
-
-    if(opcion.correcta){
-      respuestasA14[pasoActualA14] = intentosPasoA14[pasoActualA14] === 1; // true = acertó al primer intento
-      renderPasoA14();
-    } else {
-      btnEl.classList.add('incorrecta-marcada');
-      sacudir(btnEl);
-      setTimeout(() => btnEl.classList.remove('incorrecta-marcada'), 500);
+    if(!document.getElementById('totalCalculadoA14').value){
+      mostrarNotificacion('Escribe un total antes de verificar.', 'error');
+      return;
     }
-  }
+
+    intentosVerificacionA14++;
+    const diferencia = Math.abs(valorIngresado - totalRealA14);
+    const esCorrecta = diferencia <= 1; // tolerancia de RD$1 por redondeo
+
+    if(esCorrecta){
+      if(verificacionCorrectaA14 === null) verificacionCorrectaA14 = intentosVerificacionA14 === 1;
+      feedback.innerHTML = `<div class="feedback-verificacion correcta"><i class="fa-solid fa-circle-check"></i> ¡Correcto! El total real es RD$${totalRealA14.toLocaleString('es-DO', {minimumFractionDigits:2})}.</div>`;
+      document.getElementById('seccionFinalA14').classList.remove('hidden');
+      document.getElementById('btnFinalizarA14').disabled = false;
+    } else {
+      if(verificacionCorrectaA14 === null) verificacionCorrectaA14 = false;
+      feedback.innerHTML = `<div class="feedback-verificacion incorrecta"><i class="fa-solid fa-circle-exclamation"></i> Ese total no coincide. Revisa tus multiplicaciones y vuelve a sumar.</div>`;
+      sacudir(document.getElementById('totalCalculadoA14'));
+    }
+  });
 
   document.getElementById('btnFinalizarA14').addEventListener('click', async () => {
     clearInterval(timerIntervalA14);
 
-    const aciertosPrimerIntento = respuestasA14.filter(r => r === true).length;
-    const proporcionCorrecta = respuestasA14.length > 0 ? aciertosPrimerIntento / respuestasA14.length : 0;
-
     const minutosTranscurridos = (Date.now() - inicioTiempoA14) / 60000;
     const justificacion = document.getElementById('justificacionA14').value.trim();
+
+    let aciertosTeoria = 0;
+    PREGUNTAS_TEORIA_A14.forEach((p, i) => { if(respuestasTeoriaA14[i] === p.correctaIdx) aciertosTeoria++; });
+    const proporcionTeoria = aciertosTeoria / PREGUNTAS_TEORIA_A14.length;
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A14[0].nombre, descripcion: CRITERIOS_BASE_A14[0].descripcion, nivel: 'logrado' });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A14[1].nombre, descripcion: CRITERIOS_BASE_A14[1].descripcion,
-      nivel: proporcionCorrecta >= 0.65 ? 'logrado' : (proporcionCorrecta > 0 ? 'proceso' : 'no_logrado')
+      nivel: proporcionTeoria >= 0.8 ? 'logrado' : (proporcionTeoria >= 0.4 ? 'proceso' : 'no_logrado')
     });
 
+    // Configuración y filtrado: logrado si eligió un vendedor válido y al menos 1 campo opcional
+    const opcionalesSeleccionados = CAMPOS_DISPONIBLES_A14.filter(c => !c.obligatorio && camposSeleccionadosA14[c.campo]).length;
     criterios.push({
       nombre: CRITERIOS_BASE_A14[2].nombre, descripcion: CRITERIOS_BASE_A14[2].descripcion,
-      nivel: proporcionCorrecta >= 1 ? 'logrado' : (proporcionCorrecta >= 0.5 ? 'proceso' : 'no_logrado')
+      nivel: (vendedorFiltroA14 && opcionalesSeleccionados >= 1) ? 'logrado' : (vendedorFiltroA14 ? 'proceso' : 'no_logrado')
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A14[3].nombre, descripcion: CRITERIOS_BASE_A14[3].descripcion,
-      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
+      nivel: verificacionCorrectaA14 === true ? 'logrado' : (verificacionCorrectaA14 === false ? 'proceso' : 'no_logrado')
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A14[4].nombre, descripcion: CRITERIOS_BASE_A14[4].descripcion,
-      nivel: minutosTranscurridos <= tiempoEstimadoA14 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA14 * 2 ? 'proceso' : 'no_logrado')
+      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
     });
 
-    criterios.push({ nombre: CRITERIOS_BASE_A14[5].nombre, descripcion: CRITERIOS_BASE_A14[5].descripcion, nivel: 'logrado' });
+    criterios.push({
+      nombre: CRITERIOS_BASE_A14[5].nombre, descripcion: CRITERIOS_BASE_A14[5].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA14 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA14 * 2 ? 'proceso' : 'no_logrado')
+    });
 
     const pesoUnidad = puntajeMaxA14 / criterios.length;
     let notaCalculada = 0;
