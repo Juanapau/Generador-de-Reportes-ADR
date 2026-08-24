@@ -743,6 +743,35 @@
   .simulador-placeholder-cell{ color:var(--dark-text-dim); font-style:italic; opacity:.7; }
   .simulador-total-fila td{ font-weight:800; border-top:2px solid var(--dark-border); }
 
+  /* ============ CALCULADORA INTEGRADA (junto a la vista de ejecución) ============ */
+  .simulador-ejecucion-layout{ display:flex; gap:20px; align-items:flex-start; margin-top:6px; }
+  .simulador-tabla-wrap{ flex:1; min-width:0; overflow-x:auto; }
+  .calculadora-mini{
+    width:220px; flex-shrink:0; background: rgba(255,255,255,0.03); border:1px solid var(--dark-border);
+    border-radius:12px; padding:14px;
+  }
+  body.light .calculadora-mini{ background:#f7f9fd; border:1px solid #dde5f6; }
+  .calc-titulo{ font-size:12px; font-weight:800; opacity:.7; margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+  .calc-display{
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius:8px; padding:10px 12px;
+    text-align:right; font-size:19px; font-weight:800; margin-bottom:10px; min-height:26px; overflow-x:auto; white-space:nowrap;
+    font-family:'Courier New', monospace;
+  }
+  body.light .calc-display{ background:#fff; }
+  .calc-teclado{ display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; }
+  .calc-btn{
+    padding:10px 0; border-radius:8px; background: var(--dark-card-hover); border:1px solid var(--dark-border);
+    font-weight:700; font-size:14px; color:var(--dark-text);
+  }
+  body.light .calc-btn{ background:#eef2fb; border:1px solid #d7e0f2; color:var(--light-text); }
+  .calc-btn.calc-op{ background: rgba(79,163,255,.15); color: var(--dark-blue-accent); }
+  .calc-btn.calc-eq{ background: linear-gradient(120deg, var(--dark-green-accent), #16a34a); color:#052e14; }
+  .calc-btn.calc-clear{ background: rgba(239,68,68,.15); color:#ef4444; }
+  @media (max-width:640px){
+    .simulador-ejecucion-layout{ flex-direction:column; }
+    .calculadora-mini{ width:100%; }
+  }
+
   /* ============ VERIFICACIÓN NUMÉRICA (A.1.4 y futuras) ============ */
   .feedback-verificacion{
     margin-top:14px; padding:14px 18px; border-radius:10px; font-size:14px; font-weight:700;
