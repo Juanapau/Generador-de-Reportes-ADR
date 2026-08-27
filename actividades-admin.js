@@ -150,7 +150,7 @@
             <button type="button" class="editor-btn" data-cmd="redo" title="Rehacer"><i class="fa-solid fa-rotate-right"></i></button>
             <button type="button" class="editor-btn" data-cmd="removeFormat" title="Quitar formato"><i class="fa-solid fa-eraser"></i></button>
           </div>
-          <div class="editor-contenido input-enunciado contenido-enriquecido" contenteditable="true">${act.enunciado}</div>
+          <div class="editor-contenido input-enunciado contenido-enriquecido" contenteditable="true">${limpiarColoresCasiBlancos(act.enunciado)}</div>
         </div>
         <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
         <div class="actividad-controls">
@@ -365,7 +365,7 @@
         const puntaje = card.querySelector('.input-puntaje').value;
         const tiempoEstimado = card.querySelector('.input-tiempo').value;
         const habilitada = card.querySelector('.input-habilitada').checked;
-        const enunciado = card.querySelector('.input-enunciado').innerHTML.trim();
+        const enunciado = limpiarColoresCasiBlancos(card.querySelector('.input-enunciado').innerHTML.trim());
         const fechaInicio = card.querySelector('.input-fecha-inicio').value;
         const fechaFin = card.querySelector('.input-fecha-fin').value;
 
