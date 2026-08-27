@@ -79,8 +79,35 @@
             <button type="button" class="editor-btn" data-cmd="bold" title="Negrita"><b>B</b></button>
             <button type="button" class="editor-btn" data-cmd="italic" title="Cursiva"><i>I</i></button>
             <button type="button" class="editor-btn" data-cmd="underline" title="Subrayado"><u>S</u></button>
+            <button type="button" class="editor-btn" data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
+
+            <span class="editor-separador"></span>
+
+            <label class="editor-color-btn" title="Color de texto">
+              <i class="fa-solid fa-font" style="pointer-events:none;"></i>
+              <input type="color" class="editor-color" data-cmd="foreColor" value="#4fa3ff">
+            </label>
+            <label class="editor-color-btn" title="Resaltar texto">
+              <i class="fa-solid fa-highlighter" style="pointer-events:none;"></i>
+              <input type="color" class="editor-color" data-cmd="hiliteColor" value="#fff58a">
+            </label>
+
+            <span class="editor-separador"></span>
+
             <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Viñetas"><i class="fa-solid fa-list-ul"></i></button>
             <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Lista numerada"><i class="fa-solid fa-list-ol"></i></button>
+
+            <span class="editor-separador"></span>
+
+            <button type="button" class="editor-btn" data-cmd="justifyLeft" title="Alinear a la izquierda"><i class="fa-solid fa-align-left"></i></button>
+            <button type="button" class="editor-btn" data-cmd="justifyCenter" title="Centrar"><i class="fa-solid fa-align-center"></i></button>
+            <button type="button" class="editor-btn" data-cmd="justifyRight" title="Alinear a la derecha"><i class="fa-solid fa-align-right"></i></button>
+
+            <span class="editor-separador"></span>
+
+            <button type="button" class="editor-btn editor-btn-link" title="Insertar enlace"><i class="fa-solid fa-link"></i></button>
+            <button type="button" class="editor-btn" data-cmd="undo" title="Deshacer"><i class="fa-solid fa-rotate-left"></i></button>
+            <button type="button" class="editor-btn" data-cmd="redo" title="Rehacer"><i class="fa-solid fa-rotate-right"></i></button>
             <button type="button" class="editor-btn" data-cmd="removeFormat" title="Quitar formato"><i class="fa-solid fa-eraser"></i></button>
           </div>
           <div class="editor-contenido input-enunciado" contenteditable="true">${act.enunciado}</div>
@@ -180,8 +207,19 @@
       const btn = card.querySelector('.btn-save-act');
       const okMsg = card.querySelector('.save-ok-msg');
       const editorContenido = card.querySelector('.editor-contenido');
+      let seleccionGuardadaA = null;
 
-      card.querySelectorAll('.editor-btn').forEach(editorBtn => {
+      function guardarSeleccionEditor(){
+        const sel = window.getSelection();
+        if(sel.rangeCount > 0 && editorContenido.contains(sel.anchorNode)){
+          seleccionGuardadaA = sel.getRangeAt(0);
+        }
+      }
+      editorContenido.addEventListener('mouseup', guardarSeleccionEditor);
+      editorContenido.addEventListener('keyup', guardarSeleccionEditor);
+
+      // Botones normales (negrita, cursiva, alinear, deshacer, etc.)
+      card.querySelectorAll('.editor-btn[data-cmd]').forEach(editorBtn => {
         // mousedown + preventDefault evita que el editor pierda el foco/selección al hacer clic en el botón
         editorBtn.addEventListener('mousedown', (e) => e.preventDefault());
         editorBtn.addEventListener('click', () => {
@@ -189,6 +227,33 @@
           document.execCommand(editorBtn.dataset.cmd, false, null);
         });
       });
+
+      // Selectores de color (texto y resaltado) — restauran la selección antes de aplicar el color
+      card.querySelectorAll('.editor-color').forEach(colorInput => {
+        colorInput.addEventListener('mousedown', guardarSeleccionEditor);
+        colorInput.addEventListener('input', () => {
+          if(seleccionGuardadaA){
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(seleccionGuardadaA);
+          }
+          editorContenido.focus();
+          document.execCommand(colorInput.dataset.cmd, false, colorInput.value);
+        });
+      });
+
+      // Insertar enlace
+      const btnLink = card.querySelector('.editor-btn-link');
+      if(btnLink){
+        btnLink.addEventListener('mousedown', (e) => e.preventDefault());
+        btnLink.addEventListener('click', () => {
+          const url = window.prompt('Escribe la dirección del enlace (URL):', 'https://');
+          if(url){
+            editorContenido.focus();
+            document.execCommand('createLink', false, url);
+          }
+        });
+      }
 
       btn.addEventListener('click', async () => {
         const puntaje = card.querySelector('.input-puntaje').value;
