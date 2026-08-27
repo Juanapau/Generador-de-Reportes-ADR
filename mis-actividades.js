@@ -102,7 +102,7 @@
               ${estadoBadge}
             </div>
           </div>
-          <div class="actividad-enunciado">${act.enunciado}</div>
+          <div class="actividad-enunciado contenido-enriquecido">${act.enunciado}</div>
           <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
           ${fin && !completada && !yaVencio ? `<div class="actividad-vence-aviso"><i class="fa-solid fa-hourglass-half"></i> Disponible hasta ${formatearFechaCorta(fin)}</div>` : ''}
           ${mostrarBoton ? `
