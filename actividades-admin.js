@@ -74,7 +74,17 @@
           </div>
         </div>
         <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
-        <textarea class="input-enunciado textarea-generico">${act.enunciado}</textarea>
+        <div class="editor-wrap">
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" data-cmd="bold" title="Negrita"><b>B</b></button>
+            <button type="button" class="editor-btn" data-cmd="italic" title="Cursiva"><i>I</i></button>
+            <button type="button" class="editor-btn" data-cmd="underline" title="Subrayado"><u>S</u></button>
+            <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Viñetas"><i class="fa-solid fa-list-ul"></i></button>
+            <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Lista numerada"><i class="fa-solid fa-list-ol"></i></button>
+            <button type="button" class="editor-btn" data-cmd="removeFormat" title="Quitar formato"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+          <div class="editor-contenido input-enunciado" contenteditable="true">${act.enunciado}</div>
+        </div>
         <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
         <div class="actividad-controls">
           <div class="puntaje-field">
@@ -169,12 +179,22 @@
       const codigo = card.dataset.codigo;
       const btn = card.querySelector('.btn-save-act');
       const okMsg = card.querySelector('.save-ok-msg');
+      const editorContenido = card.querySelector('.editor-contenido');
+
+      card.querySelectorAll('.editor-btn').forEach(editorBtn => {
+        // mousedown + preventDefault evita que el editor pierda el foco/selección al hacer clic en el botón
+        editorBtn.addEventListener('mousedown', (e) => e.preventDefault());
+        editorBtn.addEventListener('click', () => {
+          editorContenido.focus();
+          document.execCommand(editorBtn.dataset.cmd, false, null);
+        });
+      });
 
       btn.addEventListener('click', async () => {
         const puntaje = card.querySelector('.input-puntaje').value;
         const tiempoEstimado = card.querySelector('.input-tiempo').value;
         const habilitada = card.querySelector('.input-habilitada').checked;
-        const enunciado = card.querySelector('.input-enunciado').value.trim();
+        const enunciado = card.querySelector('.input-enunciado').innerHTML.trim();
         const fechaInicio = card.querySelector('.input-fecha-inicio').value;
         const fechaFin = card.querySelector('.input-fecha-fin').value;
 
