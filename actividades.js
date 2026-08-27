@@ -80,7 +80,7 @@
   async function abrirActividadA11(puntajeMaximo, tiempoEstimado, enunciado){
     puntajeMaxA11 = puntajeMaximo;
     tiempoEstimadoA11 = tiempoEstimado || 10;
-    document.getElementById('enunciadoActivoA11').innerHTML = enunciado || '';
+    document.getElementById('enunciadoActivoA11').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
     document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('panelActividadA11').classList.remove('hidden');
 
@@ -466,7 +466,7 @@
   async function abrirActividadA12(puntajeMaximo, tiempoEstimado, enunciado){
     puntajeMaxA12 = puntajeMaximo;
     tiempoEstimadoA12 = tiempoEstimado || 10;
-    document.getElementById('enunciadoActivoA12').innerHTML = enunciado || '';
+    document.getElementById('enunciadoActivoA12').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
     document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('panelActividadA12').classList.remove('hidden');
 
@@ -860,7 +860,7 @@
   async function abrirActividadA13(puntajeMaximo, tiempoEstimado, enunciado){
     puntajeMaxA13 = puntajeMaximo;
     tiempoEstimadoA13 = tiempoEstimado || 10;
-    document.getElementById('enunciadoActivoA13').innerHTML = enunciado || '';
+    document.getElementById('enunciadoActivoA13').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
     document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('panelActividadA13').classList.remove('hidden');
 
@@ -1241,7 +1241,7 @@
   async function abrirActividadA14(puntajeMaximo, tiempoEstimado, enunciado){
     puntajeMaxA14 = puntajeMaximo;
     tiempoEstimadoA14 = tiempoEstimado || 10;
-    document.getElementById('enunciadoActivoA14').innerHTML = enunciado || '';
+    document.getElementById('enunciadoActivoA14').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
     document.getElementById('panelMisActividades').classList.add('hidden');
     document.getElementById('panelActividadA14').classList.remove('hidden');
 
