@@ -121,6 +121,49 @@
 
   // ---------- Tablas de datos compartidas (reutilizable por cualquier actividad) ----------
   // Devuelve { campos: [...], datos: [...] } o null si falla.
+  // ---------- Limpieza de texto casi invisible en contenido enriquecido ----------
+  // Corrige de raíz (y retroactivamente) el bug de texto blanco "horneado" por el navegador
+  // al usar contenteditable: si un color guardado es casi blanco, se quita para que el texto
+  // vuelva a heredar el color correcto según el tema (claro u oscuro) de quien lo esté viendo.
+  function colorACanalesRgb(colorStr){
+    const d = document.createElement('div');
+    d.style.color = colorStr;
+    document.body.appendChild(d);
+    const computado = getComputedStyle(d).color;
+    document.body.removeChild(d);
+    const match = computado.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+    if(!match) return null;
+    return { r:+match[1], g:+match[2], b:+match[3] };
+  }
+
+  function limpiarColoresCasiBlancos(html){
+    if(!html) return html;
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+
+    temp.querySelectorAll('[style*="color"]').forEach(el => {
+      if(!el.style.color) return;
+      const rgb = colorACanalesRgb(el.style.color);
+      if(rgb){
+        const luminancia = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+        if(luminancia > 235){
+          el.style.removeProperty('color');
+          if(!el.getAttribute('style')) el.removeAttribute('style');
+        }
+      }
+    });
+
+    temp.querySelectorAll('font[color]').forEach(el => {
+      const rgb = colorACanalesRgb(el.getAttribute('color'));
+      if(rgb){
+        const luminancia = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
+        if(luminancia > 235) el.removeAttribute('color');
+      }
+    });
+
+    return temp.innerHTML;
+  }
+
   async function cargarTablaDatos(tabla){
     try{
       const data = await apiGet({ action:'listarTablaDatos', tabla });
