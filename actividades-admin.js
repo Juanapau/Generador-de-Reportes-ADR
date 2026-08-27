@@ -3,6 +3,12 @@
   let raActual = 'RA1';
   const RAS_DISPONIBLES = ['RA1']; // RA2-RA5 se habilitan cuando se construyan sus actividades
 
+  // Paletas del editor de enunciados (colores estándar + los que la docente ha usado en la sesión)
+  const COLORES_ESTANDAR_TEXTO = ['#1a1a1a','#ffffff','#ef4444','#f59e0b','#22c55e','#0ea5e9','#8b5cf6','#ec4899'];
+  const COLORES_ESTANDAR_RESALTADO = ['#fff58a','#a7f3d0','#bfdbfe','#fbcfe8','#fed7aa','#ddd6fe','#fca5a5','#ffffff'];
+  let coloresRecientesTextoA = [];
+  let coloresRecientesResaltadoA = [];
+
   document.getElementById('cardActividadesRA').addEventListener('click', () => {
     document.getElementById('panelDocente').classList.add('hidden');
     document.getElementById('panelActividades').classList.remove('hidden');
@@ -81,16 +87,41 @@
             <button type="button" class="editor-btn" data-cmd="underline" title="Subrayado"><u>S</u></button>
             <button type="button" class="editor-btn" data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
 
+            <select class="editor-fontsize" title="Tamaño de fuente">
+              <option value="">Tamaño</option>
+              <option value="2">Pequeño</option>
+              <option value="3">Normal</option>
+              <option value="5">Grande</option>
+              <option value="7">Muy grande</option>
+            </select>
+
             <span class="editor-separador"></span>
 
-            <label class="editor-color-btn" title="Color de texto">
-              <i class="fa-solid fa-font" style="pointer-events:none;"></i>
-              <input type="color" class="editor-color" data-cmd="foreColor" value="#4fa3ff">
-            </label>
-            <label class="editor-color-btn" title="Resaltar texto">
-              <i class="fa-solid fa-highlighter" style="pointer-events:none;"></i>
-              <input type="color" class="editor-color" data-cmd="hiliteColor" value="#fff58a">
-            </label>
+            <div class="editor-color-seccion" data-tipo="texto">
+              <span class="editor-color-label" title="Color de texto"><i class="fa-solid fa-font"></i></span>
+              <div class="editor-swatches" data-tipo="texto">
+                ${COLORES_ESTANDAR_TEXTO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                ${coloresRecientesTextoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+              </div>
+              <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                <input type="color" class="editor-color-picker" data-tipo="texto" data-cmd="foreColor">
+              </label>
+            </div>
+
+            <span class="editor-separador"></span>
+
+            <div class="editor-color-seccion" data-tipo="resaltado">
+              <span class="editor-color-label" title="Resaltar texto"><i class="fa-solid fa-highlighter"></i></span>
+              <div class="editor-swatches" data-tipo="resaltado">
+                ${COLORES_ESTANDAR_RESALTADO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                ${coloresRecientesResaltadoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+              </div>
+              <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                <input type="color" class="editor-color-picker" data-tipo="resaltado" data-cmd="hiliteColor">
+              </label>
+            </div>
 
             <span class="editor-separador"></span>
 
@@ -110,7 +141,7 @@
             <button type="button" class="editor-btn" data-cmd="redo" title="Rehacer"><i class="fa-solid fa-rotate-right"></i></button>
             <button type="button" class="editor-btn" data-cmd="removeFormat" title="Quitar formato"><i class="fa-solid fa-eraser"></i></button>
           </div>
-          <div class="editor-contenido input-enunciado" contenteditable="true">${act.enunciado}</div>
+          <div class="editor-contenido input-enunciado contenido-enriquecido" contenteditable="true">${act.enunciado}</div>
         </div>
         <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
         <div class="actividad-controls">
@@ -215,41 +246,91 @@
           seleccionGuardadaA = sel.getRangeAt(0);
         }
       }
+      function restaurarSeleccionEditor(){
+        if(seleccionGuardadaA){
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(seleccionGuardadaA);
+        }
+        editorContenido.focus();
+        // "styleWithCSS" en false evita que el navegador "hornee" el color calculado del tema
+        // (claro/oscuro) dentro del texto — así el texto sin color explícito siempre se adapta al tema.
+        document.execCommand('styleWithCSS', false, false);
+      }
       editorContenido.addEventListener('mouseup', guardarSeleccionEditor);
       editorContenido.addEventListener('keyup', guardarSeleccionEditor);
 
-      // Botones normales (negrita, cursiva, alinear, deshacer, etc.)
+      // Botones normales (negrita, cursiva, alinear, deshacer, enlace, etc.)
       card.querySelectorAll('.editor-btn[data-cmd]').forEach(editorBtn => {
         // mousedown + preventDefault evita que el editor pierda el foco/selección al hacer clic en el botón
-        editorBtn.addEventListener('mousedown', (e) => e.preventDefault());
+        editorBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
         editorBtn.addEventListener('click', () => {
-          editorContenido.focus();
+          restaurarSeleccionEditor();
           document.execCommand(editorBtn.dataset.cmd, false, null);
         });
       });
 
-      // Selectores de color (texto y resaltado) — restauran la selección antes de aplicar el color
-      card.querySelectorAll('.editor-color').forEach(colorInput => {
+      // Tamaño de fuente
+      const selectTamano = card.querySelector('.editor-fontsize');
+      if(selectTamano){
+        selectTamano.addEventListener('mousedown', guardarSeleccionEditor);
+        selectTamano.addEventListener('change', () => {
+          if(!selectTamano.value) return;
+          restaurarSeleccionEditor();
+          document.execCommand('fontSize', false, selectTamano.value);
+          selectTamano.value = '';
+        });
+      }
+
+      // Aplica un color (de una paleta o personalizado) al texto u al resaltado
+      function aplicarColorA(cmd, color){
+        restaurarSeleccionEditor();
+        document.execCommand(cmd, false, color);
+      }
+
+      // Swatches de colores estándar y recientes (clic directo, sin abrir el selector del sistema)
+      card.querySelectorAll('.swatch-btn').forEach(swatch => {
+        swatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+        swatch.addEventListener('click', () => {
+          const tipo = swatch.closest('.editor-swatches').dataset.tipo;
+          aplicarColorA(tipo === 'texto' ? 'foreColor' : 'hiliteColor', swatch.dataset.color);
+        });
+      });
+
+      // Selector de color personalizado — agrega el color elegido a "recientes" para reutilizarlo después
+      card.querySelectorAll('.editor-color-picker').forEach(colorInput => {
         colorInput.addEventListener('mousedown', guardarSeleccionEditor);
         colorInput.addEventListener('input', () => {
-          if(seleccionGuardadaA){
-            const sel = window.getSelection();
-            sel.removeAllRanges();
-            sel.addRange(seleccionGuardadaA);
+          aplicarColorA(colorInput.dataset.cmd, colorInput.value);
+
+          const tipo = colorInput.dataset.tipo;
+          const listaRecientes = tipo === 'texto' ? coloresRecientesTextoA : coloresRecientesResaltadoA;
+          if(!listaRecientes.includes(colorInput.value)){
+            listaRecientes.unshift(colorInput.value);
+            if(listaRecientes.length > 6) listaRecientes.pop();
+
+            const contSwatches = card.querySelector(`.editor-swatches[data-tipo="${tipo}"]`);
+            const nuevoSwatch = document.createElement('button');
+            nuevoSwatch.type = 'button';
+            nuevoSwatch.className = 'swatch-btn swatch-reciente';
+            nuevoSwatch.dataset.color = colorInput.value;
+            nuevoSwatch.style.background = colorInput.value;
+            nuevoSwatch.title = colorInput.value;
+            nuevoSwatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+            nuevoSwatch.addEventListener('click', () => aplicarColorA(colorInput.dataset.cmd, nuevoSwatch.dataset.color));
+            contSwatches.appendChild(nuevoSwatch);
           }
-          editorContenido.focus();
-          document.execCommand(colorInput.dataset.cmd, false, colorInput.value);
         });
       });
 
       // Insertar enlace
       const btnLink = card.querySelector('.editor-btn-link');
       if(btnLink){
-        btnLink.addEventListener('mousedown', (e) => e.preventDefault());
+        btnLink.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
         btnLink.addEventListener('click', () => {
           const url = window.prompt('Escribe la dirección del enlace (URL):', 'https://');
           if(url){
-            editorContenido.focus();
+            restaurarSeleccionEditor();
             document.execCommand('createLink', false, url);
           }
         });
