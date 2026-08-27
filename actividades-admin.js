@@ -9,6 +9,13 @@
   let coloresRecientesTextoA = [];
   let coloresRecientesResaltadoA = [];
 
+  // Cierra cualquier menú de color abierto al hacer clic fuera de él (se registra una sola vez)
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.editor-color-group')){
+      document.querySelectorAll('.editor-color-popover').forEach(p => p.classList.add('hidden'));
+    }
+  });
+
   document.getElementById('cardActividadesRA').addEventListener('click', () => {
     document.getElementById('panelDocente').classList.add('hidden');
     document.getElementById('panelActividades').classList.remove('hidden');
@@ -97,30 +104,32 @@
 
             <span class="editor-separador"></span>
 
-            <div class="editor-color-seccion" data-tipo="texto">
-              <span class="editor-color-label" title="Color de texto"><i class="fa-solid fa-font"></i></span>
-              <div class="editor-swatches" data-tipo="texto">
-                ${COLORES_ESTANDAR_TEXTO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
-                ${coloresRecientesTextoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+            <div class="editor-color-group" data-tipo="texto">
+              <button type="button" class="editor-btn editor-color-toggle" title="Color de texto">A</button>
+              <div class="editor-color-popover hidden">
+                <div class="editor-swatches" data-tipo="texto">
+                  ${COLORES_ESTANDAR_TEXTO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                  ${coloresRecientesTextoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                </div>
+                <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                  <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                  <input type="color" class="editor-color-picker" data-tipo="texto" data-cmd="foreColor">
+                </label>
               </div>
-              <label class="editor-color-custom-btn" title="Elegir color personalizado">
-                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
-                <input type="color" class="editor-color-picker" data-tipo="texto" data-cmd="foreColor">
-              </label>
             </div>
 
-            <span class="editor-separador"></span>
-
-            <div class="editor-color-seccion" data-tipo="resaltado">
-              <span class="editor-color-label" title="Resaltar texto"><i class="fa-solid fa-highlighter"></i></span>
-              <div class="editor-swatches" data-tipo="resaltado">
-                ${COLORES_ESTANDAR_RESALTADO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
-                ${coloresRecientesResaltadoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+            <div class="editor-color-group" data-tipo="resaltado">
+              <button type="button" class="editor-btn editor-color-toggle" title="Resaltar texto"><i class="fa-solid fa-highlighter"></i></button>
+              <div class="editor-color-popover hidden">
+                <div class="editor-swatches" data-tipo="resaltado">
+                  ${COLORES_ESTANDAR_RESALTADO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                  ${coloresRecientesResaltadoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                </div>
+                <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                  <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                  <input type="color" class="editor-color-picker" data-tipo="resaltado" data-cmd="hiliteColor">
+                </label>
               </div>
-              <label class="editor-color-custom-btn" title="Elegir color personalizado">
-                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
-                <input type="color" class="editor-color-picker" data-tipo="resaltado" data-cmd="hiliteColor">
-              </label>
             </div>
 
             <span class="editor-separador"></span>
@@ -288,12 +297,25 @@
         document.execCommand(cmd, false, color);
       }
 
+      // Abrir/cerrar el menú desplegable de colores al hacer clic en "A" o el resaltador
+      card.querySelectorAll('.editor-color-toggle').forEach(toggleBtn => {
+        toggleBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+        toggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const popover = toggleBtn.nextElementSibling;
+          const estabaAbierto = !popover.classList.contains('hidden');
+          document.querySelectorAll('.editor-color-popover').forEach(p => p.classList.add('hidden'));
+          if(!estabaAbierto) popover.classList.remove('hidden');
+        });
+      });
+
       // Swatches de colores estándar y recientes (clic directo, sin abrir el selector del sistema)
       card.querySelectorAll('.swatch-btn').forEach(swatch => {
         swatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
         swatch.addEventListener('click', () => {
           const tipo = swatch.closest('.editor-swatches').dataset.tipo;
           aplicarColorA(tipo === 'texto' ? 'foreColor' : 'hiliteColor', swatch.dataset.color);
+          swatch.closest('.editor-color-popover').classList.add('hidden');
         });
       });
 
@@ -317,7 +339,10 @@
             nuevoSwatch.style.background = colorInput.value;
             nuevoSwatch.title = colorInput.value;
             nuevoSwatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
-            nuevoSwatch.addEventListener('click', () => aplicarColorA(colorInput.dataset.cmd, nuevoSwatch.dataset.color));
+            nuevoSwatch.addEventListener('click', () => {
+              aplicarColorA(colorInput.dataset.cmd, nuevoSwatch.dataset.color);
+              nuevoSwatch.closest('.editor-color-popover').classList.add('hidden');
+            });
             contSwatches.appendChild(nuevoSwatch);
           }
         });
