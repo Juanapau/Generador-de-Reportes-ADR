@@ -91,7 +91,7 @@
       const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
       const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.1') : null;
       if(previa){
-        ultimoResultadoA11 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
+        ultimoResultadoA11 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('vistaInstrumentoA11').classList.add('hidden');
         document.getElementById('vistaEjercicioA11').classList.add('hidden');
         document.getElementById('vistaResultadoA11').classList.remove('hidden');
@@ -353,6 +353,28 @@
       </div>
     `;
 
+    const detalleA11 = [
+      {
+        titulo: 'Sección 1 — Conceptos clave',
+        items: preguntasBarajadasA11.map((p, i) => ({
+          pregunta: p.pregunta,
+          tuRespuesta: p.opciones[respuestasQuizA11[i]],
+          correcta: respuestasQuizA11[i] === p.correctaIdx,
+          respuestaCorrecta: p.opciones[p.correctaIdx]
+        }))
+      },
+      {
+        titulo: 'Sección 2 — Clasificación de reportes',
+        items: ITEMS_A11.map(it => ({
+          pregunta: it.texto,
+          tuRespuesta: asignacionesA11[it.id] === 'interno' ? 'Interno' : (asignacionesA11[it.id] === 'externo' ? 'Externo' : 'Sin responder'),
+          correcta: asignacionesA11[it.id] === it.tipo,
+          respuestaCorrecta: it.tipo === 'interno' ? 'Interno' : 'Externo'
+        }))
+      }
+    ];
+    ultimoResultadoA11.detalle = detalleA11;
+
     try{
       await apiPost({
         action:'guardarCalificacion',
@@ -362,7 +384,8 @@
         ec:'EC6.1.1',
         nota: notaCalculada,
         puntajeMaximo: puntajeMaxA11,
-        criterios: criterios
+        criterios: criterios,
+        detalle: detalleA11
       });
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
@@ -371,7 +394,7 @@
 
   document.getElementById('btnDescargarPdfA11').addEventListener('click', () => {
     if(!ultimoResultadoA11) return;
-    generarPdfResultado('A.1.1', ultimoResultadoA11.criterios, ultimoResultadoA11.nota, ultimoResultadoA11.puntajeMaximo, 'EC6.1.1', 'RA1');
+    generarPdfResultado('A.1.1', ultimoResultadoA11.criterios, ultimoResultadoA11.nota, ultimoResultadoA11.puntajeMaximo, 'EC6.1.1', 'RA1', ultimoResultadoA11.detalle);
   });
 
   document.getElementById('btnVolverMisActA11').addEventListener('click', () => {
@@ -488,7 +511,7 @@
         document.getElementById('vistaResultadoA12').classList.remove('hidden');
         document.getElementById('resultadoDesgloseA12').innerHTML = '';
         renderListaCotejo('rubricaResultadoA12', previa.criterios, previa.puntajeMaximo, previa.nota);
-        ultimoResultadoA12 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
+        ultimoResultadoA12 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA12').classList.remove('hidden');
         return;
       }
@@ -780,6 +803,28 @@
       <div class="esquema-reporte">${desgloseEtiquetadoHtml}</div>
     `;
 
+    const detalleA12 = [
+      {
+        titulo: 'Sección 1 — Camino del aprendizaje',
+        items: PERSONAJES_A12.map(p => ({
+          pregunta: `${p.nombre} preguntó: ${p.pregunta}`,
+          tuRespuesta: p.opciones[p.correctaIdx],
+          correcta: true,
+          respuestaCorrecta: p.opciones[p.correctaIdx]
+        }))
+      },
+      {
+        titulo: 'Sección 2 — Etiquetado del reporte',
+        items: ZONAS_A12_BASE.map(z => ({
+          pregunta: z.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+          tuRespuesta: asignacionesA12[z.id] || 'Sin responder',
+          correcta: asignacionesA12[z.id] === z.correcta,
+          respuestaCorrecta: z.correcta
+        }))
+      }
+    ];
+    ultimoResultadoA12.detalle = detalleA12;
+
     try{
       await apiPost({
         action:'guardarCalificacion',
@@ -789,7 +834,8 @@
         ec:'EC6.1.1',
         nota: notaCalculada,
         puntajeMaximo: puntajeMaxA12,
-        criterios: criterios
+        criterios: criterios,
+        detalle: detalleA12
       });
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
@@ -798,7 +844,7 @@
 
   document.getElementById('btnDescargarPdfA12').addEventListener('click', () => {
     if(!ultimoResultadoA12) return;
-    generarPdfResultado('A.1.2', ultimoResultadoA12.criterios, ultimoResultadoA12.nota, ultimoResultadoA12.puntajeMaximo, 'EC6.1.1', 'RA1');
+    generarPdfResultado('A.1.2', ultimoResultadoA12.criterios, ultimoResultadoA12.nota, ultimoResultadoA12.puntajeMaximo, 'EC6.1.1', 'RA1', ultimoResultadoA12.detalle);
   });
 
   document.getElementById('btnVolverMisActA12').addEventListener('click', () => {
@@ -889,7 +935,7 @@
         document.getElementById('vistaEjercicioA13').classList.add('hidden');
         document.getElementById('vistaResultadoA13').classList.remove('hidden');
         renderRubricaDescriptiva('rubricaResultadoA13', previa.criterios, previa.puntajeMaximo, previa.nota);
-        ultimoResultadoA13 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
+        ultimoResultadoA13 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA13').classList.remove('hidden');
         return;
       }
@@ -1157,6 +1203,27 @@
     mostrarLogro(proporcionFinalA13 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA13 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA13 >= 0.8) dispararConfeti();
 
+    const detalleA13 = [
+      {
+        titulo: 'Sección 1 — Repaso del recurso',
+        items: PREGUNTAS_TEORIA_A13.map((p, i) => ({
+          pregunta: p.pregunta,
+          tuRespuesta: p.opciones[respuestasTeoriaA13[i]],
+          correcta: respuestasTeoriaA13[i] === p.correctaIdx,
+          respuestaCorrecta: p.opciones[p.correctaIdx]
+        }))
+      },
+      {
+        titulo: 'Sección 2 — Configuración del reporte',
+        items: [{
+          pregunta: 'Columnas incluidas en el reporte construido',
+          tuRespuesta: camposActivosA13().map(c => c.etiqueta).join(', '),
+          correcta: true
+        }]
+      }
+    ];
+    ultimoResultadoA13.detalle = detalleA13;
+
     try{
       await apiPost({
         action:'guardarCalificacion',
@@ -1166,7 +1233,8 @@
         ec:'EC6.1.2',
         nota: notaCalculada,
         puntajeMaximo: puntajeMaxA13,
-        criterios: criterios
+        criterios: criterios,
+        detalle: detalleA13
       });
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
@@ -1175,7 +1243,7 @@
 
   document.getElementById('btnDescargarPdfA13').addEventListener('click', () => {
     if(!ultimoResultadoA13) return;
-    generarPdfResultado('A.1.3', ultimoResultadoA13.criterios, ultimoResultadoA13.nota, ultimoResultadoA13.puntajeMaximo, 'EC6.1.2', 'RA1');
+    generarPdfResultado('A.1.3', ultimoResultadoA13.criterios, ultimoResultadoA13.nota, ultimoResultadoA13.puntajeMaximo, 'EC6.1.2', 'RA1', ultimoResultadoA13.detalle);
   });
 
   document.getElementById('btnVolverMisActA13').addEventListener('click', () => {
@@ -1278,7 +1346,7 @@
         document.getElementById('vistaEjercicioA14').classList.add('hidden');
         document.getElementById('vistaResultadoA14').classList.remove('hidden');
         renderRubrica('rubricaResultadoA14', previa.criterios, previa.puntajeMaximo, previa.nota);
-        ultimoResultadoA14 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
+        ultimoResultadoA14 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA14').classList.remove('hidden');
         return;
       }
@@ -1646,6 +1714,37 @@
     mostrarLogro(proporcionFinalA14 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA14 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA14 >= 0.8) dispararConfeti();
 
+    const valorIngresadoFinalA14 = document.getElementById('totalCalculadoA14').value;
+    const detalleA14 = [
+      {
+        titulo: 'Sección 1 — Repaso: filtrar y verificar',
+        items: PREGUNTAS_TEORIA_A14.map((p, i) => ({
+          pregunta: p.pregunta,
+          tuRespuesta: p.opciones[respuestasTeoriaA14[i]],
+          correcta: respuestasTeoriaA14[i] === p.correctaIdx,
+          respuestaCorrecta: p.opciones[p.correctaIdx]
+        }))
+      },
+      {
+        titulo: 'Sección 2 — Configuración y filtrado',
+        items: [{
+          pregunta: 'Filtro y columnas usadas en el reporte',
+          tuRespuesta: `Vendedor: ${vendedorFiltroA14} · Columnas: ${camposActivosA14().map(c => c.etiqueta).join(', ')}`,
+          correcta: true
+        }]
+      },
+      {
+        titulo: 'Sección 3 — Verificación numérica',
+        items: [{
+          pregunta: '¿Cuál es el total general de las ventas de tu reporte filtrado?',
+          tuRespuesta: `RD$${Number(valorIngresadoFinalA14 || 0).toLocaleString('es-DO', {minimumFractionDigits:2})}`,
+          correcta: verificacionCorrectaA14 === true,
+          respuestaCorrecta: `RD$${totalRealA14.toLocaleString('es-DO', {minimumFractionDigits:2})}`
+        }]
+      }
+    ];
+    ultimoResultadoA14.detalle = detalleA14;
+
     try{
       await apiPost({
         action:'guardarCalificacion',
@@ -1655,7 +1754,8 @@
         ec:'EC6.1.2',
         nota: notaCalculada,
         puntajeMaximo: puntajeMaxA14,
-        criterios: criterios
+        criterios: criterios,
+        detalle: detalleA14
       });
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
@@ -1664,7 +1764,7 @@
 
   document.getElementById('btnDescargarPdfA14').addEventListener('click', () => {
     if(!ultimoResultadoA14) return;
-    generarPdfResultado('A.1.4', ultimoResultadoA14.criterios, ultimoResultadoA14.nota, ultimoResultadoA14.puntajeMaximo, 'EC6.1.2', 'RA1');
+    generarPdfResultado('A.1.4', ultimoResultadoA14.criterios, ultimoResultadoA14.nota, ultimoResultadoA14.puntajeMaximo, 'EC6.1.2', 'RA1', ultimoResultadoA14.detalle);
   });
 
   document.getElementById('btnVolverMisActA14').addEventListener('click', () => {
@@ -1726,7 +1826,7 @@
         document.getElementById('vistaEjercicioA15').classList.add('hidden');
         document.getElementById('vistaResultadoA15').classList.remove('hidden');
         renderListaCotejo('rubricaResultadoA15', previa.criterios, previa.puntajeMaximo, previa.nota);
-        ultimoResultadoA15 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
+        ultimoResultadoA15 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA15').classList.remove('hidden');
         return;
       }
@@ -1901,6 +2001,25 @@
     mostrarLogro(proporcionFinalA15 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA15 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA15 >= 0.8) dispararConfeti();
 
+    const detalleA15 = [
+      {
+        titulo: `Sección 1 — Parejas encontradas (en ${intentosA15} intentos)`,
+        items: PARES_A15_BASE.map(p => ({
+          pregunta: p.programa,
+          tuRespuesta: p.caracteristica,
+          correcta: true
+        }))
+      },
+      {
+        titulo: 'Sección 2 — Reflexión',
+        items: [
+          { pregunta: 'Justificación de las coincidencias elegidas', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 },
+          { pregunta: 'Recomendación para una pequeña empresa dominicana', tuRespuesta: aplicacion || 'Sin responder', correcta: aplicacion.length >= 20 }
+        ]
+      }
+    ];
+    ultimoResultadoA15.detalle = detalleA15;
+
     try{
       await apiPost({
         action:'guardarCalificacion',
@@ -1910,7 +2029,8 @@
         ec:'EC6.1.3',
         nota: notaCalculada,
         puntajeMaximo: puntajeMaxA15,
-        criterios: criterios
+        criterios: criterios,
+        detalle: detalleA15
       });
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
@@ -1919,7 +2039,7 @@
 
   document.getElementById('btnDescargarPdfA15').addEventListener('click', () => {
     if(!ultimoResultadoA15) return;
-    generarPdfResultado('A.1.5', ultimoResultadoA15.criterios, ultimoResultadoA15.nota, ultimoResultadoA15.puntajeMaximo, 'EC6.1.3', 'RA1');
+    generarPdfResultado('A.1.5', ultimoResultadoA15.criterios, ultimoResultadoA15.nota, ultimoResultadoA15.puntajeMaximo, 'EC6.1.3', 'RA1', ultimoResultadoA15.detalle);
   });
 
   document.getElementById('btnVolverMisActA15').addEventListener('click', () => {
