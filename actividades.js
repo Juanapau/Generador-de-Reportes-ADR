@@ -70,6 +70,7 @@
   let preguntasBarajadasA11 = [];
   let respuestasQuizA11 = [];
   let ITEMS_A11 = [];
+  let ultimoResultadoA11 = null;
   let asignacionesA11 = {};
   let seleccionadoA11 = null;
   let puntajeMaxA11 = 0;
@@ -90,6 +91,7 @@
       const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
       const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.1') : null;
       if(previa){
+        ultimoResultadoA11 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
         document.getElementById('vistaInstrumentoA11').classList.add('hidden');
         document.getElementById('vistaEjercicioA11').classList.add('hidden');
         document.getElementById('vistaResultadoA11').classList.remove('hidden');
@@ -310,6 +312,7 @@
     document.getElementById('avisoYaCompletadaA11').classList.add('hidden');
     document.getElementById('tituloDesgloseA11').classList.remove('hidden');
     renderRubrica('rubricaResultadoA11', criterios, puntajeMaxA11, notaCalculada);
+    ultimoResultadoA11 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA11 };
 
     const proporcionFinalA11 = puntajeMaxA11 > 0 ? notaCalculada / puntajeMaxA11 : 0;
     mostrarLogro(proporcionFinalA11 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA11 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
@@ -364,6 +367,11 @@
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
     }
+  });
+
+  document.getElementById('btnDescargarPdfA11').addEventListener('click', () => {
+    if(!ultimoResultadoA11) return;
+    generarPdfResultado('A.1.1', ultimoResultadoA11.criterios, ultimoResultadoA11.nota, ultimoResultadoA11.puntajeMaximo, 'EC6.1.1', 'RA1');
   });
 
   document.getElementById('btnVolverMisActA11').addEventListener('click', () => {
@@ -456,6 +464,7 @@
   let respuestasCaminoA12 = [];
   let intentosCaminoA12 = [];
   let asignacionesA12 = {};
+  let ultimoResultadoA12 = null;
   let etiquetaSeleccionadaA12 = null;
   let etiquetasBarajadasA12 = [];
   let puntajeMaxA12 = 0;
@@ -479,6 +488,7 @@
         document.getElementById('vistaResultadoA12').classList.remove('hidden');
         document.getElementById('resultadoDesgloseA12').innerHTML = '';
         renderListaCotejo('rubricaResultadoA12', previa.criterios, previa.puntajeMaximo, previa.nota);
+        ultimoResultadoA12 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
         document.getElementById('avisoYaCompletadaA12').classList.remove('hidden');
         return;
       }
@@ -729,6 +739,7 @@
     document.getElementById('vistaResultadoA12').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA12').classList.add('hidden');
     renderListaCotejo('rubricaResultadoA12', criterios, puntajeMaxA12, notaCalculada);
+    ultimoResultadoA12 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA12 };
 
     const proporcionFinalA12 = puntajeMaxA12 > 0 ? notaCalculada / puntajeMaxA12 : 0;
     mostrarLogro(proporcionFinalA12 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA12 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
@@ -783,6 +794,11 @@
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
     }
+  });
+
+  document.getElementById('btnDescargarPdfA12').addEventListener('click', () => {
+    if(!ultimoResultadoA12) return;
+    generarPdfResultado('A.1.2', ultimoResultadoA12.criterios, ultimoResultadoA12.nota, ultimoResultadoA12.puntajeMaximo, 'EC6.1.1', 'RA1');
   });
 
   document.getElementById('btnVolverMisActA12').addEventListener('click', () => {
@@ -850,6 +866,7 @@
   let respuestasTeoriaA13 = [];
   let camposSeleccionadosA13 = {};
   let vistasVisitadasA13 = new Set();
+  let ultimoResultadoA13 = null;
   let vistaActualA13 = null;
   let datosRealesA13 = null;
   let puntajeMaxA13 = 0;
@@ -872,6 +889,7 @@
         document.getElementById('vistaEjercicioA13').classList.add('hidden');
         document.getElementById('vistaResultadoA13').classList.remove('hidden');
         renderRubricaDescriptiva('rubricaResultadoA13', previa.criterios, previa.puntajeMaximo, previa.nota);
+        ultimoResultadoA13 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
         document.getElementById('avisoYaCompletadaA13').classList.remove('hidden');
         return;
       }
@@ -1133,6 +1151,7 @@
     document.getElementById('vistaResultadoA13').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA13').classList.add('hidden');
     renderRubricaDescriptiva('rubricaResultadoA13', criterios, puntajeMaxA13, notaCalculada);
+    ultimoResultadoA13 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA13 };
 
     const proporcionFinalA13 = puntajeMaxA13 > 0 ? notaCalculada / puntajeMaxA13 : 0;
     mostrarLogro(proporcionFinalA13 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA13 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
@@ -1152,6 +1171,11 @@
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
     }
+  });
+
+  document.getElementById('btnDescargarPdfA13').addEventListener('click', () => {
+    if(!ultimoResultadoA13) return;
+    generarPdfResultado('A.1.3', ultimoResultadoA13.criterios, ultimoResultadoA13.nota, ultimoResultadoA13.puntajeMaximo, 'EC6.1.2', 'RA1');
   });
 
   document.getElementById('btnVolverMisActA13').addEventListener('click', () => {
@@ -1231,6 +1255,7 @@
   let datosFiltradosA14 = [];
   let totalRealA14 = 0;
   let verificacionCorrectaA14 = null; // true = correcta al primer intento
+  let ultimoResultadoA14 = null;
   let calcExpresionA14 = '';
   let intentosVerificacionA14 = 0;
   let puntajeMaxA14 = 0;
@@ -1253,6 +1278,7 @@
         document.getElementById('vistaEjercicioA14').classList.add('hidden');
         document.getElementById('vistaResultadoA14').classList.remove('hidden');
         renderRubrica('rubricaResultadoA14', previa.criterios, previa.puntajeMaximo, previa.nota);
+        ultimoResultadoA14 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
         document.getElementById('avisoYaCompletadaA14').classList.remove('hidden');
         return;
       }
@@ -1614,6 +1640,7 @@
     document.getElementById('vistaResultadoA14').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA14').classList.add('hidden');
     renderRubrica('rubricaResultadoA14', criterios, puntajeMaxA14, notaCalculada);
+    ultimoResultadoA14 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA14 };
 
     const proporcionFinalA14 = puntajeMaxA14 > 0 ? notaCalculada / puntajeMaxA14 : 0;
     mostrarLogro(proporcionFinalA14 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA14 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
@@ -1633,6 +1660,11 @@
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
     }
+  });
+
+  document.getElementById('btnDescargarPdfA14').addEventListener('click', () => {
+    if(!ultimoResultadoA14) return;
+    generarPdfResultado('A.1.4', ultimoResultadoA14.criterios, ultimoResultadoA14.nota, ultimoResultadoA14.puntajeMaximo, 'EC6.1.2', 'RA1');
   });
 
   document.getElementById('btnVolverMisActA14').addEventListener('click', () => {
@@ -1669,6 +1701,7 @@
   ];
 
   let cartasA15 = [];
+  let ultimoResultadoA15 = null;
   let cartaSeleccionadaA15 = null;
   let paresEncontradosA15 = 0;
   let intentosA15 = 0;
@@ -1693,6 +1726,7 @@
         document.getElementById('vistaEjercicioA15').classList.add('hidden');
         document.getElementById('vistaResultadoA15').classList.remove('hidden');
         renderListaCotejo('rubricaResultadoA15', previa.criterios, previa.puntajeMaximo, previa.nota);
+        ultimoResultadoA15 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo };
         document.getElementById('avisoYaCompletadaA15').classList.remove('hidden');
         return;
       }
@@ -1861,6 +1895,7 @@
     document.getElementById('vistaResultadoA15').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA15').classList.add('hidden');
     renderListaCotejo('rubricaResultadoA15', criterios, puntajeMaxA15, notaCalculada);
+    ultimoResultadoA15 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA15 };
 
     const proporcionFinalA15 = puntajeMaxA15 > 0 ? notaCalculada / puntajeMaxA15 : 0;
     mostrarLogro(proporcionFinalA15 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA15 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
@@ -1880,6 +1915,11 @@
     }catch(err){
       console.error('No se pudo guardar la calificación', err);
     }
+  });
+
+  document.getElementById('btnDescargarPdfA15').addEventListener('click', () => {
+    if(!ultimoResultadoA15) return;
+    generarPdfResultado('A.1.5', ultimoResultadoA15.criterios, ultimoResultadoA15.nota, ultimoResultadoA15.puntajeMaximo, 'EC6.1.3', 'RA1');
   });
 
   document.getElementById('btnVolverMisActA15').addEventListener('click', () => {
