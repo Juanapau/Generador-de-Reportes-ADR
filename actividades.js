@@ -1642,3 +1642,239 @@
   });
 
   registrarActividadInteractiva('A.1.4', abrirActividadA14);
+
+// ============================================================================
+// A.1.5 — ROMPECABEZAS DE PROGRAMAS GENERADORES (emparejar, estilo memoria)
+// ============================================================================
+  // Contenido anclado a lo investigado en el WebQuest en pares (4 programas
+  // generadores reales). El estudiante empareja cada programa con la
+  // característica que le corresponde, en un juego de memoria de 8 tarjetas.
+  const PARES_A15_BASE = [
+    { id:1, programa:'Microsoft Power BI', caracteristica:'Se integra profundamente con Excel, Azure y el ecosistema Microsoft 365.' },
+    { id:2, programa:'Google Looker Studio', caracteristica:'Es gratuito en su versión base y se conecta de forma nativa con Google Analytics, Ads y Sheets.' },
+    { id:3, programa:'SAP Crystal Reports', caracteristica:'Es ideal para generar facturas e informes financieros con formato muy detallado y preciso.' },
+    { id:4, programa:'JasperReports', caracteristica:'Es una biblioteca de código abierto pensada para integrarse en aplicaciones Java hechas por programadores.' }
+  ];
+
+  const CRITERIOS_BASE_A15 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación de características', descripcion:'Empareja correctamente cada programa con su característica dentro de un número razonable de intentos.' },
+    { key:'justificacion', nombre:'3. Justificación de las coincidencias', descripcion:'Explica por qué la característica elegida corresponde al programa seleccionado.' },
+    { key:'aplicacion', nombre:'4. Aplicación práctica', descripcion:'Recomienda un programa para una situación real, justificando su elección.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let cartasA15 = [];
+  let cartaSeleccionadaA15 = null;
+  let paresEncontradosA15 = 0;
+  let intentosA15 = 0;
+  let bloqueadoA15 = false;
+  let puntajeMaxA15 = 0;
+  let tiempoEstimadoA15 = 10;
+  let inicioTiempoA15 = null;
+  let timerIntervalA15 = null;
+
+  async function abrirActividadA15(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA15 = puntajeMaximo;
+    tiempoEstimadoA15 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA15').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA15').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.5') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA15').classList.add('hidden');
+        document.getElementById('vistaEjercicioA15').classList.add('hidden');
+        document.getElementById('vistaResultadoA15').classList.remove('hidden');
+        renderListaCotejo('rubricaResultadoA15', previa.criterios, previa.puntajeMaximo, previa.nota);
+        document.getElementById('avisoYaCompletadaA15').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA15').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA15').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA15').classList.add('hidden');
+    document.getElementById('vistaResultadoA15').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA15').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA15} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.5', 'recursosEstudianteA15');
+
+    const criteriosPrevios = CRITERIOS_BASE_A15.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderListaCotejo('instrumentoPrevioA15', criteriosPrevios, puntajeMaxA15, null);
+  }
+
+  document.getElementById('btnBackFromActividadA15').addEventListener('click', () => {
+    clearInterval(timerIntervalA15);
+    document.getElementById('panelActividadA15').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA15').addEventListener('click', () => {
+    paresEncontradosA15 = 0;
+    intentosA15 = 0;
+    cartaSeleccionadaA15 = null;
+    bloqueadoA15 = false;
+    document.getElementById('justificacionA15').value = '';
+    document.getElementById('aplicacionA15').value = '';
+    document.getElementById('seccionFinalA15').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA15').classList.add('hidden');
+    document.getElementById('vistaEjercicioA15').classList.remove('hidden');
+
+    // Se arma el mazo: una tarjeta "programa" y una "característica" por cada par, mezcladas
+    const mazoSinMezclar = [];
+    PARES_A15_BASE.forEach(p => {
+      mazoSinMezclar.push({ parId:p.id, tipo:'programa', texto:p.programa });
+      mazoSinMezclar.push({ parId:p.id, tipo:'caracteristica', texto:p.caracteristica });
+    });
+    cartasA15 = barajar(mazoSinMezclar).map((c, i) => ({ ...c, cartaId:i, resuelta:false }));
+    pintarMemoriaA15();
+
+    inicioTiempoA15 = Date.now();
+    clearInterval(timerIntervalA15);
+    timerIntervalA15 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA15) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA15').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA15} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarMemoriaA15(){
+    const cont = document.getElementById('memoriaGridA15');
+    cont.innerHTML = cartasA15.map(c => `
+      <div class="memoria-carta tipo-${c.tipo} ${c.resuelta ? 'resuelta' : ''}" data-carta-id="${c.cartaId}">
+        <div class="memoria-carta-interior">
+          <div class="memoria-cara memoria-dorso"><i class="fa-solid fa-question"></i></div>
+          <div class="memoria-cara memoria-frente">${c.texto}</div>
+        </div>
+      </div>
+    `).join('');
+
+    actualizarBarraProgreso('progresoA15', paresEncontradosA15, PARES_A15_BASE.length);
+
+    cont.querySelectorAll('.memoria-carta').forEach(el => {
+      el.addEventListener('click', () => manejarClicCartaA15(Number(el.dataset.cartaId), el));
+    });
+  }
+
+  function manejarClicCartaA15(cartaId, el){
+    if(bloqueadoA15) return;
+    const carta = cartasA15.find(c => c.cartaId === cartaId);
+    if(!carta || carta.resuelta) return;
+    if(cartaSeleccionadaA15 && cartaSeleccionadaA15.cartaId === cartaId) return;
+
+    el.classList.add('volteada');
+
+    if(!cartaSeleccionadaA15){
+      cartaSeleccionadaA15 = { ...carta, el };
+      return;
+    }
+
+    intentosA15++;
+    const primeraCarta = cartaSeleccionadaA15;
+    const segundaCarta = { ...carta, el };
+    bloqueadoA15 = true;
+
+    const esPar = primeraCarta.parId === segundaCarta.parId && primeraCarta.tipo !== segundaCarta.tipo;
+
+    if(esPar){
+      cartasA15.find(c => c.cartaId === primeraCarta.cartaId).resuelta = true;
+      cartasA15.find(c => c.cartaId === segundaCarta.cartaId).resuelta = true;
+      paresEncontradosA15++;
+      actualizarBarraProgreso('progresoA15', paresEncontradosA15, PARES_A15_BASE.length);
+      primeraCarta.el.classList.add('resuelta');
+      segundaCarta.el.classList.add('resuelta');
+      cartaSeleccionadaA15 = null;
+      bloqueadoA15 = false;
+
+      if(paresEncontradosA15 >= PARES_A15_BASE.length){
+        document.getElementById('seccionFinalA15').classList.remove('hidden');
+        document.getElementById('btnFinalizarA15').disabled = false;
+      }
+    } else {
+      primeraCarta.el.classList.add('error');
+      segundaCarta.el.classList.add('error');
+      setTimeout(() => {
+        primeraCarta.el.classList.remove('volteada', 'error');
+        segundaCarta.el.classList.remove('volteada', 'error');
+        cartaSeleccionadaA15 = null;
+        bloqueadoA15 = false;
+      }, 900);
+    }
+  }
+
+  document.getElementById('btnFinalizarA15').addEventListener('click', async () => {
+    clearInterval(timerIntervalA15);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA15) / 60000;
+    const justificacion = document.getElementById('justificacionA15').value.trim();
+    const aplicacion = document.getElementById('aplicacionA15').value.trim();
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A15[0].nombre, descripcion: CRITERIOS_BASE_A15[0].descripcion, nivel: 'cumple' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A15[1].nombre, descripcion: CRITERIOS_BASE_A15[1].descripcion,
+      nivel: intentosA15 <= 10 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A15[2].nombre, descripcion: CRITERIOS_BASE_A15[2].descripcion,
+      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A15[3].nombre, descripcion: CRITERIOS_BASE_A15[3].descripcion,
+      nivel: aplicacion.length >= 20 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A15[4].nombre, descripcion: CRITERIOS_BASE_A15[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA15 * 1.5 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A15[5].nombre, descripcion: CRITERIOS_BASE_A15[5].descripcion, nivel: 'cumple' });
+
+    const pesoUnidad = puntajeMaxA15 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => { if(c.nivel === 'cumple') notaCalculada += pesoUnidad; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA15').classList.add('hidden');
+    document.getElementById('vistaResultadoA15').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA15').classList.add('hidden');
+    renderListaCotejo('rubricaResultadoA15', criterios, puntajeMaxA15, notaCalculada);
+
+    const proporcionFinalA15 = puntajeMaxA15 > 0 ? notaCalculada / puntajeMaxA15 : 0;
+    mostrarLogro(proporcionFinalA15 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA15 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA15 >= 0.8) dispararConfeti();
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.5',
+        ra:'RA1',
+        ec:'EC6.1.3',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA15,
+        criterios: criterios
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnVolverMisActA15').addEventListener('click', () => {
+    document.getElementById('panelActividadA15').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.5', abrirActividadA15);
