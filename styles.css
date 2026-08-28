@@ -335,6 +335,15 @@
     display:flex; align-items:center; gap:8px;
   }
 
+  .acciones-resultado{ display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+  .btn-descargar-pdf{
+    background: rgba(232,185,59,.12); color: var(--dark-gold-accent); border:1.5px solid var(--dark-gold-accent);
+    padding:12px 22px; border-radius:12px; font-weight:800; font-size:15px;
+    display:flex; align-items:center; gap:8px; width:auto;
+  }
+  .btn-descargar-pdf:hover{ background: rgba(232,185,59,.22); }
+  body.light .btn-descargar-pdf{ background: rgba(184,121,15,.08); color:#b8790f; border:1.5px solid #b8790f; }
+
   .data-table-wrap{
     background: var(--dark-card); border:1px solid var(--dark-border); border-radius: var(--radius);
     overflow-x:auto;
