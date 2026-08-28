@@ -181,7 +181,15 @@
     excelente:'Excelente', bueno:'Bueno', insuficiente:'Insuficiente'
   };
 
-  function generarPdfResultado(codigo, criterios, nota, puntajeMaximo, ec, ra){
+  // Colores de acento (RGB) usados en el PDF, a juego con la paleta del sistema
+  const PDF_COLOR_VERDE_BG = [224, 247, 235];
+  const PDF_COLOR_VERDE_TEXTO = [21, 128, 61];
+  const PDF_COLOR_ROJO_BG = [253, 226, 226];
+  const PDF_COLOR_ROJO_TEXTO = [185, 28, 28];
+  const PDF_COLOR_DORADO = [184, 121, 15];
+  const PDF_COLOR_AZUL = [37, 99, 235];
+
+  function generarPdfResultado(codigo, criterios, nota, puntajeMaximo, ec, ra, detalle){
     if(!window.jspdf){
       mostrarNotificacion('No se pudo cargar el generador de PDF. Verifica tu conexión e intenta de nuevo.', 'error');
       return;
@@ -189,13 +197,19 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const margenIzq = 14;
+    const anchoUtil = 182;
     let y = 20;
 
-    doc.setFontSize(16);
+    // ---------- Portada: encabezado + resumen del instrumento ----------
+    doc.setFillColor(...PDF_COLOR_AZUL);
+    doc.rect(0, 0, 210, 26, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(17);
     doc.setFont(undefined, 'bold');
-    doc.text(`Resultado — Actividad ${codigo}`, margenIzq, y);
-    y += 8;
+    doc.text(`Resultado — Actividad ${codigo}`, margenIzq, 16);
 
+    doc.setTextColor(30, 30, 30);
+    y = 36;
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
     doc.text(`Estudiante: ${(currentUser && (currentUser.nombre || currentUser.usuario)) || ''}`, margenIzq, y);
@@ -205,22 +219,35 @@
     doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')}`, margenIzq, y);
     y += 10;
 
-    doc.setDrawColor(200);
+    doc.setDrawColor(210);
     doc.line(margenIzq, y, 196, y);
+    y += 8;
+
+    doc.setFontSize(13);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(...PDF_COLOR_DORADO);
+    doc.text('Instrumento de evaluación', margenIzq, y);
+    doc.setTextColor(30, 30, 30);
     y += 8;
 
     criterios.forEach(c => {
       if(y > 265){ doc.addPage(); y = 20; }
 
+      const logrado = ['logrado','cumple','excelente','bueno'].includes(c.nivel);
+      const colorTexto = logrado ? PDF_COLOR_VERDE_TEXTO : PDF_COLOR_ROJO_TEXTO;
+
       doc.setFontSize(11);
       doc.setFont(undefined, 'bold');
+      doc.setTextColor(30, 30, 30);
       doc.text(c.nombre, margenIzq, y);
       y += 5;
 
       const nivelTexto = ETIQUETAS_NIVEL_PDF[c.nivel] || c.nivel || '';
       doc.setFontSize(9.5);
       doc.setFont(undefined, 'bold');
+      doc.setTextColor(...colorTexto);
       doc.text(`Nivel obtenido: ${nivelTexto}`, margenIzq, y);
+      doc.setTextColor(30, 30, 30);
       y += 5;
 
       const descripcionMostrar = c.descripcion || (c.niveles && c.niveles[c.nivel]) || '';
@@ -234,15 +261,88 @@
       y += 6;
     });
 
-    if(y > 260){ doc.addPage(); y = 20; }
+    if(y > 255){ doc.addPage(); y = 20; }
     y += 4;
-    doc.setDrawColor(200);
+    doc.setDrawColor(210);
     doc.line(margenIzq, y, 196, y);
     y += 10;
 
+    doc.setFillColor(...PDF_COLOR_DORADO);
+    doc.roundedRect(margenIzq, y - 6, anchoUtil, 12, 2, 2, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(13);
     doc.setFont(undefined, 'bold');
-    doc.text(`Calificación total: ${nota} / ${puntajeMaximo}`, margenIzq, y);
+    doc.text(`Calificación total: ${nota} / ${puntajeMaximo}`, margenIzq + 4, y + 2);
+    doc.setTextColor(30, 30, 30);
+
+    // ---------- Detalle de preguntas y respuestas, con colores ----------
+    if(detalle && detalle.length){
+      doc.addPage();
+      y = 20;
+      doc.setFontSize(15);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(...PDF_COLOR_AZUL);
+      doc.text('Detalle de tus respuestas', margenIzq, y);
+      doc.setTextColor(30, 30, 30);
+      y += 10;
+
+      detalle.forEach(seccion => {
+        if(y > 270){ doc.addPage(); y = 20; }
+        doc.setFontSize(12);
+        doc.setFont(undefined, 'bold');
+        doc.setTextColor(...PDF_COLOR_DORADO);
+        doc.text(seccion.titulo, margenIzq, y);
+        doc.setTextColor(30, 30, 30);
+        y += 7;
+
+        seccion.items.forEach(item => {
+          doc.setFontSize(9);
+          const preguntaLineas = doc.splitTextToSize(item.pregunta, anchoUtil - 8);
+          const tuRespuestaLineas = doc.splitTextToSize(`Tu respuesta: ${item.tuRespuesta}`, anchoUtil - 8);
+          let correctaLineas = [];
+          if(!item.correcta && item.respuestaCorrecta){
+            correctaLineas = doc.splitTextToSize(`Respuesta correcta: ${item.respuestaCorrecta}`, anchoUtil - 8);
+          }
+          const alturaCaja = 6 + preguntaLineas.length * 4.3 + tuRespuestaLineas.length * 4.3 + correctaLineas.length * 4.3 + 4;
+
+          if(y + alturaCaja > 285){ doc.addPage(); y = 20; }
+
+          const fondo = item.correcta ? PDF_COLOR_VERDE_BG : PDF_COLOR_ROJO_BG;
+          const texto = item.correcta ? PDF_COLOR_VERDE_TEXTO : PDF_COLOR_ROJO_TEXTO;
+          doc.setFillColor(...fondo);
+          doc.roundedRect(margenIzq, y, anchoUtil, alturaCaja, 2, 2, 'F');
+
+          let yy = y + 5;
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(8.5);
+          doc.setTextColor(...texto);
+          doc.text(item.correcta ? 'CORRECTO' : 'INCORRECTO', margenIzq + 4, yy);
+          yy += 4.5;
+
+          doc.setFont(undefined, 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(30, 30, 30);
+          doc.text(preguntaLineas, margenIzq + 4, yy);
+          yy += preguntaLineas.length * 4.3;
+
+          doc.setFont(undefined, 'normal');
+          doc.setTextColor(60, 60, 60);
+          doc.text(tuRespuestaLineas, margenIzq + 4, yy);
+          yy += tuRespuestaLineas.length * 4.3;
+
+          if(correctaLineas.length){
+            doc.setFont(undefined, 'italic');
+            doc.setTextColor(...PDF_COLOR_VERDE_TEXTO);
+            doc.text(correctaLineas, margenIzq + 4, yy);
+          }
+
+          doc.setTextColor(30, 30, 30);
+          y += alturaCaja + 5;
+        });
+
+        y += 4;
+      });
+    }
 
     const nombreArchivo = `Resultado_${codigo}_${(currentUser && currentUser.usuario) || 'estudiante'}.pdf`;
     doc.save(nombreArchivo);
