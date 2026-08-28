@@ -58,6 +58,36 @@ function sacudir(el){
 }
 
 // ---------- Logro / celebración (mensaje flotante al terminar) ----------
+// ---------- Desglose coloreado de preguntas y respuestas (pantalla) ----------
+// Usa la MISMA estructura de datos ("detalle") que alimenta el PDF, para que lo
+// que se ve en pantalla y lo que se descarga siempre coincidan exactamente.
+function renderDesgloseColoreado(containerId, detalle){
+  const cont = document.getElementById(containerId);
+  if(!cont) return;
+  if(!detalle || !detalle.length){
+    cont.innerHTML = '<p class="empty-note" style="margin-top:0;">No hay detalle disponible para esta actividad.</p>';
+    return;
+  }
+
+  cont.innerHTML = detalle.map(seccion => `
+    <div class="section-heading" style="font-size:16px;">${seccion.titulo}</div>
+    <div class="esquema-reporte">
+      ${seccion.items.map(item => `
+        <div class="esquema-zona ${item.correcta ? 'correcto' : 'incorrecto'}">
+          <div style="flex:1;">
+            <div class="esquema-zona-tag">${item.pregunta}</div>
+            <div class="esquema-zona-slot">
+              <span class="esquema-zona-etiqueta">Tu respuesta: ${item.tuRespuesta}</span>
+              ${(!item.correcta && item.respuestaCorrecta) ? `<div style="margin-top:6px; font-size:12.5px; opacity:.8;">Correcta: ${item.respuestaCorrecta}</div>` : ''}
+            </div>
+          </div>
+          <i class="fa-solid ${item.correcta ? 'fa-check' : 'fa-xmark'}"></i>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
 function mostrarLogro(mensaje, icono){
   const popup = document.createElement('div');
   popup.className = 'logro-popup';
