@@ -1656,6 +1656,9 @@
     { id:4, programa:'JasperReports', caracteristica:'Es una biblioteca de código abierto pensada para integrarse en aplicaciones Java hechas por programadores.' }
   ];
 
+  // Un color distinto por cada pareja ya formada, para identificarlas fácilmente de un vistazo
+  const COLORES_PAREJA_A15 = ['#4fa3ff', '#f2a93d', '#a855f7', '#ec4899'];
+
   const CRITERIOS_BASE_A15 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
     { key:'identificacion', nombre:'2. Identificación de características', descripcion:'Empareja correctamente cada programa con su característica dentro de un número razonable de intentos.' },
@@ -1788,8 +1791,16 @@
       cartasA15.find(c => c.cartaId === segundaCarta.cartaId).resuelta = true;
       paresEncontradosA15++;
       actualizarBarraProgreso('progresoA15', paresEncontradosA15, PARES_A15_BASE.length);
-      primeraCarta.el.classList.add('resuelta');
-      segundaCarta.el.classList.add('resuelta');
+
+      const colorPareja = COLORES_PAREJA_A15[(primeraCarta.parId - 1) % COLORES_PAREJA_A15.length];
+      [primeraCarta.el, segundaCarta.el].forEach(el => {
+        el.classList.add('resuelta');
+        const frente = el.querySelector('.memoria-frente');
+        frente.style.borderColor = colorPareja;
+        frente.style.background = colorPareja + '26'; // transparencia suave
+        frente.style.color = colorPareja;
+      });
+
       cartaSeleccionadaA15 = null;
       bloqueadoA15 = false;
 
