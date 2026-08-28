@@ -656,6 +656,73 @@
         </button>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.5: ROMPECABEZAS DE PROGRAMAS GENERADORES ---- -->
+    <div id="panelActividadA15" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA15"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.5 — Rompecabezas de programas generadores</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA15">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA15" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA15" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA15"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA15" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA15" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA15" class="hidden">
+        <div class="timer-badge" id="timerA15"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+        <div id="progresoA15"></div>
+
+        <div class="section-heading" style="font-size:18.5px;">Encuentra las parejas</div>
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Haz clic en una tarjeta para voltearla, y luego en otra para intentar emparejarla. Empareja cada <b>programa</b> con su <b>característica</b> correcta. Si no coinciden, se voltean de nuevo.
+        </div>
+
+        <div class="memoria-grid" id="memoriaGridA15"></div>
+
+        <div id="seccionFinalA15" class="hidden">
+          <div class="justificacion-box">
+            <label for="justificacionA15"><i class="fa-solid fa-pen"></i> Elige 2 de las parejas que formaste y explica por qué esa característica corresponde a ese programa (criterio 3)</label>
+            <textarea id="justificacionA15" placeholder="Ejemplo: Elegí Power BI porque..."></textarea>
+          </div>
+
+          <div class="justificacion-box">
+            <label for="aplicacionA15"><i class="fa-solid fa-lightbulb"></i> Si una pequeña empresa dominicana te pide recomendar uno de estos 4 programas, ¿cuál elegirías y por qué? (criterio 4)</label>
+            <textarea id="aplicacionA15" placeholder="Explica tu recomendación considerando el costo, la facilidad de uso y las necesidades de una empresa pequeña..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA15" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA15" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA15">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA15"></div>
+        <button type="button" class="btn btn-primary" id="btnVolverMisActA15" style="width:auto; padding:12px 28px; margin-top:10px;">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
