@@ -174,6 +174,80 @@
     }
   }
 
+  // ---------- PDF de resultado (reutilizable por cualquier actividad) ----------
+  const ETIQUETAS_NIVEL_PDF = {
+    logrado:'Logrado', proceso:'En proceso', no_logrado:'No logrado',
+    cumple:'Cumple', no_cumple:'No cumple',
+    excelente:'Excelente', bueno:'Bueno', insuficiente:'Insuficiente'
+  };
+
+  function generarPdfResultado(codigo, criterios, nota, puntajeMaximo, ec, ra){
+    if(!window.jspdf){
+      mostrarNotificacion('No se pudo cargar el generador de PDF. Verifica tu conexión e intenta de nuevo.', 'error');
+      return;
+    }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const margenIzq = 14;
+    let y = 20;
+
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Resultado — Actividad ${codigo}`, margenIzq, y);
+    y += 8;
+
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Estudiante: ${(currentUser && (currentUser.nombre || currentUser.usuario)) || ''}`, margenIzq, y);
+    y += 6;
+    doc.text(`${ec || ''} · ${ra || ''}`, margenIzq, y);
+    y += 6;
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')}`, margenIzq, y);
+    y += 10;
+
+    doc.setDrawColor(200);
+    doc.line(margenIzq, y, 196, y);
+    y += 8;
+
+    criterios.forEach(c => {
+      if(y > 265){ doc.addPage(); y = 20; }
+
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text(c.nombre, margenIzq, y);
+      y += 5;
+
+      const nivelTexto = ETIQUETAS_NIVEL_PDF[c.nivel] || c.nivel || '';
+      doc.setFontSize(9.5);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Nivel obtenido: ${nivelTexto}`, margenIzq, y);
+      y += 5;
+
+      const descripcionMostrar = c.descripcion || (c.niveles && c.niveles[c.nivel]) || '';
+      if(descripcionMostrar){
+        doc.setFont(undefined, 'normal');
+        doc.setFontSize(9);
+        const lineas = doc.splitTextToSize(descripcionMostrar, 180);
+        doc.text(lineas, margenIzq, y);
+        y += lineas.length * 4.5;
+      }
+      y += 6;
+    });
+
+    if(y > 260){ doc.addPage(); y = 20; }
+    y += 4;
+    doc.setDrawColor(200);
+    doc.line(margenIzq, y, 196, y);
+    y += 10;
+
+    doc.setFontSize(13);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Calificación total: ${nota} / ${puntajeMaximo}`, margenIzq, y);
+
+    const nombreArchivo = `Resultado_${codigo}_${(currentUser && currentUser.usuario) || 'estudiante'}.pdf`;
+    doc.save(nombreArchivo);
+  }
+
   async function cargarRecursosActividad(codigo, containerId){
     const cont = document.getElementById(containerId);
     if(!cont) return;
