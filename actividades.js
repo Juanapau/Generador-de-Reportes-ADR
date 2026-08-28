@@ -96,6 +96,7 @@
         document.getElementById('vistaEjercicioA11').classList.add('hidden');
         document.getElementById('vistaResultadoA11').classList.remove('hidden');
         document.getElementById('resultadoDesgloseA11').innerHTML = '';
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA11', previa.detalle);
         renderRubrica('rubricaResultadoA11', previa.criterios, previa.puntajeMaximo, previa.nota);
         document.getElementById('avisoYaCompletadaA11').classList.remove('hidden');
         document.getElementById('tituloDesgloseA11').classList.add('hidden');
@@ -510,6 +511,7 @@
         document.getElementById('vistaEjercicioA12').classList.add('hidden');
         document.getElementById('vistaResultadoA12').classList.remove('hidden');
         document.getElementById('resultadoDesgloseA12').innerHTML = '';
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA12', previa.detalle);
         renderListaCotejo('rubricaResultadoA12', previa.criterios, previa.puntajeMaximo, previa.nota);
         ultimoResultadoA12 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA12').classList.remove('hidden');
@@ -935,6 +937,7 @@
         document.getElementById('vistaEjercicioA13').classList.add('hidden');
         document.getElementById('vistaResultadoA13').classList.remove('hidden');
         renderRubricaDescriptiva('rubricaResultadoA13', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA13', previa.detalle);
         ultimoResultadoA13 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA13').classList.remove('hidden');
         return;
@@ -1223,6 +1226,7 @@
       }
     ];
     ultimoResultadoA13.detalle = detalleA13;
+    renderDesgloseColoreado('resultadoDesgloseA13', detalleA13);
 
     try{
       await apiPost({
@@ -1346,6 +1350,7 @@
         document.getElementById('vistaEjercicioA14').classList.add('hidden');
         document.getElementById('vistaResultadoA14').classList.remove('hidden');
         renderRubrica('rubricaResultadoA14', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA14', previa.detalle);
         ultimoResultadoA14 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA14').classList.remove('hidden');
         return;
@@ -1744,6 +1749,7 @@
       }
     ];
     ultimoResultadoA14.detalle = detalleA14;
+    renderDesgloseColoreado('resultadoDesgloseA14', detalleA14);
 
     try{
       await apiPost({
@@ -1826,6 +1832,7 @@
         document.getElementById('vistaEjercicioA15').classList.add('hidden');
         document.getElementById('vistaResultadoA15').classList.remove('hidden');
         renderListaCotejo('rubricaResultadoA15', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA15', previa.detalle);
         ultimoResultadoA15 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA15').classList.remove('hidden');
         return;
@@ -2019,6 +2026,7 @@
       }
     ];
     ultimoResultadoA15.detalle = detalleA15;
+    renderDesgloseColoreado('resultadoDesgloseA15', detalleA15);
 
     try{
       await apiPost({
