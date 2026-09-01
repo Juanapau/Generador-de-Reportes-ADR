@@ -967,6 +967,10 @@
   }
   body.light .editor-btn{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
   .editor-btn:hover{ background: rgba(79,163,255,.15); border-color: var(--dark-blue-accent); }
+  .editor-btn.activo{
+    background: var(--dark-blue-accent); border-color: var(--dark-blue-accent); color:#fff;
+  }
+  .editor-btn.activo:hover{ background: var(--dark-blue-accent); }
   .editor-contenido{
     width:100%; min-height:110px; max-height:280px; overflow-y:auto; padding:12px 14px;
     border-radius:0 0 10px 10px; background: rgba(255,255,255,0.05);
@@ -984,6 +988,9 @@
     border:1px solid var(--dark-border); color:var(--dark-text); font-size:12.5px; font-family:inherit;
   }
   body.light .editor-fontsize{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
+  /* El menú desplegable nativo del navegador siempre tiene fondo blanco, sin importar el tema,
+     así que forzamos texto oscuro en las opciones para que sean legibles. */
+  .editor-fontsize option{ color:#1a1a1a; background:#ffffff; }
 
   .editor-color-group{ position:relative; }
   .editor-color-toggle{ font-weight:800; font-size:14px; }
