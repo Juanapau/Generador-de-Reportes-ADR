@@ -704,7 +704,7 @@
     const zonaRespuesta = document.getElementById('zonaRespuestaExtra');
 
     if(act.tipoRespuesta === 'marcar'){
-      zonaRespuesta.innerHTML += `
+      zonaRespuesta.innerHTML = `
         <button type="button" class="btn btn-primary" id="btnEnviarRespuestaExtra" style="width:auto; padding:12px 28px; margin-top:10px;">
           <i class="fa-solid fa-circle-check"></i> Marcar como realizada
         </button>`;
@@ -713,7 +713,7 @@
         await enviarRespuestaExtraServidor('');
       });
     } else {
-      zonaRespuesta.innerHTML += `
+      zonaRespuesta.innerHTML = `
         <div class="justificacion-box">
           <label for="inputRespuestaExtra"><i class="fa-solid fa-pen"></i> Tu respuesta</label>
           <textarea id="inputRespuestaExtra" placeholder="Escribe aquí tu respuesta...">${miRespuesta ? (miRespuesta.respuestaTexto || '') : ''}</textarea>
