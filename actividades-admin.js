@@ -9,6 +9,32 @@
   let coloresRecientesTextoA = [];
   let coloresRecientesResaltadoA = [];
 
+  // El navegador a veces "parte" una lista numerada/con viñetas en dos listas separadas
+  // (típicamente después de salir de una sublista), lo que hace que la numeración se
+  // reinicie desde 1. Esta función fusiona listas del mismo tipo que quedaron como
+  // hermanas consecutivas, para que la numeración vuelva a ser continua automáticamente.
+  function normalizarListas(raiz){
+    ['ol', 'ul'].forEach(tag => {
+      let cambiado = true;
+      let intentos = 0;
+      while(cambiado && intentos < 50){
+        cambiado = false;
+        intentos++;
+        const listas = raiz.querySelectorAll(tag);
+        for(let i = 0; i < listas.length; i++){
+          const lista = listas[i];
+          const siguiente = lista.nextElementSibling;
+          if(siguiente && siguiente.tagName && siguiente.tagName.toLowerCase() === tag){
+            while(siguiente.firstChild){ lista.appendChild(siguiente.firstChild); }
+            siguiente.remove();
+            cambiado = true;
+            break;
+          }
+        }
+      }
+    });
+  }
+
   // Cierra cualquier menú de color abierto al hacer clic fuera de él (se registra una sola vez)
   document.addEventListener('click', (e) => {
     if(!e.target.closest('.editor-color-group')){
@@ -288,11 +314,15 @@
       editorContenido.addEventListener('click', actualizarBotonesActivos);
       editorContenido.addEventListener('focus', actualizarBotonesActivos);
 
+      // Corrige automáticamente listas partidas por el navegador mientras se escribe
+      editorContenido.addEventListener('input', () => normalizarListas(editorContenido));
+
       // Tab / Shift+Tab dentro del editor = aumentar/disminuir sangría (crear o quitar sublistas)
       editorContenido.addEventListener('keydown', (e) => {
         if(e.key === 'Tab'){
           e.preventDefault();
           document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
+          normalizarListas(editorContenido);
         }
       });
 
@@ -303,6 +333,7 @@
         editorBtn.addEventListener('click', () => {
           restaurarSeleccionEditor();
           document.execCommand(editorBtn.dataset.cmd, false, null);
+          normalizarListas(editorContenido);
           actualizarBotonesActivos();
         });
       });
