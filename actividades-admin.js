@@ -9,6 +9,211 @@
   let coloresRecientesTextoA = [];
   let coloresRecientesResaltadoA = [];
 
+  // Genera el HTML del editor de texto enriquecido completo (barra + área editable),
+  // reutilizable por cualquier pantalla que necesite un enunciado editable (RA o extra).
+  function construirEditorEnunciadoHTML(contenidoActual){
+    return `
+      <div class="editor-wrap">
+        <div class="editor-toolbar">
+          <button type="button" class="editor-btn" data-cmd="bold" title="Negrita"><b>B</b></button>
+          <button type="button" class="editor-btn" data-cmd="italic" title="Cursiva"><i>I</i></button>
+          <button type="button" class="editor-btn" data-cmd="underline" title="Subrayado"><u>S</u></button>
+          <button type="button" class="editor-btn" data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
+
+          <select class="editor-fontsize" title="Tamaño de fuente">
+            <option value="">Tamaño</option>
+            <option value="2">Pequeño</option>
+            <option value="3">Normal</option>
+            <option value="5">Grande</option>
+            <option value="7">Muy grande</option>
+          </select>
+
+          <span class="editor-separador"></span>
+
+          <div class="editor-color-group" data-tipo="texto">
+            <button type="button" class="editor-btn editor-color-toggle" title="Color de texto">A</button>
+            <div class="editor-color-popover hidden">
+              <div class="editor-swatches" data-tipo="texto">
+                ${COLORES_ESTANDAR_TEXTO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                ${coloresRecientesTextoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+              </div>
+              <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                <input type="color" class="editor-color-picker" data-tipo="texto" data-cmd="foreColor">
+              </label>
+            </div>
+          </div>
+
+          <div class="editor-color-group" data-tipo="resaltado">
+            <button type="button" class="editor-btn editor-color-toggle" title="Resaltar texto"><i class="fa-solid fa-highlighter"></i></button>
+            <div class="editor-color-popover hidden">
+              <div class="editor-swatches" data-tipo="resaltado">
+                ${COLORES_ESTANDAR_RESALTADO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                ${coloresRecientesResaltadoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+              </div>
+              <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                <input type="color" class="editor-color-picker" data-tipo="resaltado" data-cmd="hiliteColor">
+              </label>
+            </div>
+          </div>
+
+          <span class="editor-separador"></span>
+
+          <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Viñetas"><i class="fa-solid fa-list-ul"></i></button>
+          <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Lista numerada"><i class="fa-solid fa-list-ol"></i></button>
+          <button type="button" class="editor-btn" data-cmd="outdent" title="Disminuir sangría (quitar sublista)"><i class="fa-solid fa-outdent"></i></button>
+          <button type="button" class="editor-btn" data-cmd="indent" title="Aumentar sangría (crear sublista) — también con Tab"><i class="fa-solid fa-indent"></i></button>
+
+          <span class="editor-separador"></span>
+
+          <button type="button" class="editor-btn" data-cmd="justifyLeft" title="Alinear a la izquierda"><i class="fa-solid fa-align-left"></i></button>
+          <button type="button" class="editor-btn" data-cmd="justifyCenter" title="Centrar"><i class="fa-solid fa-align-center"></i></button>
+          <button type="button" class="editor-btn" data-cmd="justifyRight" title="Alinear a la derecha"><i class="fa-solid fa-align-right"></i></button>
+
+          <span class="editor-separador"></span>
+
+          <button type="button" class="editor-btn editor-btn-link" title="Insertar enlace"><i class="fa-solid fa-link"></i></button>
+          <button type="button" class="editor-btn" data-cmd="undo" title="Deshacer"><i class="fa-solid fa-rotate-left"></i></button>
+          <button type="button" class="editor-btn" data-cmd="redo" title="Rehacer"><i class="fa-solid fa-rotate-right"></i></button>
+          <button type="button" class="editor-btn" data-cmd="removeFormat" title="Quitar formato"><i class="fa-solid fa-eraser"></i></button>
+        </div>
+        <div class="editor-contenido input-enunciado contenido-enriquecido" contenteditable="true">${limpiarColoresCasiBlancos(contenidoActual || '')}</div>
+      </div>`;
+  }
+
+  // Conecta TODA la lógica del editor de texto enriquecido dentro de un contenedor dado.
+  // Reutilizable por cualquier tarjeta (RA o extra) que use construirEditorEnunciadoHTML().
+  function conectarEditorEnunciado(card){
+    const editorContenido = card.querySelector('.editor-contenido');
+    if(!editorContenido) return;
+    let seleccionGuardadaA = null;
+
+    function guardarSeleccionEditor(){
+      const sel = window.getSelection();
+      if(sel.rangeCount > 0 && editorContenido.contains(sel.anchorNode)){
+        seleccionGuardadaA = sel.getRangeAt(0);
+      }
+    }
+    function restaurarSeleccionEditor(){
+      if(seleccionGuardadaA){
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(seleccionGuardadaA);
+      }
+      editorContenido.focus();
+      document.execCommand('styleWithCSS', false, false);
+    }
+
+    const COMANDOS_CON_ESTADO = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter', 'justifyRight'];
+    function actualizarBotonesActivos(){
+      COMANDOS_CON_ESTADO.forEach(cmd => {
+        const btn = card.querySelector(`.editor-btn[data-cmd="${cmd}"]`);
+        if(!btn) return;
+        let activo = false;
+        try{ activo = document.queryCommandState(cmd); }catch(err){ /* no soportado */ }
+        btn.classList.toggle('activo', activo);
+      });
+    }
+
+    editorContenido.addEventListener('mouseup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+    editorContenido.addEventListener('keyup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+    editorContenido.addEventListener('click', actualizarBotonesActivos);
+    editorContenido.addEventListener('focus', actualizarBotonesActivos);
+    editorContenido.addEventListener('input', () => normalizarListas(editorContenido));
+    editorContenido.addEventListener('keydown', (e) => {
+      if(e.key === 'Tab'){
+        e.preventDefault();
+        document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
+        normalizarListas(editorContenido);
+      }
+    });
+
+    card.querySelectorAll('.editor-btn[data-cmd]').forEach(editorBtn => {
+      editorBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      editorBtn.addEventListener('click', () => {
+        restaurarSeleccionEditor();
+        document.execCommand(editorBtn.dataset.cmd, false, null);
+        normalizarListas(editorContenido);
+        actualizarBotonesActivos();
+      });
+    });
+
+    const selectTamano = card.querySelector('.editor-fontsize');
+    if(selectTamano){
+      selectTamano.addEventListener('mousedown', guardarSeleccionEditor);
+      selectTamano.addEventListener('change', () => {
+        if(!selectTamano.value) return;
+        restaurarSeleccionEditor();
+        document.execCommand('fontSize', false, selectTamano.value);
+        selectTamano.value = '';
+      });
+    }
+
+    function aplicarColorA(cmd, color){
+      restaurarSeleccionEditor();
+      document.execCommand(cmd, false, color);
+    }
+
+    card.querySelectorAll('.editor-color-toggle').forEach(toggleBtn => {
+      toggleBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const popover = toggleBtn.nextElementSibling;
+        const estabaAbierto = !popover.classList.contains('hidden');
+        document.querySelectorAll('.editor-color-popover').forEach(p => p.classList.add('hidden'));
+        if(!estabaAbierto) popover.classList.remove('hidden');
+      });
+    });
+
+    card.querySelectorAll('.swatch-btn').forEach(swatch => {
+      swatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      swatch.addEventListener('click', () => {
+        const tipo = swatch.closest('.editor-swatches').dataset.tipo;
+        aplicarColorA(tipo === 'texto' ? 'foreColor' : 'hiliteColor', swatch.dataset.color);
+        swatch.closest('.editor-color-popover').classList.add('hidden');
+      });
+    });
+
+    card.querySelectorAll('.editor-color-picker').forEach(colorInput => {
+      colorInput.addEventListener('mousedown', guardarSeleccionEditor);
+      colorInput.addEventListener('input', () => {
+        aplicarColorA(colorInput.dataset.cmd, colorInput.value);
+        const tipo = colorInput.dataset.tipo;
+        const listaRecientes = tipo === 'texto' ? coloresRecientesTextoA : coloresRecientesResaltadoA;
+        if(!listaRecientes.includes(colorInput.value)){
+          listaRecientes.unshift(colorInput.value);
+          if(listaRecientes.length > 6) listaRecientes.pop();
+          const contSwatches = card.querySelector(`.editor-swatches[data-tipo="${tipo}"]`);
+          const nuevoSwatch = document.createElement('button');
+          nuevoSwatch.type = 'button';
+          nuevoSwatch.className = 'swatch-btn swatch-reciente';
+          nuevoSwatch.dataset.color = colorInput.value;
+          nuevoSwatch.style.background = colorInput.value;
+          nuevoSwatch.title = colorInput.value;
+          nuevoSwatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+          nuevoSwatch.addEventListener('click', () => {
+            aplicarColorA(colorInput.dataset.cmd, nuevoSwatch.dataset.color);
+            nuevoSwatch.closest('.editor-color-popover').classList.add('hidden');
+          });
+          contSwatches.appendChild(nuevoSwatch);
+        }
+      });
+    });
+
+    const btnLink = card.querySelector('.editor-btn-link');
+    if(btnLink){
+      btnLink.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      btnLink.addEventListener('click', () => {
+        const url = window.prompt('Escribe la dirección del enlace (URL):', 'https://');
+        if(url){
+          restaurarSeleccionEditor();
+          document.execCommand('createLink', false, url);
+        }
+      });
+    }
+  }
+
   // El navegador a veces "parte" una lista numerada/con viñetas en dos listas separadas
   // (típicamente después de salir de una sublista), lo que hace que la numeración se
   // reinicie desde 1. Esta función fusiona listas del mismo tipo que quedaron como
