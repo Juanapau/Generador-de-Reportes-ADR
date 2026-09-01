@@ -246,13 +246,21 @@
     </div>
 
     <!-- ---- ACTIVIDADES POR RA ---- -->
-    <div id="panelActividades" class="hidden">
+    <div id="panelActividades" class="hidden panel-secundario">
       <button type="button" class="back-btn" id="btnBackFromActividades"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
       <div class="section-heading">Actividades por RA — Asignación de puntaje</div>
 
       <!-- Vista 1: selección de RA -->
       <div id="vistaRaCardsAdmin">
         <div class="ra-cards-grid" id="raCardsAdminWrap"></div>
+        <button type="button" class="card-extra-ancho" id="cardActividadesExtraAdmin">
+          <div class="card-extra-icono"><i class="fa-solid fa-star"></i></div>
+          <div class="card-extra-texto">
+            <h3>Actividades Extra</h3>
+            <p>Crea tus propias actividades fuera de los RA (evaluaciones diagnósticas, refuerzo, etc.) con tu propio enunciado, recursos e instrumento.</p>
+          </div>
+          <i class="fa-solid fa-chevron-right card-extra-flecha"></i>
+        </button>
       </div>
 
       <!-- Vista 2: lista de actividades del RA seleccionado -->
@@ -267,6 +275,27 @@
         </div>
         <div id="listaActividadesWrap"></div>
       </div>
+    </div>
+
+    <!-- ---- ACTIVIDADES EXTRA (panel docente) ---- -->
+    <div id="panelActividadesExtraAdmin" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromActividadesExtraAdmin"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Actividades Extra</div>
+      <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
+        <i class="fa-solid fa-circle-info"></i>
+        Estas actividades no pertenecen a ningún RA. El instrumento es de tipo Lista de cotejo (cumple / no cumple), y tú calificas manualmente cada envío.
+      </div>
+      <button type="button" class="btn btn-add" id="btnNuevaActividadExtra" style="margin-bottom:20px;">
+        <i class="fa-solid fa-plus"></i> Crear nueva actividad extra
+      </button>
+      <div id="listaActividadesExtraAdminWrap"></div>
+    </div>
+
+    <!-- ---- CALIFICAR RESPUESTAS DE UNA ACTIVIDAD EXTRA (panel docente) ---- -->
+    <div id="panelCalificarExtra" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromCalificarExtra"><i class="fa-solid fa-arrow-left"></i> Volver a Actividades Extra</button>
+      <div class="section-heading" id="tituloCalificarExtra">Respuestas de los estudiantes</div>
+      <div id="listaRespuestasExtraWrap"></div>
     </div>
 
     <!-- ---- PANEL ESTUDIANTE ---- -->
@@ -293,13 +322,21 @@
     </div>
 
     <!-- ---- MIS ACTIVIDADES (vista estudiante) ---- -->
-    <div id="panelMisActividades" class="hidden">
+    <div id="panelMisActividades" class="hidden panel-secundario">
       <button type="button" class="back-btn" id="btnBackFromMisActividades"><i class="fa-solid fa-arrow-left"></i> Volver a mi espacio</button>
       <div class="section-heading">Mis actividades</div>
 
       <!-- Vista 1: selección de RA -->
       <div id="vistaRaCardsEstudiante">
         <div class="ra-cards-grid" id="raCardsEstudianteWrap"></div>
+        <button type="button" class="card-extra-ancho" id="cardActividadesExtraEstudiante">
+          <div class="card-extra-icono"><i class="fa-solid fa-star"></i></div>
+          <div class="card-extra-texto">
+            <h3>Actividades Extra</h3>
+            <p>Actividades adicionales que tu docente agregó fuera de los RA.</p>
+          </div>
+          <i class="fa-solid fa-chevron-right card-extra-flecha"></i>
+        </button>
       </div>
 
       <!-- Vista 2: lista de actividades del RA seleccionado -->
@@ -307,6 +344,35 @@
         <button type="button" class="back-btn" id="btnBackToRaCardsEstudiante"><i class="fa-solid fa-arrow-left"></i> Volver a mis RA</button>
         <div class="section-heading" id="tituloListaMisActividades" style="font-size:22px;">RA1</div>
         <div id="listaMisActividadesWrap"></div>
+      </div>
+    </div>
+
+    <!-- ---- ACTIVIDADES EXTRA (panel estudiante — lista) ---- -->
+    <div id="panelActividadesExtraEstudiante" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromActividadesExtraEstudiante"><i class="fa-solid fa-arrow-left"></i> Volver a mis RA</button>
+      <div class="section-heading">Actividades Extra</div>
+      <div id="listaActividadesExtraEstudianteWrap"></div>
+    </div>
+
+    <!-- ---- ACTIVIDAD EXTRA (panel estudiante — detalle y respuesta) ---- -->
+    <div id="panelDetalleActividadExtra" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromDetalleActividadExtra"><i class="fa-solid fa-arrow-left"></i> Volver a Actividades Extra</button>
+      <div class="section-heading" id="tituloDetalleActividadExtra">Actividad Extra</div>
+
+      <p id="enunciadoActividadExtra" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6;"></p>
+
+      <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+      <div id="recursosActividadExtra" class="recursos-lista">
+        <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+      </div>
+
+      <div id="instrumentoPrevioActividadExtra"></div>
+
+      <div id="zonaRespuestaExtra"></div>
+
+      <div id="zonaResultadoExtra" class="hidden">
+        <div class="section-heading" style="font-size:18.5px;">Resultado</div>
+        <div id="rubricaResultadoExtra"></div>
       </div>
     </div>
 
@@ -768,5 +834,6 @@
 <script src="actividades-admin.js"></script>
 <script src="mis-actividades.js"></script>
 <script src="actividades.js"></script>
+<script src="actividades-extra.js"></script>
 </body>
 </html>
