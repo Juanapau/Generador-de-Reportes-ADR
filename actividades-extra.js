@@ -130,13 +130,27 @@
         </div>
         <input type="hidden" class="input-tipo-respuesta" value="${act.tipoRespuesta || 'texto'}">
 
-        <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:18px 0 8px;">
-          <i class="fa-solid fa-list-check"></i> Instrumento — Lista de cotejo (criterios de evaluación)
-        </label>
-        <div class="criterios-extra-lista" data-criterios-de="${act.codigo}"></div>
-        <button type="button" class="btn-add-criterio-extra" style="margin:8px 0 4px; padding:9px 16px; background:rgba(79,163,255,.12); color:var(--dark-blue-accent); border:1px solid var(--dark-blue-accent); border-radius:9px; font-weight:700; font-size:13.5px;">
-          <i class="fa-solid fa-plus"></i> Agregar criterio
-        </button>
+        <div class="switch-field" style="margin:18px 0 4px;">
+          <label class="switch">
+            <input type="checkbox" class="input-tiene-instrumento" ${act.tieneInstrumento !== false ? 'checked' : ''}>
+            <span class="switch-slider"></span>
+          </label>
+          <span class="switch-label"><i class="fa-solid fa-list-check"></i> Esta actividad tiene instrumento de evaluación (se califica)</span>
+        </div>
+        <div class="empty-note instrumento-off-nota ${act.tieneInstrumento !== false ? 'hidden' : ''}" style="margin:6px 0 14px; padding:10px 14px; font-size:12.5px;">
+          <i class="fa-solid fa-circle-info"></i>
+          Sin instrumento: la actividad es solo complementaria. Al enviarla, queda marcada como completada automáticamente, sin calificación ni puntaje.
+        </div>
+
+        <div class="instrumento-extra-wrap ${act.tieneInstrumento === false ? 'hidden' : ''}">
+          <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:8px 0 8px;">
+            <i class="fa-solid fa-list-check"></i> Instrumento — Lista de cotejo (criterios de evaluación)
+          </label>
+          <div class="criterios-extra-lista" data-criterios-de="${act.codigo}"></div>
+          <button type="button" class="btn-add-criterio-extra" style="margin:8px 0 4px; padding:9px 16px; background:rgba(79,163,255,.12); color:var(--dark-blue-accent); border:1px solid var(--dark-blue-accent); border-radius:9px; font-weight:700; font-size:13.5px;">
+            <i class="fa-solid fa-plus"></i> Agregar criterio
+          </button>
+        </div>
 
         <div class="recursos-section">
           <div style="font-weight:800; font-size:15px; margin-top:16px; margin-bottom:8px;">
@@ -210,6 +224,12 @@
         });
       });
 
+      // Interruptor: ¿tiene instrumento de evaluación?
+      card.querySelector('.input-tiene-instrumento').addEventListener('change', (e) => {
+        card.querySelector('.instrumento-extra-wrap').classList.toggle('hidden', !e.target.checked);
+        card.querySelector('.instrumento-off-nota').classList.toggle('hidden', e.target.checked);
+      });
+
       // Constructor de criterios (Lista de cotejo)
       const criteriosIniciales = (act.criterios && act.criterios.length) ? act.criterios : [{nombre:'', descripcion:''}, {nombre:'', descripcion:''}];
       pintarCriteriosExtra(card, criteriosIniciales);
@@ -230,6 +250,7 @@
         const fechaInicio = card.querySelector('.input-fecha-inicio').value;
         const fechaFin = card.querySelector('.input-fecha-fin').value;
         const tipoRespuesta = card.querySelector('.input-tipo-respuesta').value;
+        const tieneInstrumento = card.querySelector('.input-tiene-instrumento').checked;
 
         const criterios = [];
         card.querySelectorAll('.criterio-extra-row').forEach(row => {
@@ -239,15 +260,17 @@
         });
 
         if(!titulo){ mostrarNotificacion('Escribe un título para la actividad.', 'error'); return; }
-        if(criterios.length === 0){ mostrarNotificacion('Agrega al menos un criterio de evaluación.', 'error'); return; }
+        if(tieneInstrumento && criterios.length === 0){ mostrarNotificacion('Agrega al menos un criterio de evaluación, o desactiva el instrumento si esta actividad es solo complementaria.', 'error'); return; }
 
         btnGuardar.disabled = true;
         try{
           const resp = await apiPost({
             action:'guardarActividadExtra',
-            codigo, titulo, enunciado, criterios,
-            puntajeMaximo, tiempoEstimadoMin, tipoRespuesta, habilitada,
-            fechaInicio, fechaFin
+            codigo, titulo, enunciado,
+            criterios: tieneInstrumento ? criterios : [],
+            puntajeMaximo: tieneInstrumento ? puntajeMaximo : 0,
+            tiempoEstimadoMin, tipoRespuesta, habilitada,
+            fechaInicio, fechaFin, tieneInstrumento
           });
           if(resp.success){
             okMsg.classList.remove('hidden');
@@ -405,7 +428,7 @@
     wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando respuestas...</div>';
 
     try{
-      const act = actividadesExtraCache.find(a => a.codigo === codigo) || { criterios:[], puntajeMaximo:10, tipoRespuesta:'texto' };
+      const act = actividadesExtraCache.find(a => a.codigo === codigo) || { criterios:[], puntajeMaximo:10, tipoRespuesta:'texto', tieneInstrumento:true };
       const [dataResp, dataEst] = await Promise.all([
         apiGet({ action:'listarRespuestasPorActividadExtra', codigo }),
         apiGet({ action:'listarEstudiantes' })
@@ -425,6 +448,7 @@
       wrap.innerHTML = dataResp.respuestas.map(r => {
         const nombre = nombresPorUsuario[r.usuario] || r.usuario;
         const calificado = r.estado === 'calificado';
+        const completadaSinInstrumento = r.estado === 'completado';
         return `
         <div class="actividad-card" data-usuario="${r.usuario}">
           <div class="actividad-top">
@@ -432,8 +456,8 @@
               <div class="actividad-codigo" style="font-size:16px;">${nombre}</div>
               <div class="actividad-ec">Enviado: ${formatearFechaCorta(r.fechaEnvio) || '—'} ${calificado ? `· Calificado: ${formatearFechaCorta(r.fechaCalificacion)}` : ''}</div>
             </div>
-            <span class="estado-badge ${calificado ? 'estado-activa' : 'estado-pendiente'}">
-              <i class="fa-solid ${calificado ? 'fa-circle-check' : 'fa-hourglass-half'}"></i> ${calificado ? `Calificado — ${r.nota}/${r.puntajeMaximo}` : 'Pendiente'}
+            <span class="estado-badge ${calificado || completadaSinInstrumento ? 'estado-activa' : 'estado-pendiente'}">
+              <i class="fa-solid ${calificado || completadaSinInstrumento ? 'fa-circle-check' : 'fa-hourglass-half'}"></i> ${calificado ? `Calificado — ${r.nota}/${r.puntajeMaximo}` : (completadaSinInstrumento ? 'Completada (sin instrumento)' : 'Pendiente')}
             </span>
           </div>
 
@@ -442,14 +466,21 @@
             : `<div class="actividad-enunciado contenido-enriquecido" style="margin-top:10px; white-space:pre-wrap;">${(r.respuestaTexto || '(sin contenido)').replace(/</g,'&lt;')}</div>`
           }
 
-          <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:16px 0 8px;">Calificación (Lista de cotejo)</label>
-          <div class="calificar-criterios-lista"></div>
-
-          <button type="button" class="btn btn-primary btn-guardar-calificacion-extra" style="width:auto; padding:11px 24px; margin-top:10px;">
-            <i class="fa-solid fa-floppy-disk"></i> Guardar calificación
-          </button>
+          ${act.tieneInstrumento === false ? `
+            <div class="empty-note" style="margin-top:14px;">
+              <i class="fa-solid fa-circle-info"></i> Esta actividad no tiene instrumento de evaluación — no requiere calificación.
+            </div>
+          ` : `
+            <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:16px 0 8px;">Calificación (Lista de cotejo)</label>
+            <div class="calificar-criterios-lista"></div>
+            <button type="button" class="btn btn-primary btn-guardar-calificacion-extra" style="width:auto; padding:11px 24px; margin-top:10px;">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar calificación
+            </button>
+          `}
         </div>`;
       }).join('');
+
+      if(act.tieneInstrumento === false) return; // sin instrumento: no hay nada más que conectar (solo lectura)
 
       wrap.querySelectorAll('.actividad-card').forEach(card => {
         const usuario = card.dataset.usuario;
@@ -559,6 +590,9 @@
         if(miRespuesta && miRespuesta.estado === 'calificado'){
           estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Calificada — ${miRespuesta.nota}/${miRespuesta.puntajeMaximo}</span>`;
           textoBoton = 'Ver resultado';
+        } else if(miRespuesta && miRespuesta.estado === 'completado'){
+          estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Completada</span>`;
+          textoBoton = 'Ver mi envío';
         } else if(miRespuesta && miRespuesta.estado === 'pendiente'){
           estadoBadge = `<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Enviada — en espera de calificación</span>`;
           textoBoton = 'Ver mi envío';
@@ -618,8 +652,13 @@
     document.getElementById('zonaResultadoExtra').classList.add('hidden');
     cargarRecursosActividad(codigo, 'recursosActividadExtra');
 
-    const criteriosPrevios = (act.criterios || []).map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
-    renderListaCotejo('instrumentoPrevioActividadExtra', criteriosPrevios, act.puntajeMaximo, null);
+    const instrumentoPrevioCont = document.getElementById('instrumentoPrevioActividadExtra');
+    if(act.tieneInstrumento === false){
+      instrumentoPrevioCont.innerHTML = `<div class="empty-note" style="margin-bottom:16px;"><i class="fa-solid fa-circle-info"></i> Esta actividad es complementaria y no tiene instrumento de evaluación — no se califica.</div>`;
+    } else {
+      const criteriosPrevios = (act.criterios || []).map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+      renderListaCotejo('instrumentoPrevioActividadExtra', criteriosPrevios, act.puntajeMaximo, null);
+    }
 
     const zonaRespuesta = document.getElementById('zonaRespuestaExtra');
     zonaRespuesta.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando tu envío...</div>';
@@ -627,6 +666,15 @@
     try{
       const data = await apiGet({ action:'listarRespuestasExtra', usuario: currentUser.usuario });
       const miRespuesta = data.success ? data.respuestas.find(r => r.codigo === codigo) : null;
+
+      if(miRespuesta && miRespuesta.estado === 'completado'){
+        zonaRespuesta.innerHTML = act.tipoRespuesta === 'marcar'
+          ? '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> Marcaste esta actividad como realizada. ¡Completada!</div>'
+          : `<div class="section-heading" style="font-size:16px; margin-top:0;">Tu respuesta enviada</div>
+             <div class="actividad-enunciado contenido-enriquecido" style="white-space:pre-wrap;">${(miRespuesta.respuestaTexto || '').replace(/</g,'&lt;')}</div>
+             <div class="empty-note" style="margin-top:14px;"><i class="fa-solid fa-circle-check"></i> Actividad completada — sin calificación, ya que es una actividad complementaria.</div>`;
+        return;
+      }
 
       if(miRespuesta && miRespuesta.estado === 'calificado'){
         zonaRespuesta.innerHTML = act.tipoRespuesta === 'marcar'
@@ -683,7 +731,11 @@
 
   async function enviarRespuestaExtraServidor(respuestaTexto){
     try{
-      const resp = await apiPost({ action:'enviarRespuestaExtra', usuario: currentUser.usuario, codigo: codigoExtraActual, respuestaTexto });
+      const act = actividadesExtraCache.find(a => a.codigo === codigoExtraActual);
+      const resp = await apiPost({
+        action:'enviarRespuestaExtra', usuario: currentUser.usuario, codigo: codigoExtraActual, respuestaTexto,
+        tieneInstrumento: act ? act.tieneInstrumento !== false : true
+      });
       if(resp.success){
         mostrarLogro('Respuesta enviada correctamente', 'fa-paper-plane');
         abrirDetalleActividadExtra(codigoExtraActual);
