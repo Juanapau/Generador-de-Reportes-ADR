@@ -136,6 +136,8 @@
 
             <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Viñetas"><i class="fa-solid fa-list-ul"></i></button>
             <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Lista numerada"><i class="fa-solid fa-list-ol"></i></button>
+            <button type="button" class="editor-btn" data-cmd="outdent" title="Disminuir sangría (quitar sublista)"><i class="fa-solid fa-outdent"></i></button>
+            <button type="button" class="editor-btn" data-cmd="indent" title="Aumentar sangría (crear sublista) — también con Tab"><i class="fa-solid fa-indent"></i></button>
 
             <span class="editor-separador"></span>
 
@@ -266,8 +268,33 @@
         // (claro/oscuro) dentro del texto — así el texto sin color explícito siempre se adapta al tema.
         document.execCommand('styleWithCSS', false, false);
       }
-      editorContenido.addEventListener('mouseup', guardarSeleccionEditor);
-      editorContenido.addEventListener('keyup', guardarSeleccionEditor);
+
+      // Comandos que se pueden "activar/desactivar" (togglear) y por lo tanto tiene sentido
+      // resaltar su botón cuando el cursor está sobre texto que ya tiene ese formato.
+      const COMANDOS_CON_ESTADO = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter', 'justifyRight'];
+
+      function actualizarBotonesActivos(){
+        COMANDOS_CON_ESTADO.forEach(cmd => {
+          const btn = card.querySelector(`.editor-btn[data-cmd="${cmd}"]`);
+          if(!btn) return;
+          let activo = false;
+          try{ activo = document.queryCommandState(cmd); }catch(err){ /* algunos navegadores pueden no soportar el comando */ }
+          btn.classList.toggle('activo', activo);
+        });
+      }
+
+      editorContenido.addEventListener('mouseup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+      editorContenido.addEventListener('keyup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+      editorContenido.addEventListener('click', actualizarBotonesActivos);
+      editorContenido.addEventListener('focus', actualizarBotonesActivos);
+
+      // Tab / Shift+Tab dentro del editor = aumentar/disminuir sangría (crear o quitar sublistas)
+      editorContenido.addEventListener('keydown', (e) => {
+        if(e.key === 'Tab'){
+          e.preventDefault();
+          document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
+        }
+      });
 
       // Botones normales (negrita, cursiva, alinear, deshacer, enlace, etc.)
       card.querySelectorAll('.editor-btn[data-cmd]').forEach(editorBtn => {
@@ -276,6 +303,7 @@
         editorBtn.addEventListener('click', () => {
           restaurarSeleccionEditor();
           document.execCommand(editorBtn.dataset.cmd, false, null);
+          actualizarBotonesActivos();
         });
       });
 
