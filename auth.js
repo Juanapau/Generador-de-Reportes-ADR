@@ -60,8 +60,7 @@
     // ocultando cualquier submódulo (como Registro de estudiantes) que haya
     // quedado abierto de una sesión anterior en el mismo navegador.
     document.getElementById('panelRegistro').classList.add('hidden');
-    document.getElementById('panelActividades').classList.add('hidden');
-    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.querySelectorAll('.panel-secundario').forEach(p => p.classList.add('hidden'));
     document.querySelectorAll('.panel-actividad-interactiva').forEach(p => p.classList.add('hidden'));
     document.getElementById('modalEstudiante').classList.add('hidden');
 
@@ -77,8 +76,7 @@
     document.getElementById('impersonationBanner').classList.add('hidden');
     document.getElementById('appShell').classList.add('hidden');
     document.getElementById('panelRegistro').classList.add('hidden');
-    document.getElementById('panelActividades').classList.add('hidden');
-    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.querySelectorAll('.panel-secundario').forEach(p => p.classList.add('hidden'));
     document.querySelectorAll('.panel-actividad-interactiva').forEach(p => p.classList.add('hidden'));
     document.getElementById('modalEstudiante').classList.add('hidden');
     document.getElementById('loginScreen').classList.remove('hidden');
