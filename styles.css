@@ -906,6 +906,42 @@
     background: rgba(34,197,94,.1); border:1px solid var(--dark-green-accent); color: var(--dark-green-accent);
   }
 
+  /* ============ MI PROGRESO (estudiante) ============ */
+  .resumen-progreso-card{
+    background: linear-gradient(120deg, rgba(34,197,94,.1), rgba(79,163,255,.08));
+    border:1.5px solid var(--dark-green-accent); border-radius: var(--radius); padding:22px 26px; margin-bottom:8px;
+  }
+  body.light .resumen-progreso-card{ background: linear-gradient(120deg, rgba(34,197,94,.06), rgba(79,163,255,.05)); }
+  .resumen-progreso-top{ display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:14px; flex-wrap:wrap; gap:10px; }
+  .resumen-progreso-numero{ font-family: var(--font-display); font-size:32px; letter-spacing:.5px; }
+  .resumen-progreso-numero span{ font-size:16px; opacity:.6; font-weight:400; font-family: var(--font-body); }
+  .resumen-progreso-sub{ font-size:13.5px; color: var(--dark-text-dim); margin-top:4px; }
+  body.light .resumen-progreso-sub{ color: var(--light-text-dim); }
+  .resumen-progreso-porcentaje{
+    font-family: var(--font-display); font-size:30px; color: var(--dark-green-accent);
+    background: rgba(34,197,94,.15); padding:6px 18px; border-radius:14px;
+  }
+
+  .progreso-item-card{
+    display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius:12px;
+    padding:14px 18px; margin-bottom:10px;
+  }
+  body.light .progreso-item-card{ background:#fff; border:1px solid #dde5f6; }
+  .progreso-item-codigo{ font-weight:800; font-size:14.5px; }
+  .progreso-item-nombre{ font-weight:600; opacity:.85; }
+  .progreso-item-fecha{ font-size:12.5px; color: var(--dark-text-dim); margin-top:3px; }
+  body.light .progreso-item-fecha{ color: var(--light-text-dim); }
+  .progreso-item-acciones{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .btn-progreso-pdf{
+    width:36px; height:36px; border-radius:9px; background: rgba(232,185,59,.12); color: var(--dark-gold-accent);
+    border:1px solid var(--dark-gold-accent); font-size:14px;
+  }
+  .btn-progreso-ir, .btn-progreso-ir-extra{
+    padding:8px 16px; border-radius:9px; background: rgba(79,163,255,.12); color: var(--dark-blue-accent);
+    border:1px solid var(--dark-blue-accent); font-weight:700; font-size:13px;
+  }
+
   /* ============ GAMIFICACIÓN: progreso, confeti, sacudida, logros, arrastre ============ */
   .progreso-barra-texto{ font-size:13px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px; }
   body.light .progreso-barra-texto{ color:var(--light-text-dim); }
