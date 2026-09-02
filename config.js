@@ -85,9 +85,19 @@
   }
 
   // ---------- Formato corto de fecha para mostrar al estudiante ----------
+  // Acepta un objeto Date, un texto ISO, o un texto tipo datetime-local, y siempre
+  // devuelve el mismo formato "AAAA-MM-DD HH:mm" (o solo "AAAA-MM-DD" si no tiene hora).
   function formatearFechaCorta(fecha){
     if(!fecha) return '';
-    return fecha.toLocaleString('es-DO', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const d = fecha instanceof Date ? fecha : new Date(fecha);
+    if(isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    const soloMedianoche = hh === '00' && mi === '00';
+    return soloMedianoche ? `${yyyy}-${mm}-${dd}` : `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
   }
 
   function pintarTarjetasRA(items){
@@ -216,7 +226,7 @@
     y += 6;
     doc.text(`${ec || ''} · ${ra || ''}`, margenIzq, y);
     y += 6;
-    doc.text(`Fecha: ${new Date().toLocaleDateString('es-DO')}`, margenIzq, y);
+    doc.text(`Fecha: ${formatearFechaCorta(new Date())}`, margenIzq, y);
     y += 10;
 
     doc.setDrawColor(210);
