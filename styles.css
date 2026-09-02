@@ -259,7 +259,7 @@
   }
   body.light .btn-logout{ background:#16213e; color:#fff; border:none; }
 
-  main{ padding:22px 28px 60px; max-width:1280px; margin:0 auto; }
+  main{ padding:22px 32px 60px; max-width:1800px; margin:0 auto; width:96%; }
 
   /* ============ BANNER DE SUPLANTACIÓN (ver perfil de estudiante) ============ */
   .impersonation-banner{
@@ -1108,4 +1108,10 @@
     .userbar{ margin:16px 14px 4px; flex-wrap:wrap; }
     main{ padding:16px 14px 50px; }
     .rubrica-visual{ font-size:12.5px; }
+  }
+
+  /* ============ MODO PROYECTOR: todo más grande en pantallas de laptop/proyector ============ */
+  /* No se activa en celulares/tablets pequeñas, solo desde el tamaño típico de una laptop en adelante. */
+  @media (min-width:1024px){
+    body{ zoom:1.18; }
   }
