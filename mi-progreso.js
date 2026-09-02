@@ -82,27 +82,59 @@
         </div>
       `;
 
-      // ---------- Lista RA1 ----------
+      // ---------- Lista agrupada por RA, cada una con su propia barra de progreso ----------
       const wrapRA = document.getElementById('listaProgresoRA1Wrap');
       if(actividadesRA.length === 0){
         wrapRA.innerHTML = '<div class="empty-note"><i class="fa-solid fa-circle-info"></i> Tu docente aún no ha habilitado actividades.</div>';
       } else {
-        wrapRA.innerHTML = actividadesRA.map(a => {
-          const cal = califPorCodigo[a.codigo];
-          const nombre = NOMBRES_ACTIVIDADES_RA[a.codigo] || a.codigo;
+        // Agrupa las actividades habilitadas por su RA (RA1, RA2, ...), en orden
+        const gruposPorRA = {};
+        actividadesRA.forEach(a => {
+          if(!gruposPorRA[a.ra]) gruposPorRA[a.ra] = [];
+          gruposPorRA[a.ra].push(a);
+        });
+        const rasOrdenados = Object.keys(gruposPorRA).sort();
+
+        wrapRA.innerHTML = rasOrdenados.map(ra => {
+          const actividadesDelRA = gruposPorRA[ra];
+          const infoRA = RA_INFO[ra];
+
+          let puntosRA = 0, posiblesRA = 0, completadasRA = 0;
+          const itemsHtml = actividadesDelRA.map(a => {
+            const cal = califPorCodigo[a.codigo];
+            const nombre = NOMBRES_ACTIVIDADES_RA[a.codigo] || a.codigo;
+            posiblesRA += Number(a.puntaje) || 0;
+            if(cal){ completadasRA++; puntosRA += Number(cal.nota) || 0; }
+            return `
+              <div class="progreso-item-card">
+                <div class="progreso-item-info">
+                  <div class="progreso-item-codigo">${a.codigo} <span class="progreso-item-nombre">— ${nombre}</span></div>
+                  ${cal ? `<div class="progreso-item-fecha">Completada: ${formatearFechaCorta(cal.fecha) || '—'}</div>` : `<div class="progreso-item-fecha">Aún no realizada</div>`}
+                </div>
+                <div class="progreso-item-acciones">
+                  ${cal
+                    ? `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> ${cal.nota}/${cal.puntajeMaximo} pts</span>
+                       <button type="button" class="btn-progreso-pdf" data-codigo="${a.codigo}" data-tipo="ra"><i class="fa-solid fa-file-pdf"></i></button>`
+                    : `<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Pendiente</span>
+                       <button type="button" class="btn-progreso-ir" data-codigo="${a.codigo}"><i class="fa-solid fa-play"></i> Ir</button>`
+                  }
+                </div>
+              </div>`;
+          }).join('');
+
+          const porcentajeRA = posiblesRA > 0 ? Math.round((puntosRA / posiblesRA) * 100) : 0;
+
           return `
-            <div class="progreso-item-card">
-              <div class="progreso-item-info">
-                <div class="progreso-item-codigo">${a.codigo} <span class="progreso-item-nombre">— ${nombre}</span></div>
-                ${cal ? `<div class="progreso-item-fecha">Completada: ${formatearFechaCorta(cal.fecha) || '—'}</div>` : `<div class="progreso-item-fecha">Aún no realizada</div>`}
+            <div class="progreso-ra-grupo">
+              <div class="progreso-ra-titulo">
+                <i class="fa-solid ${infoRA ? infoRA.icono : 'fa-layer-group'}"></i> ${ra}${infoRA ? ` — ${infoRA.descripcion}` : ''}
               </div>
-              <div class="progreso-item-acciones">
-                ${cal
-                  ? `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> ${cal.nota}/${cal.puntajeMaximo} pts</span>
-                     <button type="button" class="btn-progreso-pdf" data-codigo="${a.codigo}" data-tipo="ra"><i class="fa-solid fa-file-pdf"></i></button>`
-                  : `<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Pendiente</span>
-                     <button type="button" class="btn-progreso-ir" data-codigo="${a.codigo}"><i class="fa-solid fa-play"></i> Ir</button>`
-                }
+              ${itemsHtml}
+              <div class="progreso-ra-barra-wrap">
+                <div class="progreso-ra-barra-texto">${completadasRA} de ${actividadesDelRA.length} actividades de ${ra} · ${puntosRA.toFixed(2)}/${posiblesRA.toFixed(2)} pts</div>
+                <div class="progreso-barra-wrap" style="margin-bottom:0;">
+                  <div class="progreso-barra-fill" style="width:${porcentajeRA}%"></div>
+                </div>
               </div>
             </div>`;
         }).join('');
