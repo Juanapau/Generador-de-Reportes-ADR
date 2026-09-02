@@ -308,11 +308,11 @@
           <p>Consulta el instrumento de evaluación de cada actividad y realízala para autocalificarte al instante.</p>
           <span class="m-tag tag-blue">Disponible</span>
         </button>
-        <div class="module-card">
+        <div class="module-card" id="cardMiProgreso" style="cursor:pointer;">
           <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-simple"></i></div>
           <h3>Mi progreso</h3>
           <p>Revisa tu historial de calificaciones y avances a lo largo del módulo.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
+          <span class="m-tag tag-green">Disponible</span>
         </div>
       </div>
       <div class="empty-note">
@@ -344,6 +344,22 @@
         <button type="button" class="back-btn" id="btnBackToRaCardsEstudiante"><i class="fa-solid fa-arrow-left"></i> Volver a mis RA</button>
         <div class="section-heading" id="tituloListaMisActividades" style="font-size:22px;">RA1</div>
         <div id="listaMisActividadesWrap"></div>
+      </div>
+    </div>
+
+    <!-- ---- MI PROGRESO (panel estudiante) ---- -->
+    <div id="panelMiProgreso" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromMiProgreso"><i class="fa-solid fa-arrow-left"></i> Volver a mi espacio</button>
+      <div class="section-heading">Mi Progreso</div>
+
+      <div id="resumenProgresoWrap"></div>
+
+      <div class="section-heading" style="font-size:19px; margin-top:26px;">Actividades del RA1</div>
+      <div id="listaProgresoRA1Wrap"></div>
+
+      <div id="bloqueProgresoExtra" class="hidden">
+        <div class="section-heading" style="font-size:19px; margin-top:26px;">Actividades Extra</div>
+        <div id="listaProgresoExtraWrap"></div>
       </div>
     </div>
 
@@ -835,5 +851,6 @@
 <script src="mis-actividades.js"></script>
 <script src="actividades.js"></script>
 <script src="actividades-extra.js"></script>
+<script src="mi-progreso.js"></script>
 </body>
 </html>
