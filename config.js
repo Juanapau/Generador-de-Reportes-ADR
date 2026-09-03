@@ -9,6 +9,7 @@
   let selectedRole = 'estudiante';
   let estudiantesCache = [];
   let docenteOriginal = null; // guarda al docente cuando está "viendo como" un estudiante
+  let modoPreviewDocente = false; // true cuando el docente está en su propia vista previa de estudiante (ve todo, sin guardar nada)
 
   // ---------- Helper de conexión ----------
   async function apiGet(params){
@@ -20,7 +21,13 @@
     const res = await fetch(url, { cache: 'no-store' });
     return res.json();
   }
+  const ACCIONES_BLOQUEADAS_EN_PREVIEW = ['guardarCalificacion', 'enviarRespuestaExtra', 'calificarRespuestaExtra'];
   async function apiPost(data){
+    if(modoPreviewDocente && ACCIONES_BLOQUEADAS_EN_PREVIEW.includes(data.action)){
+      // En vista previa de administrador no se guarda nada real en el servidor.
+      console.log('[Vista previa de administrador] No se guardó en el servidor:', data.action);
+      return { success:true };
+    }
     const res = await fetch(CONFIG.API_URL, {
       method: 'POST',
       body: JSON.stringify(data)
