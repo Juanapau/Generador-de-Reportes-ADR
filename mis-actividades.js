@@ -44,7 +44,7 @@
         wrap.innerHTML = '<div class="empty-table-msg">No se pudieron cargar las actividades.</div>';
         return;
       }
-      const habilitadas = data.actividades.filter(a => a.habilitada === 'Si');
+      const habilitadas = data.actividades.filter(a => modoPreviewDocente || a.habilitada === 'Si');
 
       if(habilitadas.length === 0){
         wrap.innerHTML = `<div class="empty-note">
@@ -73,10 +73,12 @@
         const fin = act.fechaFin ? new Date(act.fechaFin) : null;
         const aunNoInicia = inicio && ahora < inicio;
         const yaVencio = fin && ahora > fin;
-        const fueraDeVentana = (aunNoInicia || yaVencio) && !completada;
+        const fueraDeVentana = (aunNoInicia || yaVencio) && !completada && !modoPreviewDocente;
 
         let estadoBadge;
-        if(completada){
+        if(modoPreviewDocente && act.habilitada !== 'Si'){
+          estadoBadge = '<span class="estado-badge estado-vencida"><i class="fa-solid fa-eye-slash"></i> No habilitada (solo tú la ves)</span>';
+        } else if(completada){
           estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Completada — ${completada.nota}/${completada.puntajeMaximo}</span>`;
         } else if(aunNoInicia){
           estadoBadge = `<span class="estado-badge estado-pendiente"><i class="fa-solid fa-clock"></i> Disponible desde ${formatearFechaCorta(inicio)}</span>`;
