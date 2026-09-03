@@ -56,6 +56,18 @@
     document.getElementById('userRole').textContent =
       currentUser.rol === 'docente' ? 'Docente — Administrador del sistema' : 'Estudiante';
 
+    // El menú de cambio de rol solo tiene sentido para quien es docente de verdad,
+    // o mientras está en su propia vista previa de estudiante (para poder regresar).
+    const puedeCambiarVista = (currentUser.rol === 'docente') || modoPreviewDocente;
+    document.getElementById('userProfileCaret').classList.toggle('hidden', !puedeCambiarVista);
+    document.getElementById('userProfileToggle').classList.toggle('con-menu', puedeCambiarVista);
+    document.getElementById('rolDropdown').classList.add('hidden');
+    if(puedeCambiarVista){
+      const vistaEsEstudiante = modoPreviewDocente;
+      document.getElementById('rolOpcionEstudiante').classList.toggle('activo', vistaEsEstudiante);
+      document.getElementById('rolOpcionAdministrador').classList.toggle('activo', !vistaEsEstudiante);
+    }
+
     // Reinicia siempre a la vista principal del rol correspondiente,
     // ocultando cualquier submódulo (como Registro de estudiantes) que haya
     // quedado abierto de una sesión anterior en el mismo navegador.
@@ -68,12 +80,54 @@
     document.getElementById('panelEstudiante').classList.toggle('hidden', currentUser.rol !== 'estudiante');
   }
 
+  // ---------- Menú de cambio de rol (vista previa de administrador) ----------
+  document.getElementById('userProfileToggle').addEventListener('click', (e) => {
+    if(!document.getElementById('userProfileToggle').classList.contains('con-menu')) return;
+    e.stopPropagation();
+    document.getElementById('rolDropdown').classList.toggle('hidden');
+  });
+  document.addEventListener('click', () => {
+    document.getElementById('rolDropdown').classList.add('hidden');
+  });
+
+  document.getElementById('rolOpcionEstudiante').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('rolDropdown').classList.add('hidden');
+    if(modoPreviewDocente) return; // ya está en vista de estudiante
+
+    docenteOriginal = currentUser; // se guarda la sesión real del docente para poder regresar
+    currentUser = { rol:'estudiante', usuario: docenteOriginal.usuario, nombre: docenteOriginal.nombre, equipo:'' };
+    modoPreviewDocente = true;
+
+    document.getElementById('panelRegistro').classList.add('hidden');
+    renderApp();
+    document.getElementById('previewDocenteBanner').classList.remove('hidden');
+  });
+
+  document.getElementById('rolOpcionAdministrador').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('rolDropdown').classList.add('hidden');
+    if(!modoPreviewDocente || !docenteOriginal) return; // ya está en vista de administrador
+
+    currentUser = docenteOriginal;
+    docenteOriginal = null;
+    modoPreviewDocente = false;
+    document.getElementById('previewDocenteBanner').classList.add('hidden');
+    renderApp();
+  });
+
+  document.getElementById('btnSalirPreviewDocente').addEventListener('click', () => {
+    document.getElementById('rolOpcionAdministrador').click();
+  });
+
   // ---------- Logout ----------
   document.getElementById('btnLogout').addEventListener('click', function(){
     currentUser = null;
     estudiantesCache = [];
     docenteOriginal = null;
+    modoPreviewDocente = false;
     document.getElementById('impersonationBanner').classList.add('hidden');
+    document.getElementById('previewDocenteBanner').classList.add('hidden');
     document.getElementById('appShell').classList.add('hidden');
     document.getElementById('panelRegistro').classList.add('hidden');
     document.querySelectorAll('.panel-secundario').forEach(p => p.classList.add('hidden'));
