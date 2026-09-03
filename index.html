@@ -95,10 +95,23 @@
   </header>
 
   <div class="userbar">
-    <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
-    <div class="user-meta">
-      <div class="u-name" id="userName">—</div>
-      <div class="u-role" id="userRole">—</div>
+    <div class="user-profile-toggle" id="userProfileToggle">
+      <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+      <div class="user-meta">
+        <div class="u-name" id="userName">—</div>
+        <div class="u-role" id="userRole">—</div>
+      </div>
+      <i class="fa-solid fa-chevron-down user-profile-caret hidden" id="userProfileCaret"></i>
+
+      <div class="rol-dropdown hidden" id="rolDropdown">
+        <div class="rol-dropdown-titulo">Cambiar vista</div>
+        <button type="button" class="rol-dropdown-item" id="rolOpcionEstudiante" data-rol="estudiante">
+          <i class="fa-solid fa-user-graduate"></i> Estudiante <span class="rol-dropdown-check"><i class="fa-solid fa-check"></i></span>
+        </button>
+        <button type="button" class="rol-dropdown-item" id="rolOpcionAdministrador" data-rol="administrador">
+          <i class="fa-solid fa-user-shield"></i> Administrador <span class="rol-dropdown-check"><i class="fa-solid fa-check"></i></span>
+        </button>
+      </div>
     </div>
     <div class="userbar-actions">
       <button type="button" class="icon-btn" id="themeToggleApp" title="Cambiar tema">
@@ -117,6 +130,12 @@
     <i class="fa-solid fa-user-secret"></i>
     <span>Estás viendo el perfil de <b id="impersonationNombre">—</b> en modo solo lectura docente.</span>
     <button type="button" id="btnVolverDocente"><i class="fa-solid fa-arrow-left"></i> Volver a mi panel</button>
+  </div>
+
+  <div class="impersonation-banner banner-preview hidden" id="previewDocenteBanner">
+    <i class="fa-solid fa-eye"></i>
+    <span>Estás en <b>vista previa de estudiante</b> — ves todas las actividades, incluso las no habilitadas. Nada de lo que hagas aquí se guarda.</span>
+    <button type="button" id="btnSalirPreviewDocente"><i class="fa-solid fa-arrow-left"></i> Volver a administrador</button>
   </div>
 
   <!-- ============ MODAL DE CONFIRMACIÓN (reemplaza confirm() nativo) ============ -->
