@@ -235,8 +235,40 @@
     margin:20px 28px 6px;
   }
   body.light .userbar{ background:#fff; border:1px solid #dde5f6; box-shadow: 0 4px 14px rgba(20,40,90,.06);}
+
+  .user-profile-toggle{
+    flex:1; display:flex; align-items:center; gap:14px; position:relative; min-width:0;
+    border-radius:10px; padding:4px 8px; margin:-4px -8px;
+  }
+  .user-profile-toggle.con-menu{ cursor:pointer; }
+  .user-profile-toggle.con-menu:hover{ background: rgba(255,255,255,0.04); }
+  body.light .user-profile-toggle.con-menu:hover{ background: rgba(0,0,0,0.03); }
+  .user-profile-caret{ font-size:13px; color: var(--dark-text-dim); margin-left:-4px; }
+  body.light .user-profile-caret{ color: var(--light-text-dim); }
+
+  .rol-dropdown{
+    position:absolute; top:calc(100% + 8px); left:8px; z-index:80; width:220px;
+    background: var(--dark-card); border:1px solid var(--dark-border); border-radius:12px;
+    padding:8px; box-shadow: var(--shadow);
+  }
+  body.light .rol-dropdown{ background:#fff; border:1px solid #dde5f6; }
+  .rol-dropdown-titulo{
+    font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+    color: var(--dark-text-dim); padding:6px 10px 8px;
+  }
+  body.light .rol-dropdown-titulo{ color: var(--light-text-dim); }
+  .rol-dropdown-item{
+    width:100%; display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:8px;
+    font-size:14px; font-weight:700; color: var(--dark-text); text-align:left;
+  }
+  body.light .rol-dropdown-item{ color: var(--light-text); }
+  .rol-dropdown-item:hover{ background: rgba(79,163,255,.12); }
+  .rol-dropdown-check{ margin-left:auto; opacity:0; color: var(--dark-green-accent); }
+  .rol-dropdown-item.activo{ color: var(--dark-green-accent); }
+  .rol-dropdown-item.activo .rol-dropdown-check{ opacity:1; }
+
   .user-avatar{
-    width:42px; height:42px; border-radius:50%;
+    width:42px; height:42px; border-radius:50%; flex-shrink:0;
     background: linear-gradient(145deg, var(--dark-gold-accent), #b9860f);
     display:flex; align-items:center; justify-content:center; font-size:22px; color:#241a02;
   }
@@ -272,6 +304,7 @@
     font-weight:800; font-size:14.5px; display:flex; align-items:center; gap:8px;
   }
   .impersonation-banner button:hover{ background: rgba(255,255,255,0.25); }
+  .impersonation-banner.banner-preview{ background: linear-gradient(120deg, #1e3a6e, #142850); }
   @media (max-width:640px){ .impersonation-banner{ margin:12px 14px 0; } }
 
   .section-heading{
