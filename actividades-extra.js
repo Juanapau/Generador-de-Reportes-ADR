@@ -564,7 +564,7 @@
         return;
       }
       actividadesExtraCache = dataAct.actividades;
-      const habilitadas = actividadesExtraCache.filter(a => a.habilitada);
+      const habilitadas = actividadesExtraCache.filter(a => modoPreviewDocente || a.habilitada);
 
       if(habilitadas.length === 0){
         wrap.innerHTML = `<div class="empty-note">
@@ -584,10 +584,13 @@
         const fin = act.fechaFin ? new Date(act.fechaFin) : null;
         const aunNoInicia = inicio && ahora < inicio;
         const yaVencio = fin && ahora > fin;
-        const fueraDeVentana = (aunNoInicia || yaVencio) && !miRespuesta;
+        const fueraDeVentana = (aunNoInicia || yaVencio) && !miRespuesta && !modoPreviewDocente;
 
         let estadoBadge, textoBoton;
-        if(miRespuesta && miRespuesta.estado === 'calificado'){
+        if(modoPreviewDocente && !act.habilitada){
+          estadoBadge = '<span class="estado-badge estado-vencida"><i class="fa-solid fa-eye-slash"></i> No habilitada (solo tú la ves)</span>';
+          textoBoton = 'Realizar actividad';
+        } else if(miRespuesta && miRespuesta.estado === 'calificado'){
           estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Calificada — ${miRespuesta.nota}/${miRespuesta.puntajeMaximo}</span>`;
           textoBoton = 'Ver resultado';
         } else if(miRespuesta && miRespuesta.estado === 'completado'){
