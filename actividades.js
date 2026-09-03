@@ -2064,12 +2064,14 @@
   // Contenido anclado al recurso "Compañías Distribuidoras de Programas
   // Generadores de Reportes" (Microsoft, Google, SAP, TIBCO).
   const PREGUNTAS_DADO_A16_BASE = [
-    { cara:1, pregunta:'¿Qué compañía distribuye Power BI?', opciones:['SAP', 'Microsoft', 'TIBCO'], correctaIdx:1 },
-    { cara:2, pregunta:'¿En qué país tiene su sede SAP?', opciones:['España', 'Alemania', 'Estados Unidos'], correctaIdx:1 },
-    { cara:3, pregunta:'¿Qué compañía es dueña de Looker Studio?', opciones:['Microsoft', 'TIBCO', 'Google (Alphabet)'], correctaIdx:2 },
-    { cara:4, pregunta:'¿Cómo obtuvo SAP el programa Crystal Reports?', opciones:['Lo creó desde cero', 'Adquiriendo la empresa Business Objects en 2007', 'Se lo compró a Microsoft'], correctaIdx:1 },
-    { cara:5, pregunta:'De las 4 compañías estudiadas, ¿cuál es una empresa privada (no cotiza en bolsa)?', opciones:['Microsoft', 'SAP', 'TIBCO'], correctaIdx:2 },
-    { cara:6, pregunta:'¿En qué año fue fundada Microsoft?', opciones:['1975', '1998', '1972'], correctaIdx:0 }
+    { pregunta:'¿Qué compañía distribuye Power BI?', opciones:['SAP', 'Microsoft', 'TIBCO'], correctaIdx:1 },
+    { pregunta:'¿En qué país tiene su sede SAP?', opciones:['España', 'Alemania', 'Estados Unidos'], correctaIdx:1 },
+    { pregunta:'¿Qué compañía es dueña de Looker Studio?', opciones:['Microsoft', 'TIBCO', 'Google (Alphabet)'], correctaIdx:2 },
+    { pregunta:'¿Cómo obtuvo SAP el programa Crystal Reports?', opciones:['Lo creó desde cero', 'Adquiriendo la empresa Business Objects en 2007', 'Se lo compró a Microsoft'], correctaIdx:1 },
+    { pregunta:'De las 4 compañías estudiadas, ¿cuál es una empresa privada (no cotiza en bolsa)?', opciones:['Microsoft', 'SAP', 'TIBCO'], correctaIdx:2 },
+    { pregunta:'¿En qué año fue fundada Microsoft?', opciones:['1975', '1998', '1972'], correctaIdx:0 },
+    { pregunta:'¿Qué otro producto conocido desarrolla Google, además de Looker Studio?', opciones:['Windows', 'Gmail', 'Crystal Reports'], correctaIdx:1 },
+    { pregunta:'¿Cuál de estas compañías fue fundada por 5 exingenieros de otra empresa (IBM)?', opciones:['TIBCO', 'Microsoft', 'SAP'], correctaIdx:2 }
   ];
 
   const COMPANIAS_APAREO_A16_BASE = [
@@ -2081,7 +2083,7 @@
 
   const CRITERIOS_BASE_A16 = [
     { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
-    { key:'dado', nombre:'2. Dado de preguntas', niveles:{ excelente:'Responde correctamente las 2 preguntas del dado.', bueno:'Responde correctamente 1 de las 2 preguntas del dado.', proceso:'Responde ambas preguntas, pero con dificultad para identificar la respuesta correcta.', insuficiente:'No logra responder correctamente ninguna pregunta del dado.' } },
+    { key:'dado', nombre:'2. Dado de preguntas', niveles:{ excelente:'Responde correctamente las 4 preguntas del dado.', bueno:'Responde correctamente al menos 3 de las 4 preguntas del dado.', proceso:'Responde correctamente al menos 2 de las 4 preguntas del dado.', insuficiente:'Responde correctamente menos de 2 de las 4 preguntas del dado.' } },
     { key:'apareo', nombre:'3. Apareamiento de compañías', niveles:{ excelente:'Une las 4 compañías con su información en pocos intentos, sin errores relevantes.', bueno:'Une las 4 compañías con algunos intentos fallidos.', proceso:'Logra unir las compañías tras varios intentos fallidos.', insuficiente:'No logra completar el apareo de forma independiente.' } },
     { key:'justificacion', nombre:'4. Justificación', niveles:{ excelente:'Explica con claridad y reflexión qué le ayudó a recordar la información.', bueno:'Explica de forma general qué le ayudó a recordar.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica su respuesta.' } },
     { key:'tiempo', nombre:'5. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
@@ -2100,8 +2102,7 @@
   let dadoRotXA16 = 0, dadoRotYA16 = 0;
   let girandoDadoA16 = false;
   let tiradasA16 = 0;
-  let caraActualA16 = null;
-  let carasRespondidasA16 = [];
+  let preguntasRespondidasA16 = [];
   let respuestasDadoA16 = [];
   let companiasApareoBarajadoA16 = [];
   let infoApareoBarajadoA16 = [];
@@ -2162,8 +2163,7 @@
     dadoRotXA16 = 0; dadoRotYA16 = 0;
     girandoDadoA16 = false;
     tiradasA16 = 0;
-    caraActualA16 = null;
-    carasRespondidasA16 = [];
+    preguntasRespondidasA16 = [];
     respuestasDadoA16 = [];
     paresResueltosApareoA16 = 0;
     intentosApareoA16 = 0;
@@ -2197,13 +2197,15 @@
   }
 
   document.getElementById('btnLanzarDadoA16').addEventListener('click', () => {
-    if(girandoDadoA16 || tiradasA16 >= 2) return;
+    if(girandoDadoA16 || tiradasA16 >= 4) return;
 
-    const carasDisponibles = PREGUNTAS_DADO_A16_BASE.map(p => p.cara).filter(c => !carasRespondidasA16.includes(c));
-    const cara = carasDisponibles[Math.floor(Math.random() * carasDisponibles.length)];
+    // La cara que se ve (1-6) es solo el efecto visual del dado real.
+    // La pregunta se elige aparte, al azar, de un banco de 8 sin repetir ninguna.
+    const cara = 1 + Math.floor(Math.random() * 6);
+    const indicesDisponibles = PREGUNTAS_DADO_A16_BASE.map((_, i) => i).filter(i => !preguntasRespondidasA16.includes(i));
+    const indicePregunta = indicesDisponibles[Math.floor(Math.random() * indicesDisponibles.length)];
 
     girandoDadoA16 = true;
-    caraActualA16 = cara;
     document.getElementById('btnLanzarDadoA16').disabled = true;
     document.getElementById('preguntaDadoA16').innerHTML = '';
 
@@ -2218,19 +2220,19 @@
     setTimeout(() => {
       girandoDadoA16 = false;
       tiradasA16++;
-      document.getElementById('dadoContadorA16').textContent = `Tiradas: ${tiradasA16} de 2`;
-      pintarPreguntaDadoA16(cara);
+      document.getElementById('dadoContadorA16').textContent = `Tiradas: ${tiradasA16} de 4`;
+      pintarPreguntaDadoA16(cara, indicePregunta);
     }, 1350);
   });
 
-  function pintarPreguntaDadoA16(cara){
-    const p = PREGUNTAS_DADO_A16_BASE.find(q => q.cara === cara);
+  function pintarPreguntaDadoA16(cara, indicePregunta){
+    const p = PREGUNTAS_DADO_A16_BASE[indicePregunta];
     const cont = document.getElementById('preguntaDadoA16');
     let seleccion = null;
 
     cont.innerHTML = `
       <div class="dado-pregunta-card">
-        <div class="dado-pregunta-titulo">Cara ${cara} — Pregunta ${tiradasA16} de 2</div>
+        <div class="dado-pregunta-titulo">Sacaste ${cara} — Pregunta ${tiradasA16} de 4</div>
         <div class="dado-pregunta-texto">${p.pregunta}</div>
         <div class="quiz-opciones">
           ${p.opciones.map((op, i) => `
@@ -2263,7 +2265,7 @@
         correcta,
         respuestaCorrecta: p.opciones[p.correctaIdx]
       });
-      carasRespondidasA16.push(cara);
+      preguntasRespondidasA16.push(indicePregunta);
 
       cont.innerHTML = `
         <div class="dado-pregunta-card ${correcta ? 'correcta' : 'incorrecta'}">
@@ -2271,7 +2273,7 @@
           ${correcta ? '¡Correcto!' : `Incorrecto. La respuesta correcta era: <b>${p.opciones[p.correctaIdx]}</b>`}
         </div>`;
 
-      if(tiradasA16 >= 2){
+      if(tiradasA16 >= 4){
         document.getElementById('btnLanzarDadoA16').disabled = true;
         document.getElementById('seccionApareaA16').classList.remove('hidden');
         pintarApareoA16();
@@ -2367,8 +2369,14 @@
           document.getElementById('btnFinalizarA16').disabled = false;
         }
       } else {
-        sacudir(itemDerecha);
-        sacudir(apareoOrigenElA16);
+        const elIzqError = apareoOrigenElA16;
+        const elDerError = itemDerecha;
+        sacudir(elDerError);
+        sacudir(elIzqError);
+        setTimeout(() => {
+          elDerError.classList.remove('anim-sacudir');
+          elIzqError.classList.remove('anim-sacudir');
+        }, 500);
       }
     }
     apareoOrigenElA16 = null;
@@ -2405,8 +2413,9 @@
     criterios.push({ nombre: CRITERIOS_BASE_A16[0].nombre, niveles: CRITERIOS_BASE_A16[0].niveles, nivel: 'excelente' });
 
     let nivelDado = 'insuficiente';
-    if(aciertosDado >= 2) nivelDado = 'excelente';
-    else if(aciertosDado >= 1) nivelDado = 'bueno';
+    if(aciertosDado >= 4) nivelDado = 'excelente';
+    else if(aciertosDado >= 3) nivelDado = 'bueno';
+    else if(aciertosDado >= 2) nivelDado = 'proceso';
     criterios.push({ nombre: CRITERIOS_BASE_A16[1].nombre, niveles: CRITERIOS_BASE_A16[1].niveles, nivel: nivelDado });
 
     let nivelApareo = 'insuficiente';
