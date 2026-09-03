@@ -2057,3 +2057,428 @@
   });
 
   registrarActividadInteractiva('A.1.5', abrirActividadA15);
+
+// ============================================================================
+// A.1.6 — EL DADO DE LAS COMPAÑÍAS (dado 3D + apareo con líneas trazadas)
+// ============================================================================
+  // Contenido anclado al recurso "Compañías Distribuidoras de Programas
+  // Generadores de Reportes" (Microsoft, Google, SAP, TIBCO).
+  const PREGUNTAS_DADO_A16_BASE = [
+    { cara:1, pregunta:'¿Qué compañía distribuye Power BI?', opciones:['SAP', 'Microsoft', 'TIBCO'], correctaIdx:1 },
+    { cara:2, pregunta:'¿En qué país tiene su sede SAP?', opciones:['España', 'Alemania', 'Estados Unidos'], correctaIdx:1 },
+    { cara:3, pregunta:'¿Qué compañía es dueña de Looker Studio?', opciones:['Microsoft', 'TIBCO', 'Google (Alphabet)'], correctaIdx:2 },
+    { cara:4, pregunta:'¿Cómo obtuvo SAP el programa Crystal Reports?', opciones:['Lo creó desde cero', 'Adquiriendo la empresa Business Objects en 2007', 'Se lo compró a Microsoft'], correctaIdx:1 },
+    { cara:5, pregunta:'De las 4 compañías estudiadas, ¿cuál es una empresa privada (no cotiza en bolsa)?', opciones:['Microsoft', 'SAP', 'TIBCO'], correctaIdx:2 },
+    { cara:6, pregunta:'¿En qué año fue fundada Microsoft?', opciones:['1975', '1998', '1972'], correctaIdx:0 }
+  ];
+
+  const COMPANIAS_APAREO_A16_BASE = [
+    { id:1, nombre:'Microsoft', info:'Fundada en 1975 en Redmond, Washington; también desarrolla Windows y Azure.' },
+    { id:2, nombre:'Google (Alphabet)', info:'Ofrece su programa de reportes de forma gratuita como parte de su ecosistema de datos en la nube.' },
+    { id:3, nombre:'SAP', info:'Empresa alemana fundada en 1972, líder en software empresarial en Europa.' },
+    { id:4, nombre:'TIBCO', info:'Compañía privada que forma parte de Cloud Software Group junto con Citrix.' }
+  ];
+
+  const CRITERIOS_BASE_A16 = [
+    { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
+    { key:'dado', nombre:'2. Dado de preguntas', niveles:{ excelente:'Responde correctamente las 2 preguntas del dado.', bueno:'Responde correctamente 1 de las 2 preguntas del dado.', proceso:'Responde ambas preguntas, pero con dificultad para identificar la respuesta correcta.', insuficiente:'No logra responder correctamente ninguna pregunta del dado.' } },
+    { key:'apareo', nombre:'3. Apareamiento de compañías', niveles:{ excelente:'Une las 4 compañías con su información en pocos intentos, sin errores relevantes.', bueno:'Une las 4 compañías con algunos intentos fallidos.', proceso:'Logra unir las compañías tras varios intentos fallidos.', insuficiente:'No logra completar el apareo de forma independiente.' } },
+    { key:'justificacion', nombre:'4. Justificación', niveles:{ excelente:'Explica con claridad y reflexión qué le ayudó a recordar la información.', bueno:'Explica de forma general qué le ayudó a recordar.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica su respuesta.' } },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
+    { key:'colaborativo', nombre:'6. Orden y prolijidad', niveles:{ excelente:'Desarrolla la actividad de forma ordenada y completa.', bueno:'Desarrolla la actividad con algunas interrupciones.', proceso:'Desarrolla la actividad de forma desordenada.', insuficiente:'No completa el desarrollo de la actividad.' } }
+  ];
+
+  const DADO_TARGETS_A16 = {
+    1: { x:0,   y:0   },
+    2: { x:90,  y:0   },
+    3: { x:0,   y:-90 },
+    4: { x:0,   y:90  },
+    5: { x:-90, y:0   },
+    6: { x:180, y:0   }
+  };
+
+  let dadoRotXA16 = 0, dadoRotYA16 = 0;
+  let girandoDadoA16 = false;
+  let tiradasA16 = 0;
+  let caraActualA16 = null;
+  let carasRespondidasA16 = [];
+  let respuestasDadoA16 = [];
+  let companiasApareoBarajadoA16 = [];
+  let infoApareoBarajadoA16 = [];
+  let apareoArrastrandoA16 = false;
+  let apareoOrigenElA16 = null;
+  let apareoOrigenIdA16 = null;
+  let paresResueltosApareoA16 = 0;
+  let intentosApareoA16 = 0;
+  let puntajeMaxA16 = 0;
+  let tiempoEstimadoA16 = 10;
+  let inicioTiempoA16 = null;
+  let timerIntervalA16 = null;
+  let ultimoResultadoA16 = null;
+
+  async function abrirActividadA16(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA16 = puntajeMaximo;
+    tiempoEstimadoA16 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA16').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA16').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.6') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA16').classList.add('hidden');
+        document.getElementById('vistaEjercicioA16').classList.add('hidden');
+        document.getElementById('vistaResultadoA16').classList.remove('hidden');
+        renderRubricaDescriptiva('rubricaResultadoA16', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA16', previa.detalle);
+        ultimoResultadoA16 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA16').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA16').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA16').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA16').classList.add('hidden');
+    document.getElementById('vistaResultadoA16').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA16').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA16} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.6', 'recursosEstudianteA16');
+
+    const criteriosPrevios = CRITERIOS_BASE_A16.map(c => ({ nombre:c.nombre, niveles:c.niveles, nivel:null }));
+    renderRubricaDescriptiva('instrumentoPrevioA16', criteriosPrevios, puntajeMaxA16, null);
+  }
+
+  document.getElementById('btnBackFromActividadA16').addEventListener('click', () => {
+    clearInterval(timerIntervalA16);
+    document.getElementById('panelActividadA16').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA16').addEventListener('click', () => {
+    dadoRotXA16 = 0; dadoRotYA16 = 0;
+    girandoDadoA16 = false;
+    tiradasA16 = 0;
+    caraActualA16 = null;
+    carasRespondidasA16 = [];
+    respuestasDadoA16 = [];
+    paresResueltosApareoA16 = 0;
+    intentosApareoA16 = 0;
+    document.getElementById('dado3dA16').style.transform = 'rotateX(0deg) rotateY(0deg)';
+    document.getElementById('dadoContadorA16').textContent = 'Tiradas: 0 de 2';
+    document.getElementById('preguntaDadoA16').innerHTML = '';
+    document.getElementById('btnLanzarDadoA16').disabled = false;
+    document.getElementById('seccionApareaA16').classList.add('hidden');
+    document.getElementById('seccionFinalA16').classList.add('hidden');
+    document.getElementById('justificacionA16').value = '';
+    document.getElementById('btnFinalizarA16').disabled = true;
+    document.getElementById('vistaInstrumentoA16').classList.add('hidden');
+    document.getElementById('vistaEjercicioA16').classList.remove('hidden');
+
+    inicioTiempoA16 = Date.now();
+    clearInterval(timerIntervalA16);
+    timerIntervalA16 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA16) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA16').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA16} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Dado 3D ----------
+  function proximoAnguloA16(actual, objetivoMod360, vueltasExtra){
+    const base = Math.floor(actual / 360) * 360;
+    let nuevo = base + objetivoMod360 + vueltasExtra * 360;
+    while(nuevo <= actual) nuevo += 360;
+    return nuevo;
+  }
+
+  document.getElementById('btnLanzarDadoA16').addEventListener('click', () => {
+    if(girandoDadoA16 || tiradasA16 >= 2) return;
+
+    const carasDisponibles = PREGUNTAS_DADO_A16_BASE.map(p => p.cara).filter(c => !carasRespondidasA16.includes(c));
+    const cara = carasDisponibles[Math.floor(Math.random() * carasDisponibles.length)];
+
+    girandoDadoA16 = true;
+    caraActualA16 = cara;
+    document.getElementById('btnLanzarDadoA16').disabled = true;
+    document.getElementById('preguntaDadoA16').innerHTML = '';
+
+    const t = DADO_TARGETS_A16[cara];
+    const objetivoX = ((t.x % 360) + 360) % 360;
+    const objetivoY = ((t.y % 360) + 360) % 360;
+    dadoRotXA16 = proximoAnguloA16(dadoRotXA16, objetivoX, 2 + Math.floor(Math.random() * 2));
+    dadoRotYA16 = proximoAnguloA16(dadoRotYA16, objetivoY, 2 + Math.floor(Math.random() * 2));
+
+    document.getElementById('dado3dA16').style.transform = `rotateX(${dadoRotXA16}deg) rotateY(${dadoRotYA16}deg)`;
+
+    setTimeout(() => {
+      girandoDadoA16 = false;
+      tiradasA16++;
+      document.getElementById('dadoContadorA16').textContent = `Tiradas: ${tiradasA16} de 2`;
+      pintarPreguntaDadoA16(cara);
+    }, 1350);
+  });
+
+  function pintarPreguntaDadoA16(cara){
+    const p = PREGUNTAS_DADO_A16_BASE.find(q => q.cara === cara);
+    const cont = document.getElementById('preguntaDadoA16');
+    let seleccion = null;
+
+    cont.innerHTML = `
+      <div class="dado-pregunta-card">
+        <div class="dado-pregunta-titulo">Cara ${cara} — Pregunta ${tiradasA16} de 2</div>
+        <div class="dado-pregunta-texto">${p.pregunta}</div>
+        <div class="quiz-opciones">
+          ${p.opciones.map((op, i) => `
+            <button type="button" class="quiz-opcion-radio" data-idx="${i}">
+              <span class="quiz-radio-circulo"></span>
+              <span class="quiz-opcion-texto">${op}</span>
+            </button>
+          `).join('')}
+        </div>
+        <button type="button" class="btn btn-add" id="btnConfirmarRespuestaDadoA16" style="margin-top:14px;" disabled>
+          <i class="fa-solid fa-check"></i> Confirmar respuesta
+        </button>
+      </div>`;
+
+    cont.querySelectorAll('.quiz-opcion-radio').forEach(btn => {
+      btn.addEventListener('click', () => {
+        cont.querySelectorAll('.quiz-opcion-radio').forEach(b => b.classList.remove('seleccionada'));
+        btn.classList.add('seleccionada');
+        seleccion = Number(btn.dataset.idx);
+        document.getElementById('btnConfirmarRespuestaDadoA16').disabled = false;
+      });
+    });
+
+    document.getElementById('btnConfirmarRespuestaDadoA16').addEventListener('click', () => {
+      if(seleccion === null) return;
+      const correcta = seleccion === p.correctaIdx;
+      respuestasDadoA16.push({
+        pregunta: p.pregunta,
+        tuRespuesta: p.opciones[seleccion],
+        correcta,
+        respuestaCorrecta: p.opciones[p.correctaIdx]
+      });
+      carasRespondidasA16.push(cara);
+
+      cont.innerHTML = `
+        <div class="dado-pregunta-card ${correcta ? 'correcta' : 'incorrecta'}">
+          <i class="fa-solid ${correcta ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
+          ${correcta ? '¡Correcto!' : `Incorrecto. La respuesta correcta era: <b>${p.opciones[p.correctaIdx]}</b>`}
+        </div>`;
+
+      if(tiradasA16 >= 2){
+        document.getElementById('btnLanzarDadoA16').disabled = true;
+        document.getElementById('seccionApareaA16').classList.remove('hidden');
+        pintarApareoA16();
+      } else {
+        document.getElementById('btnLanzarDadoA16').disabled = false;
+      }
+    });
+  }
+
+  // ---------- Apareo con líneas trazadas ----------
+  function pintarApareoA16(){
+    companiasApareoBarajadoA16 = barajar(COMPANIAS_APAREO_A16_BASE);
+    infoApareoBarajadoA16 = barajar(COMPANIAS_APAREO_A16_BASE);
+
+    const colIzq = document.getElementById('apareoColIzqA16');
+    const colDer = document.getElementById('apareoColDerA16');
+    colIzq.innerHTML = companiasApareoBarajadoA16.map(c => `<div class="apareo-item apareo-item-izq" data-id="${c.id}">${c.nombre}</div>`).join('');
+    colDer.innerHTML = infoApareoBarajadoA16.map(c => `<div class="apareo-item apareo-item-der" data-id="${c.id}">${c.info}</div>`).join('');
+
+    colIzq.querySelectorAll('.apareo-item-izq').forEach(el => {
+      el.addEventListener('mousedown', (e) => iniciarArrastreApareoA16(e, el));
+      el.addEventListener('touchstart', (e) => iniciarArrastreApareoA16(e, el), { passive:false });
+    });
+  }
+
+  function coordenadasRelativasApareoA16(e){
+    const cont = document.getElementById('apareoContenedorA16');
+    const rect = cont.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    return { x: clientX - rect.left, y: clientY - rect.top };
+  }
+
+  function iniciarArrastreApareoA16(e, itemEl){
+    if(itemEl.classList.contains('resuelto')) return;
+    e.preventDefault();
+    apareoArrastrandoA16 = true;
+    apareoOrigenElA16 = itemEl;
+    apareoOrigenIdA16 = itemEl.dataset.id;
+    itemEl.classList.add('seleccionado');
+    actualizarLineaTemporalApareoA16(e);
+  }
+
+  function actualizarLineaTemporalApareoA16(e){
+    if(!apareoArrastrandoA16) return;
+    const cont = document.getElementById('apareoContenedorA16');
+    const svg = document.getElementById('apareoSvgA16');
+    const rectCont = cont.getBoundingClientRect();
+    const rectOrigen = apareoOrigenElA16.getBoundingClientRect();
+    const x1 = rectOrigen.right - rectCont.left;
+    const y1 = (rectOrigen.top + rectOrigen.height / 2) - rectCont.top;
+    const p = coordenadasRelativasApareoA16(e);
+
+    let linea = document.getElementById('lineaTemporalApareoA16');
+    if(!linea){
+      linea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      linea.setAttribute('id', 'lineaTemporalApareoA16');
+      linea.setAttribute('stroke', '#4fa3ff');
+      linea.setAttribute('stroke-width', '3');
+      linea.setAttribute('stroke-dasharray', '7 5');
+      linea.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(linea);
+    }
+    linea.setAttribute('x1', x1); linea.setAttribute('y1', y1);
+    linea.setAttribute('x2', p.x); linea.setAttribute('y2', p.y);
+  }
+
+  document.addEventListener('mousemove', actualizarLineaTemporalApareoA16);
+  document.addEventListener('touchmove', (e) => { if(apareoArrastrandoA16){ e.preventDefault(); actualizarLineaTemporalApareoA16(e); } }, { passive:false });
+
+  function finalizarArrastreApareoA16(e){
+    if(!apareoArrastrandoA16) return;
+    apareoArrastrandoA16 = false;
+
+    const temp = document.getElementById('lineaTemporalApareoA16');
+    if(temp) temp.remove();
+    if(apareoOrigenElA16) apareoOrigenElA16.classList.remove('seleccionado');
+
+    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+    const elBajoCursor = document.elementFromPoint(clientX, clientY);
+    const itemDerecha = elBajoCursor ? elBajoCursor.closest('.apareo-item-der') : null;
+
+    if(itemDerecha && !itemDerecha.classList.contains('resuelto') && apareoOrigenElA16){
+      intentosApareoA16++;
+      if(itemDerecha.dataset.id === apareoOrigenIdA16){
+        dibujarLineaPermanenteApareoA16(apareoOrigenElA16, itemDerecha);
+        apareoOrigenElA16.classList.add('resuelto');
+        itemDerecha.classList.add('resuelto');
+        paresResueltosApareoA16++;
+        if(paresResueltosApareoA16 >= COMPANIAS_APAREO_A16_BASE.length){
+          document.getElementById('seccionFinalA16').classList.remove('hidden');
+          document.getElementById('btnFinalizarA16').disabled = false;
+        }
+      } else {
+        sacudir(itemDerecha);
+        sacudir(apareoOrigenElA16);
+      }
+    }
+    apareoOrigenElA16 = null;
+    apareoOrigenIdA16 = null;
+  }
+  document.addEventListener('mouseup', finalizarArrastreApareoA16);
+  document.addEventListener('touchend', finalizarArrastreApareoA16);
+
+  function dibujarLineaPermanenteApareoA16(elIzq, elDer){
+    const cont = document.getElementById('apareoContenedorA16');
+    const svg = document.getElementById('apareoSvgA16');
+    const rectCont = cont.getBoundingClientRect();
+    const rectIzq = elIzq.getBoundingClientRect();
+    const rectDer = elDer.getBoundingClientRect();
+    const linea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    linea.setAttribute('x1', rectIzq.right - rectCont.left);
+    linea.setAttribute('y1', (rectIzq.top + rectIzq.height / 2) - rectCont.top);
+    linea.setAttribute('x2', rectDer.left - rectCont.left);
+    linea.setAttribute('y2', (rectDer.top + rectDer.height / 2) - rectCont.top);
+    linea.setAttribute('stroke', '#22c55e');
+    linea.setAttribute('stroke-width', '3');
+    linea.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(linea);
+  }
+
+  document.getElementById('btnFinalizarA16').addEventListener('click', async () => {
+    clearInterval(timerIntervalA16);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA16) / 60000;
+    const justificacion = document.getElementById('justificacionA16').value.trim();
+    const aciertosDado = respuestasDadoA16.filter(r => r.correcta).length;
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A16[0].nombre, niveles: CRITERIOS_BASE_A16[0].niveles, nivel: 'excelente' });
+
+    let nivelDado = 'insuficiente';
+    if(aciertosDado >= 2) nivelDado = 'excelente';
+    else if(aciertosDado >= 1) nivelDado = 'bueno';
+    criterios.push({ nombre: CRITERIOS_BASE_A16[1].nombre, niveles: CRITERIOS_BASE_A16[1].niveles, nivel: nivelDado });
+
+    let nivelApareo = 'insuficiente';
+    if(intentosApareoA16 <= 4) nivelApareo = 'excelente';
+    else if(intentosApareoA16 <= 6) nivelApareo = 'bueno';
+    else if(intentosApareoA16 <= 9) nivelApareo = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A16[2].nombre, niveles: CRITERIOS_BASE_A16[2].niveles, nivel: nivelApareo });
+
+    let nivelJustificacion = 'insuficiente';
+    if(justificacion.length >= 20) nivelJustificacion = 'excelente';
+    else if(justificacion.length > 0) nivelJustificacion = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A16[3].nombre, niveles: CRITERIOS_BASE_A16[3].niveles, nivel: nivelJustificacion });
+
+    let nivelTiempo = 'insuficiente';
+    if(minutosTranscurridos <= tiempoEstimadoA16) nivelTiempo = 'excelente';
+    else if(minutosTranscurridos <= tiempoEstimadoA16 * 1.5) nivelTiempo = 'bueno';
+    else if(minutosTranscurridos <= tiempoEstimadoA16 * 2) nivelTiempo = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A16[4].nombre, niveles: CRITERIOS_BASE_A16[4].niveles, nivel: nivelTiempo });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A16[5].nombre, niveles: CRITERIOS_BASE_A16[5].niveles, nivel: 'excelente' });
+
+    const pesoUnidad = puntajeMaxA16 / criterios.length;
+    const pesosPorNivel = { excelente:1, bueno:0.75, proceso:0.4, insuficiente:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA16').classList.add('hidden');
+    document.getElementById('vistaResultadoA16').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA16').classList.add('hidden');
+    renderRubricaDescriptiva('rubricaResultadoA16', criterios, puntajeMaxA16, notaCalculada);
+
+    const proporcionFinalA16 = puntajeMaxA16 > 0 ? notaCalculada / puntajeMaxA16 : 0;
+    mostrarLogro(proporcionFinalA16 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA16 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA16 >= 0.8) dispararConfeti();
+
+    const detalleA16 = [
+      { titulo: 'Sección 1 — Dado de preguntas', items: respuestasDadoA16 },
+      {
+        titulo: 'Sección 2 — Apareo de compañías',
+        items: COMPANIAS_APAREO_A16_BASE.map(c => ({ pregunta: c.nombre, tuRespuesta: c.info, correcta: true }))
+      }
+    ];
+    ultimoResultadoA16 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA16, detalle: detalleA16 };
+    renderDesgloseColoreado('resultadoDesgloseA16', detalleA16);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.6',
+        ra:'RA1',
+        ec:'EC6.1.3',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA16,
+        criterios: criterios,
+        detalle: detalleA16
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA16').addEventListener('click', () => {
+    if(!ultimoResultadoA16) return;
+    generarPdfResultado('A.1.6', ultimoResultadoA16.criterios, ultimoResultadoA16.nota, ultimoResultadoA16.puntajeMaximo, 'EC6.1.3', 'RA1', ultimoResultadoA16.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA16').addEventListener('click', () => {
+    document.getElementById('panelActividadA16').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.6', abrirActividadA16);
