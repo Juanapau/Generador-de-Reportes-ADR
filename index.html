@@ -852,6 +852,104 @@
         </div>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.6: EL DADO DE LAS COMPAÑÍAS ---- -->
+    <div id="panelActividadA16" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA16"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.6 — El dado de las compañías</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA16">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA16" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA16" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA16"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA16" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA16" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA16" class="hidden">
+        <div class="timer-badge" id="timerA16"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+        <div id="progresoA16"></div>
+
+        <div class="section-heading" style="font-size:18.5px;">Sección 1 — Lanza el dado</div>
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Haz clic en el dado para lanzarlo. Debes lanzarlo <b>2 veces</b> y responder la pregunta que te toque en cada tirada.
+        </div>
+
+        <div class="dado-contenedor">
+          <div class="dado-escena" id="dadoEscenaA16">
+            <div class="dado-3d" id="dado3dA16">
+              <div class="dado-cara cara-1">1</div>
+              <div class="dado-cara cara-2">2</div>
+              <div class="dado-cara cara-3">3</div>
+              <div class="dado-cara cara-4">4</div>
+              <div class="dado-cara cara-5">5</div>
+              <div class="dado-cara cara-6">6</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary" id="btnLanzarDadoA16" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-dice"></i> Lanzar el dado
+          </button>
+          <div class="dado-contador" id="dadoContadorA16">Tiradas: 0 de 2</div>
+        </div>
+
+        <div id="preguntaDadoA16"></div>
+
+        <div id="seccionApareaA16" class="hidden">
+          <div class="section-heading" style="font-size:18.5px;">Sección 2 — Une cada compañía con su información</div>
+          <div class="empty-note" style="margin-top:0;">
+            <i class="fa-solid fa-hand-pointer"></i>
+            Haz clic sostenido sobre el nombre de una compañía, arrastra hasta la información que le corresponde, y suelta para trazar la línea.
+          </div>
+          <div class="apareo-contenedor" id="apareoContenedorA16">
+            <svg class="apareo-svg" id="apareoSvgA16"></svg>
+            <div class="apareo-columna" id="apareoColIzqA16"></div>
+            <div class="apareo-columna" id="apareoColDerA16"></div>
+          </div>
+        </div>
+
+        <div id="seccionFinalA16" class="hidden">
+          <div class="justificacion-box">
+            <label for="justificacionA16"><i class="fa-solid fa-pen"></i> ¿Qué fue lo que más te ayudó a recordar qué compañía distribuye cada programa? (criterio 4)</label>
+            <textarea id="justificacionA16" placeholder="Explica brevemente..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA16" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA16" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA16">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA16"></div>
+        <div id="resultadoDesgloseA16"></div>
+        <div class="acciones-resultado">
+          <button type="button" class="btn btn-primary" id="btnVolverMisActA16" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+          </button>
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfA16">
+            <i class="fa-solid fa-file-pdf"></i> Descargar resultado en PDF
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
