@@ -950,6 +950,72 @@
         </div>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.7: DESCARGA GUIADA DE NEXAREPORT ---- -->
+    <div id="panelActividadA17" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA17"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.7 — Descarga guiada de NexaReport</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA17">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA17" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA17" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA17"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA17" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA17" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA17" class="hidden">
+        <div class="timer-badge" id="timerA17"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+
+        <div class="empty-note" style="margin-top:0;" id="instruccionSimuladorA17">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Simula que necesitas descargar <b>NexaReport</b>. Busca y elige el resultado que corresponda al sitio oficial del desarrollador. Si te equivocas, no pasa nada — puedes volver a intentarlo, pero se tomará en cuenta para tu calificación.
+        </div>
+
+        <div id="ventanaNavegadorA17"></div>
+
+        <div id="seccionFinalA17" class="hidden">
+          <div class="justificacion-box">
+            <label for="justificacionA17"><i class="fa-solid fa-pen"></i> ¿Cómo supiste cuál era el sitio oficial de NexaReport y no uno de los otros resultados? (criterio 4)</label>
+            <textarea id="justificacionA17" placeholder="Explica qué señales te ayudaron a identificarlo..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA17" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA17" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA17">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA17"></div>
+        <div id="resultadoDesgloseA17"></div>
+        <div class="acciones-resultado">
+          <button type="button" class="btn btn-primary" id="btnVolverMisActA17" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+          </button>
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfA17">
+            <i class="fa-solid fa-file-pdf"></i> Descargar resultado en PDF
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
@@ -966,6 +1032,7 @@
 <script src="registro-estudiantes.js"></script>
 <script src="actividades-admin.js"></script>
 <script src="mis-actividades.js"></script>
+<script src="simulador-programa.js"></script>
 <script src="actividades.js"></script>
 <script src="actividades-extra.js"></script>
 <script src="mi-progreso.js"></script>
