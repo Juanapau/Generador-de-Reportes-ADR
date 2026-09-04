@@ -259,7 +259,7 @@
   body.light .rol-dropdown-titulo{ color: var(--light-text-dim); }
   .rol-dropdown-item{
     width:100%; display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:8px;
-    font-size:14px; font-weight:700; color: var(--dark-text); text-align:left;
+    font-size:14px; font-weight:700; color: var(--dark-text); text-align:left; background:transparent;
   }
   body.light .rol-dropdown-item{ color: var(--light-text); }
   .rol-dropdown-item:hover{ background: rgba(79,163,255,.12); }
