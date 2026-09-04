@@ -2111,6 +2111,7 @@
   let apareoOrigenIdA16 = null;
   let paresResueltosApareoA16 = 0;
   let intentosApareoA16 = 0;
+  let errorApareoIdA16 = {}; // cuenta los intentos fallidos por cada compañía (id -> número de errores)
   let puntajeMaxA16 = 0;
   let tiempoEstimadoA16 = 10;
   let inicioTiempoA16 = null;
@@ -2167,8 +2168,9 @@
     respuestasDadoA16 = [];
     paresResueltosApareoA16 = 0;
     intentosApareoA16 = 0;
+    errorApareoIdA16 = {};
     document.getElementById('dado3dA16').style.transform = 'rotateX(0deg) rotateY(0deg)';
-    document.getElementById('dadoContadorA16').textContent = 'Tiradas: 0 de 2';
+    document.getElementById('dadoContadorA16').textContent = 'Tiradas: 0 de 4';
     document.getElementById('preguntaDadoA16').innerHTML = '';
     document.getElementById('btnLanzarDadoA16').disabled = false;
     document.getElementById('seccionApareaA16').classList.add('hidden');
@@ -2360,7 +2362,7 @@
     if(itemDerecha && !itemDerecha.classList.contains('resuelto') && apareoOrigenElA16){
       intentosApareoA16++;
       if(itemDerecha.dataset.id === apareoOrigenIdA16){
-        dibujarLineaPermanenteApareoA16(apareoOrigenElA16, itemDerecha);
+        dibujarLineaPermanenteApareoA16(apareoOrigenElA16, itemDerecha, '#22c55e');
         apareoOrigenElA16.classList.add('resuelto');
         itemDerecha.classList.add('resuelto');
         paresResueltosApareoA16++;
@@ -2369,6 +2371,8 @@
           document.getElementById('btnFinalizarA16').disabled = false;
         }
       } else {
+        errorApareoIdA16[apareoOrigenIdA16] = (errorApareoIdA16[apareoOrigenIdA16] || 0) + 1;
+        dibujarLineaPermanenteApareoA16(apareoOrigenElA16, itemDerecha, '#ef4444');
         const elIzqError = apareoOrigenElA16;
         const elDerError = itemDerecha;
         sacudir(elDerError);
@@ -2385,7 +2389,7 @@
   document.addEventListener('mouseup', finalizarArrastreApareoA16);
   document.addEventListener('touchend', finalizarArrastreApareoA16);
 
-  function dibujarLineaPermanenteApareoA16(elIzq, elDer){
+  function dibujarLineaPermanenteApareoA16(elIzq, elDer, color){
     const cont = document.getElementById('apareoContenedorA16');
     const svg = document.getElementById('apareoSvgA16');
     const rectCont = cont.getBoundingClientRect();
@@ -2396,8 +2400,9 @@
     linea.setAttribute('y1', (rectIzq.top + rectIzq.height / 2) - rectCont.top);
     linea.setAttribute('x2', rectDer.left - rectCont.left);
     linea.setAttribute('y2', (rectDer.top + rectDer.height / 2) - rectCont.top);
-    linea.setAttribute('stroke', '#22c55e');
-    linea.setAttribute('stroke-width', '3');
+    linea.setAttribute('stroke', color);
+    linea.setAttribute('stroke-width', color === '#ef4444' ? '2.5' : '3');
+    if(color === '#ef4444') linea.setAttribute('stroke-dasharray', '6 4');
     linea.setAttribute('stroke-linecap', 'round');
     svg.appendChild(linea);
   }
@@ -2456,7 +2461,14 @@
       { titulo: 'Sección 1 — Dado de preguntas', items: respuestasDadoA16 },
       {
         titulo: 'Sección 2 — Apareo de compañías',
-        items: COMPANIAS_APAREO_A16_BASE.map(c => ({ pregunta: c.nombre, tuRespuesta: c.info, correcta: true }))
+        items: COMPANIAS_APAREO_A16_BASE.map(c => {
+          const errores = errorApareoIdA16[c.id] || 0;
+          return {
+            pregunta: c.nombre,
+            tuRespuesta: c.info + (errores > 0 ? ` (con ${errores} intento${errores > 1 ? 's' : ''} fallido${errores > 1 ? 's' : ''} antes de acertar)` : ''),
+            correcta: errores === 0
+          };
+        })
       }
     ];
     ultimoResultadoA16 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA16, detalle: detalleA16 };
