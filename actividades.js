@@ -2301,12 +2301,31 @@
     });
   }
 
+  // Convierte coordenadas de pantalla (clientX/clientY) al sistema de coordenadas interno
+  // del SVG usando su matriz de transformación real (getScreenCTM). A diferencia de restar
+  // getBoundingClientRect() a mano, esto es exacto sin importar zoom, transform o escalas
+  // que haya aplicadas en algún elemento ancestro (como el "modo proyector").
+  function puntoSvgDesdeClienteA16(clientX, clientY){
+    const svg = document.getElementById('apareoSvgA16');
+    const ctm = svg.getScreenCTM();
+    if(!ctm) return { x: clientX, y: clientY };
+    const pt = svg.createSVGPoint();
+    pt.x = clientX; pt.y = clientY;
+    const transformado = pt.matrixTransform(ctm.inverse());
+    return { x: transformado.x, y: transformado.y };
+  }
+
+  function bordeElementoSvgA16(el, lado){
+    const r = el.getBoundingClientRect();
+    const clientX = lado === 'derecho' ? r.right : r.left;
+    const clientY = r.top + r.height / 2;
+    return puntoSvgDesdeClienteA16(clientX, clientY);
+  }
+
   function coordenadasRelativasApareoA16(e){
-    const cont = document.getElementById('apareoContenedorA16');
-    const rect = cont.getBoundingClientRect();
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-    return { x: clientX - rect.left, y: clientY - rect.top };
+    return puntoSvgDesdeClienteA16(clientX, clientY);
   }
 
   function iniciarArrastreApareoA16(e, itemEl){
@@ -2321,12 +2340,8 @@
 
   function actualizarLineaTemporalApareoA16(e){
     if(!apareoArrastrandoA16) return;
-    const cont = document.getElementById('apareoContenedorA16');
     const svg = document.getElementById('apareoSvgA16');
-    const rectCont = cont.getBoundingClientRect();
-    const rectOrigen = apareoOrigenElA16.getBoundingClientRect();
-    const x1 = rectOrigen.right - rectCont.left;
-    const y1 = (rectOrigen.top + rectOrigen.height / 2) - rectCont.top;
+    const origen = bordeElementoSvgA16(apareoOrigenElA16, 'derecho');
     const p = coordenadasRelativasApareoA16(e);
 
     let linea = document.getElementById('lineaTemporalApareoA16');
@@ -2339,7 +2354,7 @@
       linea.setAttribute('stroke-linecap', 'round');
       svg.appendChild(linea);
     }
-    linea.setAttribute('x1', x1); linea.setAttribute('y1', y1);
+    linea.setAttribute('x1', origen.x); linea.setAttribute('y1', origen.y);
     linea.setAttribute('x2', p.x); linea.setAttribute('y2', p.y);
   }
 
@@ -2390,16 +2405,14 @@
   document.addEventListener('touchend', finalizarArrastreApareoA16);
 
   function dibujarLineaPermanenteApareoA16(elIzq, elDer, color){
-    const cont = document.getElementById('apareoContenedorA16');
     const svg = document.getElementById('apareoSvgA16');
-    const rectCont = cont.getBoundingClientRect();
-    const rectIzq = elIzq.getBoundingClientRect();
-    const rectDer = elDer.getBoundingClientRect();
+    const origen = bordeElementoSvgA16(elIzq, 'derecho');
+    const destino = bordeElementoSvgA16(elDer, 'izquierdo');
     const linea = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    linea.setAttribute('x1', rectIzq.right - rectCont.left);
-    linea.setAttribute('y1', (rectIzq.top + rectIzq.height / 2) - rectCont.top);
-    linea.setAttribute('x2', rectDer.left - rectCont.left);
-    linea.setAttribute('y2', (rectDer.top + rectDer.height / 2) - rectCont.top);
+    linea.setAttribute('x1', origen.x);
+    linea.setAttribute('y1', origen.y);
+    linea.setAttribute('x2', destino.x);
+    linea.setAttribute('y2', destino.y);
     linea.setAttribute('stroke', color);
     linea.setAttribute('stroke-width', color === '#ef4444' ? '2.5' : '3');
     if(color === '#ef4444') linea.setAttribute('stroke-dasharray', '6 4');
