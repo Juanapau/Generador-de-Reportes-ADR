@@ -2520,3 +2520,294 @@
   });
 
   registrarActividadInteractiva('A.1.6', abrirActividadA16);
+
+// ============================================================================
+// A.1.7 — DESCARGA GUIADA DE NEXAREPORT (navegador simulado)
+// ============================================================================
+  // Usa el navegador simulado compartido (simulador-programa.js). El estudiante
+  // debe identificar el sitio oficial de NexaReport entre varios resultados de
+  // búsqueda (algunos son trampas: anuncio, foro, portal de descargas de terceros).
+  const RESULTADOS_BUSQUEDA_A17 = [
+    {
+      id:'anuncio', esOficial:false, esAnuncio:true,
+      url:'www.descargas-gratis-programas.com', titulo:'Descarga NexaReport GRATIS — Súper rápido',
+      desc:'¡Descarga rápida! Sin virus, sin registro. Haz clic aquí para instalar ya mismo.',
+      advertencia:'Este resultado es un <b>anuncio pagado</b> (fíjate en la etiqueta "Anuncio"), no necesariamente el sitio del desarrollador real. Los anuncios que prometen descargas "súper rápidas y gratis" son una señal común de sitios no confiables.'
+    },
+    {
+      id:'oficial', esOficial:true, esAnuncio:false,
+      url: 'www.nexareport.com', titulo:'NexaReport — Sitio oficial',
+      desc:'Software profesional para generación de reportes empresariales. Descarga la versión oficial, con planes gratuitos y de pago disponibles.'
+    },
+    {
+      id:'foro', esOficial:false, esAnuncio:false,
+      url:'www.tecnoayuda-foros.net/tema/48213', titulo:'Foro TecnoAyuda: ¿cómo consigo NexaReport?',
+      desc:'Usuarios comparten enlaces de terceros para descargar NexaReport. Última respuesta hace 2 años.',
+      advertencia:'Este es un <b>foro de usuarios</b>, no el sitio del desarrollador. Los enlaces que comparten otros usuarios en foros pueden estar desactualizados o ser inseguros.'
+    },
+    {
+      id:'portal', esOficial:false, esAnuncio:false,
+      url:'nexareport-descargas.info', titulo:'nexareport-descargas.info — Descargar NexaReport',
+      desc:'Portal de descargas de software. Miles de programas disponibles para descargar gratis.',
+      advertencia:'Este sitio <b>no es el desarrollador oficial</b> de NexaReport — es un portal externo de descargas. Estos portales a veces incluyen programas adicionales no deseados junto con la descarga.'
+    }
+  ];
+
+  const CRITERIOS_BASE_A17 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación del sitio oficial', descripcion:'Identifica el sitio oficial de NexaReport dentro de un número razonable de intentos.' },
+    { key:'descarga', nombre:'3. Descarga del programa', descripcion:'Completa la simulación de descarga desde el sitio oficial.' },
+    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con criterio qué señales le permitieron reconocer el sitio oficial.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let intentosSitioA17 = 0;
+  let descargaCompletadaA17 = false;
+  let puntajeMaxA17 = 0;
+  let tiempoEstimadoA17 = 10;
+  let inicioTiempoA17 = null;
+  let timerIntervalA17 = null;
+  let ultimoResultadoA17 = null;
+
+  async function abrirActividadA17(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA17 = puntajeMaximo;
+    tiempoEstimadoA17 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA17').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA17').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.7') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA17').classList.add('hidden');
+        document.getElementById('vistaEjercicioA17').classList.add('hidden');
+        document.getElementById('vistaResultadoA17').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA17', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA17', previa.detalle);
+        ultimoResultadoA17 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA17').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA17').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA17').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA17').classList.add('hidden');
+    document.getElementById('vistaResultadoA17').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA17').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA17} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.7', 'recursosEstudianteA17');
+
+    const criteriosPrevios = CRITERIOS_BASE_A17.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA17', criteriosPrevios, puntajeMaxA17, null);
+  }
+
+  document.getElementById('btnBackFromActividadA17').addEventListener('click', () => {
+    clearInterval(timerIntervalA17);
+    document.getElementById('panelActividadA17').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA17').addEventListener('click', () => {
+    intentosSitioA17 = 0;
+    descargaCompletadaA17 = false;
+    document.getElementById('justificacionA17').value = '';
+    document.getElementById('seccionFinalA17').classList.add('hidden');
+    document.getElementById('btnFinalizarA17').disabled = true;
+    document.getElementById('vistaInstrumentoA17').classList.add('hidden');
+    document.getElementById('vistaEjercicioA17').classList.remove('hidden');
+
+    pintarResultadosBusquedaA17();
+
+    inicioTiempoA17 = Date.now();
+    clearInterval(timerIntervalA17);
+    timerIntervalA17 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA17) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA17').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA17} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarResultadosBusquedaA17(){
+    const resultadosHTML = barajar(RESULTADOS_BUSQUEDA_A17).map(r => `
+      <div class="resultado-busqueda" data-id="${r.id}">
+        <div class="resultado-url"><i class="fa-solid fa-globe"></i> ${r.url} ${r.esAnuncio ? '<span class="badge-anuncio">Anuncio</span>' : ''}</div>
+        <div class="resultado-titulo">${r.titulo}</div>
+        <div class="resultado-desc">${r.desc}</div>
+      </div>
+    `).join('');
+
+    pintarVentanaNavegadorSimulado('ventanaNavegadorA17', 'buscador.com/busqueda?q=descargar+nexareport', resultadosHTML);
+
+    document.querySelectorAll('#ventanaNavegadorA17 .resultado-busqueda').forEach(el => {
+      el.addEventListener('click', () => manejarClicResultadoA17(el.dataset.id));
+    });
+  }
+
+  function manejarClicResultadoA17(id){
+    const resultado = RESULTADOS_BUSQUEDA_A17.find(r => r.id === id);
+    intentosSitioA17++;
+
+    if(resultado.esOficial){
+      pintarSitioOficialA17();
+      return;
+    }
+
+    const contenidoHTML = `
+      <div class="advertencia-sitio-falso">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>${resultado.advertencia}</div>
+      </div>
+      <button type="button" class="btn-volver-resultados" id="btnVolverResultadosA17">
+        <i class="fa-solid fa-arrow-left"></i> Volver a los resultados de búsqueda
+      </button>`;
+    pintarVentanaNavegadorSimulado('ventanaNavegadorA17', resultado.url, contenidoHTML);
+    document.getElementById('btnVolverResultadosA17').addEventListener('click', pintarResultadosBusquedaA17);
+  }
+
+  function pintarSitioOficialA17(){
+    const contenidoHTML = `
+      <div class="sitio-oficial-nexa">
+        ${logoNexaReportHTML(56)}
+        <div class="nexa-nombre-marca">${NEXAREPORT_BRAND.nombre}</div>
+        <div class="nexa-eslogan">${NEXAREPORT_BRAND.eslogan}</div>
+        <button type="button" class="btn-descargar-nexa" id="btnDescargarNexaA17">
+          <i class="fa-solid fa-download"></i> Descargar para Windows
+        </button>
+        <div class="nexa-requisitos">Windows 10/11 · 64 bits · 350 MB de espacio libre</div>
+        <div id="zonaDescargaA17"></div>
+      </div>`;
+    pintarVentanaNavegadorSimulado('ventanaNavegadorA17', NEXAREPORT_BRAND.dominioOficial, contenidoHTML);
+    document.getElementById('btnDescargarNexaA17').addEventListener('click', iniciarDescargaA17);
+  }
+
+  function iniciarDescargaA17(){
+    const btn = document.getElementById('btnDescargarNexaA17');
+    btn.disabled = true;
+    const zona = document.getElementById('zonaDescargaA17');
+    zona.innerHTML = `
+      <div class="descarga-progreso-wrap"><div class="descarga-progreso-fill" id="descargaFillA17"></div></div>
+      <div class="descarga-texto-estado" id="descargaTextoA17">Descargando NexaReport_Setup.exe...</div>`;
+
+    requestAnimationFrame(() => {
+      document.getElementById('descargaFillA17').style.width = '100%';
+    });
+
+    setTimeout(() => {
+      document.getElementById('descargaTextoA17').textContent = '¡Descarga completa!';
+      zona.innerHTML += `
+        <div class="descarga-completada-barra">
+          <i class="fa-solid fa-circle-check"></i>
+          <div>
+            <div class="archivo-nombre">NexaReport_Setup.exe</div>
+            <div class="archivo-sub">350 MB — Descarga completa</div>
+          </div>
+        </div>`;
+      descargaCompletadaA17 = true;
+      document.getElementById('seccionFinalA17').classList.remove('hidden');
+      document.getElementById('btnFinalizarA17').disabled = false;
+    }, 1900);
+  }
+
+  document.getElementById('btnFinalizarA17').addEventListener('click', async () => {
+    clearInterval(timerIntervalA17);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA17) / 60000;
+    const justificacion = document.getElementById('justificacionA17').value.trim();
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A17[0].nombre, descripcion: CRITERIOS_BASE_A17[0].descripcion, nivel: 'cumple' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A17[1].nombre, descripcion: CRITERIOS_BASE_A17[1].descripcion,
+      nivel: intentosSitioA17 <= 2 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A17[2].nombre, descripcion: CRITERIOS_BASE_A17[2].descripcion,
+      nivel: descargaCompletadaA17 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A17[3].nombre, descripcion: CRITERIOS_BASE_A17[3].descripcion,
+      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A17[4].nombre, descripcion: CRITERIOS_BASE_A17[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA17 * 1.5 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A17[5].nombre, descripcion: CRITERIOS_BASE_A17[5].descripcion, nivel: 'cumple' });
+
+    const pesoUnidad = puntajeMaxA17 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => { if(c.nivel === 'cumple') notaCalculada += pesoUnidad; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA17').classList.add('hidden');
+    document.getElementById('vistaResultadoA17').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA17').classList.add('hidden');
+    renderRubrica('rubricaResultadoA17', criterios, puntajeMaxA17, notaCalculada);
+
+    const proporcionFinalA17 = puntajeMaxA17 > 0 ? notaCalculada / puntajeMaxA17 : 0;
+    mostrarLogro(proporcionFinalA17 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA17 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA17 >= 0.8) dispararConfeti();
+
+    const detalleA17 = [{
+      titulo: 'Descarga guiada de NexaReport',
+      items: [
+        {
+          pregunta: '¿Identificó el sitio oficial de NexaReport?',
+          tuRespuesta: `Sí, en ${intentosSitioA17} intento${intentosSitioA17 > 1 ? 's' : ''} (incluyendo el acierto)`,
+          correcta: intentosSitioA17 <= 2
+        },
+        {
+          pregunta: '¿Completó la descarga desde el sitio oficial?',
+          tuRespuesta: descargaCompletadaA17 ? 'Sí, descargó NexaReport_Setup.exe' : 'No completó la descarga',
+          correcta: descargaCompletadaA17
+        },
+        {
+          pregunta: '¿Cómo supiste cuál era el sitio oficial?',
+          tuRespuesta: justificacion || 'Sin responder',
+          correcta: justificacion.length >= 20
+        }
+      ]
+    }];
+    ultimoResultadoA17 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA17, detalle: detalleA17 };
+    renderDesgloseColoreado('resultadoDesgloseA17', detalleA17);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.7',
+        ra:'RA1',
+        ec:'EC6.1.3',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA17,
+        criterios: criterios,
+        detalle: detalleA17
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA17').addEventListener('click', () => {
+    if(!ultimoResultadoA17) return;
+    generarPdfResultado('A.1.7', ultimoResultadoA17.criterios, ultimoResultadoA17.nota, ultimoResultadoA17.puntajeMaximo, 'EC6.1.3', 'RA1', ultimoResultadoA17.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA17').addEventListener('click', () => {
+    document.getElementById('panelActividadA17').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.7', abrirActividadA17);
