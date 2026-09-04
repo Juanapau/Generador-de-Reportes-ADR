@@ -1210,3 +1210,69 @@
   @media (min-width:1024px){
     body{ zoom:1.18; }
   }
+
+  /* ============ NAVEGADOR SIMULADO (A.1.7 y futuras actividades de descarga) ============ */
+  /* Se diseña siempre con look de navegador real (claro), sin importar el tema de la app,
+     para que se sienta como una ventana de verdad y no como parte del sistema. */
+  .navegador-simulado{
+    background:#fff; border-radius:14px; overflow:hidden; max-width:720px; margin:20px auto;
+    box-shadow: 0 12px 34px rgba(0,0,0,.35); border:1px solid #d8dee8;
+  }
+  .navegador-barra-superior{ background:#e5e9f0; padding:10px 14px; display:flex; gap:7px; }
+  .navegador-punto{ width:11px; height:11px; border-radius:50%; display:inline-block; }
+  .punto-rojo{ background:#ef4444; } .punto-amarillo{ background:#f2a93d; } .punto-verde{ background:#22c55e; }
+  .navegador-barra-direcciones{
+    background:#f0f3f8; margin:0 12px 10px; border-radius:20px; padding:8px 16px;
+    display:flex; align-items:center; gap:8px; font-size:13px; color:#334155;
+  }
+  .navegador-candado{ color:#16a34a; font-size:11px; }
+  .navegador-url{ font-family: monospace; }
+  .navegador-contenido{ padding:20px 22px 26px; color:#1f2937; min-height:200px; }
+
+  .resultado-busqueda{
+    padding:14px 10px; border-radius:10px; cursor:pointer; margin-bottom:6px; border:1px solid transparent;
+  }
+  .resultado-busqueda:hover{ background:#f5f7fb; border-color:#e2e8f0; }
+  .resultado-busqueda .resultado-url{ font-size:12.5px; color:#166534; display:flex; align-items:center; gap:6px; }
+  .badge-anuncio{
+    display:inline-block; border:1px solid #94a3b8; color:#64748b; font-size:10px; font-weight:800;
+    padding:1px 6px; border-radius:4px; letter-spacing:.3px;
+  }
+  .resultado-busqueda .resultado-titulo{ color:#1a0dab; font-size:17px; margin:2px 0 3px; font-weight:500; }
+  .resultado-busqueda .resultado-desc{ color:#4d5156; font-size:13.5px; line-height:1.4; }
+
+  .advertencia-sitio-falso{
+    background:#fef2f2; border:1.5px solid #ef4444; border-radius:12px; padding:16px 18px;
+    color:#991b1b; font-size:14px; font-weight:600; display:flex; gap:10px; align-items:flex-start; margin-bottom:14px;
+  }
+  .advertencia-sitio-falso i{ font-size:18px; margin-top:1px; flex-shrink:0; }
+  .btn-volver-resultados{
+    margin-top:12px; padding:9px 16px; border-radius:9px; background:#f1f5f9; color:#334155;
+    border:1px solid #cbd5e1; font-weight:700; font-size:13.5px;
+  }
+
+  .sitio-oficial-nexa{ text-align:center; padding:10px 0 6px; }
+  .sitio-oficial-nexa .nexa-eslogan{ color:#475569; font-size:14.5px; margin:10px 0 22px; }
+  .nexa-nombre-marca{ font-family: var(--font-display); font-size:22px; letter-spacing:.4px; color:#1e293b; margin-top:10px; }
+  .btn-descargar-nexa{
+    background: linear-gradient(120deg, #6366f1, #14b8a6); color:#fff; border:none;
+    padding:14px 30px; border-radius:12px; font-weight:800; font-size:15.5px;
+    display:inline-flex; align-items:center; gap:10px; box-shadow:0 8px 20px rgba(99,102,241,.35);
+  }
+  .nexa-requisitos{ margin-top:18px; font-size:12px; color:#94a3b8; }
+
+  .descarga-progreso-wrap{
+    max-width:360px; margin:24px auto 6px; background:#e5e9f0; border-radius:20px; height:10px; overflow:hidden;
+  }
+  .descarga-progreso-fill{
+    height:100%; background: linear-gradient(120deg, #6366f1, #14b8a6); width:0%; transition: width 1.8s linear; border-radius:20px;
+  }
+  .descarga-texto-estado{ text-align:center; font-size:13px; color:#64748b; margin-top:8px; }
+
+  .descarga-completada-barra{
+    max-width:400px; margin:20px auto 0; background:#f8fafc; border:1px solid #d8dee8; border-radius:10px;
+    padding:12px 16px; display:flex; align-items:center; gap:12px; text-align:left;
+  }
+  .descarga-completada-barra i.fa-circle-check{ color:#22c55e; font-size:20px; }
+  .descarga-completada-barra .archivo-nombre{ font-weight:700; color:#1e293b; font-size:14px; }
+  .descarga-completada-barra .archivo-sub{ font-size:12px; color:#94a3b8; }
