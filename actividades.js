@@ -2084,7 +2084,7 @@
   const CRITERIOS_BASE_A16 = [
     { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
     { key:'dado', nombre:'2. Dado de preguntas', niveles:{ excelente:'Responde correctamente las 4 preguntas del dado.', bueno:'Responde correctamente al menos 3 de las 4 preguntas del dado.', proceso:'Responde correctamente al menos 2 de las 4 preguntas del dado.', insuficiente:'Responde correctamente menos de 2 de las 4 preguntas del dado.' } },
-    { key:'apareo', nombre:'3. Apareamiento de compañías', niveles:{ excelente:'Une las 4 compañías con su información en pocos intentos, sin errores relevantes.', bueno:'Une las 4 compañías con algunos intentos fallidos.', proceso:'Logra unir las compañías tras varios intentos fallidos.', insuficiente:'No logra completar el apareo de forma independiente.' } },
+    { key:'apareo', nombre:'3. Apareamiento de compañías', niveles:{ excelente:'Une correctamente las 4 compañías con su información en su único intento.', bueno:'Une correctamente al menos 3 de las 4 compañías.', proceso:'Une correctamente al menos 2 de las 4 compañías.', insuficiente:'Une correctamente menos de 2 de las 4 compañías.' } },
     { key:'justificacion', nombre:'4. Justificación', niveles:{ excelente:'Explica con claridad y reflexión qué le ayudó a recordar la información.', bueno:'Explica de forma general qué le ayudó a recordar.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica su respuesta.' } },
     { key:'tiempo', nombre:'5. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
     { key:'colaborativo', nombre:'6. Orden y prolijidad', niveles:{ excelente:'Desarrolla la actividad de forma ordenada y completa.', bueno:'Desarrolla la actividad con algunas interrupciones.', proceso:'Desarrolla la actividad de forma desordenada.', insuficiente:'No completa el desarrollo de la actividad.' } }
@@ -2103,6 +2103,7 @@
   let girandoDadoA16 = false;
   let tiradasA16 = 0;
   let preguntasRespondidasA16 = [];
+  let carasMostradasA16 = [];
   let respuestasDadoA16 = [];
   let companiasApareoBarajadoA16 = [];
   let infoApareoBarajadoA16 = [];
@@ -2165,6 +2166,7 @@
     girandoDadoA16 = false;
     tiradasA16 = 0;
     preguntasRespondidasA16 = [];
+    carasMostradasA16 = [];
     respuestasDadoA16 = [];
     paresResueltosApareoA16 = 0;
     intentosApareoA16 = 0;
@@ -2201,9 +2203,11 @@
   document.getElementById('btnLanzarDadoA16').addEventListener('click', () => {
     if(girandoDadoA16 || tiradasA16 >= 4) return;
 
-    // La cara que se ve (1-6) es solo el efecto visual del dado real.
+    // La cara que se ve (1-6) es un efecto visual, pero tampoco se repite en las 4 tiradas.
+    const carasDisponibles = [1, 2, 3, 4, 5, 6].filter(c => !carasMostradasA16.includes(c));
+    const cara = carasDisponibles[Math.floor(Math.random() * carasDisponibles.length)];
+    carasMostradasA16.push(cara);
     // La pregunta se elige aparte, al azar, de un banco de 8 sin repetir ninguna.
-    const cara = 1 + Math.floor(Math.random() * 6);
     const indicesDisponibles = PREGUNTAS_DADO_A16_BASE.map((_, i) => i).filter(i => !preguntasRespondidasA16.includes(i));
     const indicePregunta = indicesDisponibles[Math.floor(Math.random() * indicesDisponibles.length)];
 
@@ -2380,22 +2384,21 @@
         dibujarLineaPermanenteApareoA16(apareoOrigenElA16, itemDerecha, '#22c55e');
         apareoOrigenElA16.classList.add('resuelto');
         itemDerecha.classList.add('resuelto');
-        paresResueltosApareoA16++;
-        if(paresResueltosApareoA16 >= COMPANIAS_APAREO_A16_BASE.length){
-          document.getElementById('seccionFinalA16').classList.remove('hidden');
-          document.getElementById('btnFinalizarA16').disabled = false;
-        }
       } else {
+        // Un solo intento por compañía: aunque falle, la línea roja queda marcada
+        // y esa compañía se da por respondida (no hay reintentos). El recuadro de
+        // información sigue disponible para que otra compañía lo use correctamente.
         errorApareoIdA16[apareoOrigenIdA16] = (errorApareoIdA16[apareoOrigenIdA16] || 0) + 1;
         dibujarLineaPermanenteApareoA16(apareoOrigenElA16, itemDerecha, '#ef4444');
-        const elIzqError = apareoOrigenElA16;
+        apareoOrigenElA16.classList.add('resuelto', 'resuelto-error');
+        sacudir(itemDerecha);
         const elDerError = itemDerecha;
-        sacudir(elDerError);
-        sacudir(elIzqError);
-        setTimeout(() => {
-          elDerError.classList.remove('anim-sacudir');
-          elIzqError.classList.remove('anim-sacudir');
-        }, 500);
+        setTimeout(() => elDerError.classList.remove('anim-sacudir'), 500);
+      }
+      paresResueltosApareoA16++;
+      if(paresResueltosApareoA16 >= COMPANIAS_APAREO_A16_BASE.length){
+        document.getElementById('seccionFinalA16').classList.remove('hidden');
+        document.getElementById('btnFinalizarA16').disabled = false;
       }
     }
     apareoOrigenElA16 = null;
@@ -2436,10 +2439,11 @@
     else if(aciertosDado >= 2) nivelDado = 'proceso';
     criterios.push({ nombre: CRITERIOS_BASE_A16[1].nombre, niveles: CRITERIOS_BASE_A16[1].niveles, nivel: nivelDado });
 
+    const aciertosApareo = COMPANIAS_APAREO_A16_BASE.filter(c => !errorApareoIdA16[c.id]).length;
     let nivelApareo = 'insuficiente';
-    if(intentosApareoA16 <= 4) nivelApareo = 'excelente';
-    else if(intentosApareoA16 <= 6) nivelApareo = 'bueno';
-    else if(intentosApareoA16 <= 9) nivelApareo = 'proceso';
+    if(aciertosApareo >= 4) nivelApareo = 'excelente';
+    else if(aciertosApareo >= 3) nivelApareo = 'bueno';
+    else if(aciertosApareo >= 2) nivelApareo = 'proceso';
     criterios.push({ nombre: CRITERIOS_BASE_A16[2].nombre, niveles: CRITERIOS_BASE_A16[2].niveles, nivel: nivelApareo });
 
     let nivelJustificacion = 'insuficiente';
