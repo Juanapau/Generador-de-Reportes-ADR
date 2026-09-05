@@ -2811,3 +2811,271 @@
   });
 
   registrarActividadInteractiva('A.1.7', abrirActividadA17);
+
+// ============================================================================
+// A.1.8 — INSTALACIÓN GUIADA DE NEXAREPORT (instalador simulado, 7 pasos)
+// ============================================================================
+  const CRITERIOS_BASE_A18 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'instalacion', nombre:'2. Instalación completa', descripcion:'Completa los 7 pasos del asistente de instalación hasta el final.' },
+    { key:'seguridad', nombre:'3. Decisión de seguridad', descripcion:'Rechaza la instalación del componente adicional no deseado (BuscadorTurbo) durante la instalación.' },
+    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con criterio por qué tomó esa decisión sobre el componente adicional.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let pasoActualA18 = 1;
+  let terminosAceptadosA18 = false;
+  let rechazoOfertaExtraA18 = false;
+  let instalacionCompletadaA18 = false;
+  let puntajeMaxA18 = 0;
+  let tiempoEstimadoA18 = 10;
+  let inicioTiempoA18 = null;
+  let timerIntervalA18 = null;
+  let ultimoResultadoA18 = null;
+
+  async function abrirActividadA18(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA18 = puntajeMaximo;
+    tiempoEstimadoA18 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA18').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA18').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.8') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA18').classList.add('hidden');
+        document.getElementById('vistaEjercicioA18').classList.add('hidden');
+        document.getElementById('vistaResultadoA18').classList.remove('hidden');
+        renderListaCotejo('rubricaResultadoA18', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA18', previa.detalle);
+        ultimoResultadoA18 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA18').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA18').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA18').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA18').classList.add('hidden');
+    document.getElementById('vistaResultadoA18').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA18').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA18} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.8', 'recursosEstudianteA18');
+
+    const criteriosPrevios = CRITERIOS_BASE_A18.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderListaCotejo('instrumentoPrevioA18', criteriosPrevios, puntajeMaxA18, null);
+  }
+
+  document.getElementById('btnBackFromActividadA18').addEventListener('click', () => {
+    clearInterval(timerIntervalA18);
+    document.getElementById('panelActividadA18').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA18').addEventListener('click', () => {
+    pasoActualA18 = 1;
+    terminosAceptadosA18 = false;
+    rechazoOfertaExtraA18 = false;
+    instalacionCompletadaA18 = false;
+    document.getElementById('justificacionA18').value = '';
+    document.getElementById('seccionFinalA18').classList.add('hidden');
+    document.getElementById('btnFinalizarA18').disabled = true;
+    document.getElementById('vistaInstrumentoA18').classList.add('hidden');
+    document.getElementById('vistaEjercicioA18').classList.remove('hidden');
+
+    pintarPasoA18(1);
+
+    inicioTiempoA18 = Date.now();
+    clearInterval(timerIntervalA18);
+    timerIntervalA18 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA18) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA18').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA18} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarPasoA18(paso){
+    pasoActualA18 = paso;
+
+    if(paso === 1){
+      pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Descargas', `
+        <p>🗂️ <strong>NexaReport_Setup.exe</strong> — 350 MB</p>
+        <p style="margin-top:14px;">Haz doble clic para ejecutar el instalador que descargaste.</p>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA18">Ejecutar instalador</button>
+        </div>`);
+      document.getElementById('btnPasoA18').addEventListener('click', () => pintarPasoA18(2));
+    }
+
+    else if(paso === 2){
+      pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Instalación de NexaReport', `
+        <p><strong>Bienvenido al asistente de instalación de NexaReport</strong></p>
+        <p>Este asistente te guiará durante la instalación del programa.</p>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA18">Siguiente ›</button>
+        </div>`);
+      document.getElementById('btnPasoA18').addEventListener('click', () => pintarPasoA18(3));
+    }
+
+    else if(paso === 3){
+      pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Acuerdo de licencia', `
+        <div class="instalador-ruta" style="max-height:70px; overflow:hidden;">Términos de uso de NexaReport... Este software se proporciona "tal cual", sin garantías de ningún tipo...</div>
+        <div class="instalador-checkbox" id="checkboxTerminosA18">
+          <span class="caja" id="cajaTerminosA18"></span> Acepto los términos y condiciones
+        </div>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA18" disabled>Siguiente ›</button>
+        </div>`);
+      document.getElementById('checkboxTerminosA18').addEventListener('click', () => {
+        terminosAceptadosA18 = !terminosAceptadosA18;
+        document.getElementById('cajaTerminosA18').classList.toggle('marcada', terminosAceptadosA18);
+        document.getElementById('btnPasoA18').disabled = !terminosAceptadosA18;
+      });
+      document.getElementById('btnPasoA18').addEventListener('click', () => { if(terminosAceptadosA18) pintarPasoA18(4); });
+    }
+
+    else if(paso === 4){
+      pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Carpeta de destino', `
+        <p>NexaReport se instalará en:</p>
+        <div class="instalador-ruta">C:\\Archivos de programa\\NexaReport\\</div>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario">Examinar...</button>
+          <button type="button" class="instalador-btn primario" id="btnPasoA18">Siguiente ›</button>
+        </div>`);
+      document.getElementById('btnPasoA18').addEventListener('click', () => pintarPasoA18(5));
+    }
+
+    else if(paso === 5){
+      pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Componentes adicionales', `
+        <div class="instalador-checkbox" id="checkboxAccesoA18">
+          <span class="caja marcada" id="cajaAccesoA18"></span> Crear acceso directo en el escritorio
+        </div>
+        <div class="instalador-checkbox trampa" id="checkboxTurboA18">
+          <span class="caja marcada" id="cajaTurboA18"></span> Instalar también <b>BuscadorTurbo</b> — tu nueva barra de herramientas gratis
+        </div>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA18">Instalar</button>
+        </div>`);
+      let accesoMarcado = true;
+      let turboMarcado = true;
+      document.getElementById('checkboxAccesoA18').addEventListener('click', () => {
+        accesoMarcado = !accesoMarcado;
+        document.getElementById('cajaAccesoA18').classList.toggle('marcada', accesoMarcado);
+      });
+      document.getElementById('checkboxTurboA18').addEventListener('click', () => {
+        turboMarcado = !turboMarcado;
+        document.getElementById('cajaTurboA18').classList.toggle('marcada', turboMarcado);
+      });
+      document.getElementById('btnPasoA18').addEventListener('click', () => {
+        rechazoOfertaExtraA18 = !turboMarcado; // correcto = lo desmarcó antes de continuar
+        pintarPasoA18(6);
+      });
+    }
+
+    else if(paso === 6){
+      pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Instalando NexaReport...', `
+        <p id="textoProgresoA18">Copiando archivos...</p>
+        <div class="instalador-progreso-wrap"><div class="instalador-progreso-fill" id="progresoInstalA18"></div></div>
+        <div class="instalador-texto-estado" id="estadoInstalA18">0%</div>`);
+      requestAnimationFrame(() => { document.getElementById('progresoInstalA18').style.width = '100%'; });
+      setTimeout(() => { document.getElementById('estadoInstalA18').textContent = '100%'; }, 2200);
+      setTimeout(() => pintarPasoA18(7), 2400);
+    }
+
+    else if(paso === 7){
+      pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Instalación completa', `
+        <div class="instalador-exito">
+          <i class="fa-solid fa-circle-check"></i>
+          <p><strong>NexaReport se instaló correctamente</strong></p>
+        </div>
+        <div class="instalador-checkbox">
+          <span class="caja marcada"></span> Abrir NexaReport ahora
+        </div>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA18">Finalizar</button>
+        </div>`);
+      document.getElementById('btnPasoA18').addEventListener('click', () => {
+        instalacionCompletadaA18 = true;
+        document.getElementById('seccionFinalA18').classList.remove('hidden');
+        document.getElementById('btnFinalizarA18').disabled = false;
+      });
+    }
+  }
+
+  document.getElementById('btnFinalizarA18').addEventListener('click', async () => {
+    clearInterval(timerIntervalA18);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA18) / 60000;
+    const justificacion = document.getElementById('justificacionA18').value.trim();
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A18[0].nombre, descripcion: CRITERIOS_BASE_A18[0].descripcion, nivel: 'cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[1].nombre, descripcion: CRITERIOS_BASE_A18[1].descripcion, nivel: instalacionCompletadaA18 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[2].nombre, descripcion: CRITERIOS_BASE_A18[2].descripcion, nivel: rechazoOfertaExtraA18 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[3].nombre, descripcion: CRITERIOS_BASE_A18[3].descripcion, nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[4].nombre, descripcion: CRITERIOS_BASE_A18[4].descripcion, nivel: minutosTranscurridos <= tiempoEstimadoA18 * 1.5 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[5].nombre, descripcion: CRITERIOS_BASE_A18[5].descripcion, nivel: 'cumple' });
+
+    const pesoUnidad = puntajeMaxA18 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => { if(c.nivel === 'cumple') notaCalculada += pesoUnidad; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA18').classList.add('hidden');
+    document.getElementById('vistaResultadoA18').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA18').classList.add('hidden');
+    renderListaCotejo('rubricaResultadoA18', criterios, puntajeMaxA18, notaCalculada);
+
+    const proporcionFinalA18 = puntajeMaxA18 > 0 ? notaCalculada / puntajeMaxA18 : 0;
+    mostrarLogro(proporcionFinalA18 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA18 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA18 >= 0.8) dispararConfeti();
+
+    const detalleA18 = [{
+      titulo: 'Instalación guiada de NexaReport',
+      items: [
+        { pregunta: '¿Completó los 7 pasos de la instalación?', tuRespuesta: instalacionCompletadaA18 ? 'Sí' : 'No', correcta: instalacionCompletadaA18 },
+        {
+          pregunta: '¿Qué decidió sobre el componente adicional "BuscadorTurbo"?',
+          tuRespuesta: rechazoOfertaExtraA18 ? 'Lo desmarcó antes de continuar (correcto)' : 'Lo dejó marcado e instaló el componente adicional',
+          correcta: rechazoOfertaExtraA18
+        },
+        { pregunta: '¿Por qué tomó esa decisión?', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 }
+      ]
+    }];
+    ultimoResultadoA18 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA18, detalle: detalleA18 };
+    renderDesgloseColoreado('resultadoDesgloseA18', detalleA18);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.8',
+        ra:'RA1',
+        ec:'EC6.1.3',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA18,
+        criterios: criterios,
+        detalle: detalleA18
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA18').addEventListener('click', () => {
+    if(!ultimoResultadoA18) return;
+    generarPdfResultado('A.1.8', ultimoResultadoA18.criterios, ultimoResultadoA18.nota, ultimoResultadoA18.puntajeMaximo, 'EC6.1.3', 'RA1', ultimoResultadoA18.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA18').addEventListener('click', () => {
+    document.getElementById('panelActividadA18').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.8', abrirActividadA18);
