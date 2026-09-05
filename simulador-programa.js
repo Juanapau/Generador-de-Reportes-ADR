@@ -52,3 +52,19 @@
         <div class="navegador-contenido">${contenidoHTML}</div>
       </div>`;
   }
+
+  // ---------- Instalador simulado (ventana con barra de título + cuerpo) ----------
+  // Igual de genérico que el navegador: solo dibuja la "ventana", el contenido de
+  // cada paso lo decide quien llama (la actividad). Reutilizable para instalar
+  // cualquier programa futuro, no solo NexaReport.
+  function pintarVentanaInstaladorSimulado(containerId, tituloBarra, cuerpoHTML){
+    const cont = document.getElementById(containerId);
+    cont.innerHTML = `
+      <div class="instalador-simulado">
+        <div class="instalador-barra-titulo">
+          ${logoNexaReportHTML(20)}
+          <span>${tituloBarra}</span>
+        </div>
+        <div class="instalador-cuerpo">${cuerpoHTML}</div>
+      </div>`;
+  }
