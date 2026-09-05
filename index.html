@@ -1016,6 +1016,72 @@
         </div>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.8: INSTALACIÓN GUIADA DE NEXAREPORT ---- -->
+    <div id="panelActividadA18" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA18"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.8 — Instalación guiada de NexaReport</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA18">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA18" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA18" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA18"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA18" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA18" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA18" class="hidden">
+        <div class="timer-badge" id="timerA18"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Simula la instalación de <b>NexaReport</b> paso a paso. Lee cada pantalla con atención antes de continuar.
+        </div>
+
+        <div id="ventanaInstaladorA18"></div>
+
+        <div id="seccionFinalA18" class="hidden">
+          <div class="justificacion-box">
+            <label for="justificacionA18"><i class="fa-solid fa-pen"></i> Durante la instalación había una opción para instalar un programa adicional ("BuscadorTurbo"). ¿Qué decidiste hacer con esa opción y por qué? (criterio 4)</label>
+            <textarea id="justificacionA18" placeholder="Explica tu decisión..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA18" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA18" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA18">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA18"></div>
+        <div id="resultadoDesgloseA18"></div>
+        <div class="acciones-resultado">
+          <button type="button" class="btn btn-primary" id="btnVolverMisActA18" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+          </button>
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfA18">
+            <i class="fa-solid fa-file-pdf"></i> Descargar resultado en PDF
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
