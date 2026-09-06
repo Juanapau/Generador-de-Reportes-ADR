@@ -3061,7 +3061,13 @@
           return `
             <div class="carta-pregunta ${volteada ? 'volteada' : ''}" data-id="${p.id}">
               <div class="carta-interior">
-                <div class="carta-cara carta-dorso"><i class="fa-solid fa-question"></i></div>
+                <div class="carta-cara carta-dorso">
+                  <span class="carta-dorso-esquina esquina-si"></span>
+                  <span class="carta-dorso-esquina esquina-sd"></span>
+                  <span class="carta-dorso-esquina esquina-ii"></span>
+                  <span class="carta-dorso-esquina esquina-id"></span>
+                  <div class="carta-dorso-marco">${logoNexaReportHTML(30)}</div>
+                </div>
                 <div class="carta-cara carta-frente">${p.pregunta}</div>
               </div>
             </div>`;
