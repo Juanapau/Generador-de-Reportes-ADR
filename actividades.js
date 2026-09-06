@@ -3319,3 +3319,398 @@
   });
 
   registrarActividadInteractiva('A.1.8', abrirActividadA18);
+
+// ============================================================================
+// A.1.9 — CREAR UN PROYECTO Y CONECTAR UNA BASE DE DATOS EN NEXAREPORT
+// ============================================================================
+  const PASOS_ORDEN_A19_BASE = [
+    { id:1, texto:'Abrir NexaReport y seleccionar "Nuevo proyecto"' },
+    { id:2, texto:'Escribir un nombre para el proyecto' },
+    { id:3, texto:'Seleccionar "Conectar base de datos"' },
+    { id:4, texto:'Ingresar los datos de conexión (servidor, usuario, contraseña)' },
+    { id:5, texto:'Elegir la tabla de datos con la que se trabajará' },
+    { id:6, texto:'Guardar el proyecto' }
+  ];
+
+  const TABLAS_DISPONIBLES_A19 = [
+    { codigo:'DB_Ventas', nombre:'Ventas', desc:'Registro de ventas diarias por producto y vendedor' },
+    { codigo:'DB_Empleados', nombre:'Empleados', desc:'Información de personal, departamento y salario' },
+    { codigo:'DB_Clientes', nombre:'Clientes', desc:'Base de datos de clientes registrados' },
+    { codigo:'DB_Inventario', nombre:'Inventario', desc:'Existencias, proveedores y niveles mínimos' },
+    { codigo:'DB_Gastos', nombre:'Gastos', desc:'Registro de gastos operativos por departamento' }
+  ];
+
+  const CRITERIOS_BASE_A19 = [
+    { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
+    { key:'repaso', nombre:'2. Repaso teórico', niveles:{ excelente:'Ordena los 6 pasos correctamente en el primer o segundo intento.', bueno:'Ordena los 6 pasos correctamente en 3 o 4 intentos.', proceso:'Ordena los 6 pasos correctamente después de varios intentos.', insuficiente:'No logra ordenar los pasos correctamente.' } },
+    { key:'proyecto', nombre:'3. Creación del proyecto', niveles:{ excelente:'Crea el proyecto asignándole un nombre adecuado.', bueno:'Crea el proyecto con un nombre genérico o poco descriptivo.', proceso:'Crea el proyecto con dificultad.', insuficiente:'No logra crear el proyecto.' } },
+    { key:'conexion', nombre:'4. Conexión a la base de datos', niveles:{ excelente:'Completa la conexión a la base de datos y selecciona una tabla de forma independiente.', bueno:'Completa la conexión con alguna orientación.', proceso:'Completa la conexión con dificultad.', insuficiente:'No logra conectar el proyecto a la base de datos.' } },
+    { key:'justificacion', nombre:'5. Justificación', niveles:{ excelente:'Explica con claridad para qué tipo de reporte serviría la tabla elegida.', bueno:'Explica de forma general para qué serviría la tabla.', proceso:'Ofrece una justificación breve o poco clara.', insuficiente:'No justifica su elección.' } },
+    { key:'tiempo', nombre:'6. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
+    { key:'prolijidad', nombre:'7. Orden y prolijidad', niveles:{ excelente:'Desarrolla la actividad de forma ordenada y completa.', bueno:'Desarrolla la actividad con algunas interrupciones.', proceso:'Desarrolla la actividad de forma desordenada.', insuficiente:'No completa el desarrollo de la actividad.' } }
+  ];
+
+  let ordenActualA19 = [];
+  let intentosOrdenA19 = 0;
+  let arrastrandoIdOrdenA19 = null;
+  let nombreProyectoA19 = '';
+  let tablaSeleccionadaA19 = null;
+  let conexionExitosaA19 = false;
+  let proyectoCreadoA19 = false;
+  let puntajeMaxA19 = 0;
+  let tiempoEstimadoA19 = 10;
+  let inicioTiempoA19 = null;
+  let timerIntervalA19 = null;
+  let ultimoResultadoA19 = null;
+
+  async function abrirActividadA19(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA19 = puntajeMaximo;
+    tiempoEstimadoA19 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA19').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA19').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.9') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA19').classList.add('hidden');
+        document.getElementById('vistaEjercicioA19').classList.add('hidden');
+        document.getElementById('vistaResultadoA19').classList.remove('hidden');
+        renderRubricaDescriptiva('rubricaResultadoA19', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA19', previa.detalle);
+        ultimoResultadoA19 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA19').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA19').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA19').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA19').classList.add('hidden');
+    document.getElementById('vistaResultadoA19').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA19').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA19} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.9', 'recursosEstudianteA19');
+
+    const criteriosPrevios = CRITERIOS_BASE_A19.map(c => ({ nombre:c.nombre, niveles:c.niveles, nivel:null }));
+    renderRubricaDescriptiva('instrumentoPrevioA19', criteriosPrevios, puntajeMaxA19, null);
+  }
+
+  document.getElementById('btnBackFromActividadA19').addEventListener('click', () => {
+    clearInterval(timerIntervalA19);
+    document.getElementById('panelActividadA19').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA19').addEventListener('click', () => {
+    ordenActualA19 = barajar(PASOS_ORDEN_A19_BASE).map(p => p.id);
+    intentosOrdenA19 = 0;
+    nombreProyectoA19 = '';
+    tablaSeleccionadaA19 = null;
+    conexionExitosaA19 = false;
+    proyectoCreadoA19 = false;
+    document.getElementById('justificacionA19').value = '';
+    document.getElementById('seccionEscritorioA19').classList.add('hidden');
+    document.getElementById('seccionFinalA19').classList.add('hidden');
+    document.getElementById('btnFinalizarA19').disabled = true;
+    document.getElementById('vistaInstrumentoA19').classList.add('hidden');
+    document.getElementById('vistaEjercicioA19').classList.remove('hidden');
+
+    pintarOrdenA19();
+
+    inicioTiempoA19 = Date.now();
+    clearInterval(timerIntervalA19);
+    timerIntervalA19 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA19) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA19').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA19} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Sección 1: ordenar los pasos (arrastrar o con flechas) ----------
+  function pintarOrdenA19(){
+    const cont = document.getElementById('ordenA19');
+    cont.innerHTML = `
+      <div class="orden-lista" id="ordenListaA19">
+        ${ordenActualA19.map((id, idx) => {
+          const p = PASOS_ORDEN_A19_BASE.find(x => x.id === id);
+          return `
+            <div class="orden-item" draggable="true" data-id="${id}">
+              <span class="orden-numero">${idx + 1}</span>
+              <span class="orden-texto">${p.texto}</span>
+              <span class="orden-flechas">
+                <button type="button" class="orden-flecha" data-dir="up" data-id="${id}" ${idx === 0 ? 'disabled' : ''}><i class="fa-solid fa-chevron-up"></i></button>
+                <button type="button" class="orden-flecha" data-dir="down" data-id="${id}" ${idx === ordenActualA19.length - 1 ? 'disabled' : ''}><i class="fa-solid fa-chevron-down"></i></button>
+              </span>
+              <i class="fa-solid fa-grip-lines orden-handle"></i>
+            </div>`;
+        }).join('')}
+      </div>
+      <button type="button" class="btn btn-add" id="btnVerificarOrdenA19" style="margin-top:14px;">
+        <i class="fa-solid fa-check"></i> Verificar orden
+      </button>
+      <div id="feedbackOrdenA19"></div>`;
+
+    // Arrastrar con mouse (escritorio)
+    const items = document.querySelectorAll('#ordenA19 .orden-item');
+    items.forEach(el => {
+      el.addEventListener('dragstart', () => { arrastrandoIdOrdenA19 = Number(el.dataset.id); el.classList.add('arrastrando'); });
+      el.addEventListener('dragend', () => el.classList.remove('arrastrando'));
+      el.addEventListener('dragover', (e) => e.preventDefault());
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const idDestino = Number(el.dataset.id);
+        if(arrastrandoIdOrdenA19 === null || arrastrandoIdOrdenA19 === idDestino) return;
+        moverItemOrdenA19(arrastrandoIdOrdenA19, idDestino);
+      });
+    });
+
+    // Flechas (funcionan igual en escritorio, tablet o celular)
+    document.querySelectorAll('#ordenA19 .orden-flecha').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.id);
+        const idx = ordenActualA19.indexOf(id);
+        const nuevoIdx = btn.dataset.dir === 'up' ? idx - 1 : idx + 1;
+        if(nuevoIdx < 0 || nuevoIdx >= ordenActualA19.length) return;
+        [ordenActualA19[idx], ordenActualA19[nuevoIdx]] = [ordenActualA19[nuevoIdx], ordenActualA19[idx]];
+        pintarOrdenA19();
+      });
+    });
+
+    document.getElementById('btnVerificarOrdenA19').addEventListener('click', manejarVerificarOrdenA19);
+  }
+
+  function moverItemOrdenA19(idArrastrado, idDestino){
+    const idxOrigen = ordenActualA19.indexOf(idArrastrado);
+    const idxDestino = ordenActualA19.indexOf(idDestino);
+    ordenActualA19.splice(idxOrigen, 1);
+    ordenActualA19.splice(idxDestino, 0, idArrastrado);
+    pintarOrdenA19();
+  }
+
+  function manejarVerificarOrdenA19(){
+    intentosOrdenA19++;
+    const correcto = ordenActualA19.every((id, idx) => id === PASOS_ORDEN_A19_BASE[idx].id);
+    const feedback = document.getElementById('feedbackOrdenA19');
+
+    if(correcto){
+      feedback.innerHTML = `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ¡Orden correcto! Ya puedes continuar con la Sección 2.</div>`;
+      document.querySelectorAll('#ordenA19 .orden-item').forEach(el => el.setAttribute('draggable', 'false'));
+      document.querySelectorAll('#ordenA19 .orden-flecha').forEach(btn => btn.disabled = true);
+      document.getElementById('btnVerificarOrdenA19').disabled = true;
+      document.getElementById('seccionEscritorioA19').classList.remove('hidden');
+      pintarEscritorioA19(1);
+    } else {
+      feedback.innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:12px 0 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Ese orden todavía no es correcto. Vuelve a intentarlo.</div></div>`;
+    }
+  }
+
+  // ---------- Sección 2: escritorio de NexaReport (crear proyecto + conectar BD) ----------
+  function pintarEscritorioA19(paso){
+    if(paso === 1){
+      pintarVentanaInstaladorSimulado('escritorioNexaA19', 'NexaReport', `
+        <p><strong>Bienvenido a NexaReport</strong></p>
+        <p>Aún no tienes proyectos. Empieza creando uno nuevo.</p>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA19">＋ Nuevo proyecto</button>
+        </div>`);
+      document.getElementById('btnPasoA19').addEventListener('click', () => pintarEscritorioA19(2));
+    }
+
+    else if(paso === 2){
+      pintarVentanaInstaladorSimulado('escritorioNexaA19', 'Nuevo proyecto', `
+        <p>Escribe un nombre para tu proyecto:</p>
+        <input type="text" id="inputNombreProyectoA19" class="instalador-ruta" style="width:100%; border:1px solid #cbd5e1; font-family:inherit;" placeholder="Ej. Reporte de Ventas TECNOVENTAS" value="${nombreProyectoA19}">
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA19" disabled>Crear proyecto</button>
+        </div>`);
+      const input = document.getElementById('inputNombreProyectoA19');
+      const btn = document.getElementById('btnPasoA19');
+      btn.disabled = input.value.trim().length === 0;
+      input.addEventListener('input', () => { btn.disabled = input.value.trim().length === 0; });
+      btn.addEventListener('click', () => {
+        nombreProyectoA19 = input.value.trim();
+        pintarEscritorioA19(3);
+      });
+    }
+
+    else if(paso === 3){
+      pintarVentanaInstaladorSimulado('escritorioNexaA19', nombreProyectoA19, `
+        <p><strong>Proyecto "${nombreProyectoA19}" creado.</strong></p>
+        <p>Este proyecto todavía no tiene ninguna fuente de datos. Conéctalo a una base de datos para poder construir reportes.</p>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA19"><i class="fa-solid fa-database"></i> Conectar base de datos</button>
+        </div>`);
+      document.getElementById('btnPasoA19').addEventListener('click', () => pintarEscritorioA19(4));
+    }
+
+    else if(paso === 4){
+      pintarVentanaInstaladorSimulado('escritorioNexaA19', 'Conectar base de datos', `
+        <p style="font-size:12.5px; margin-bottom:2px;">Servidor</p>
+        <div class="instalador-ruta">servidor-tecnoventas.nexareport.cloud</div>
+        <p style="font-size:12.5px; margin-bottom:2px;">Puerto</p>
+        <div class="instalador-ruta">5432</div>
+        <p style="font-size:12.5px; margin-bottom:2px;">Usuario</p>
+        <div class="instalador-ruta">admin_reportes</div>
+        <p style="font-size:12.5px; margin-bottom:2px;">Contraseña</p>
+        <input type="password" id="inputPasswordA19" class="instalador-ruta" style="width:100%; border:1px solid #cbd5e1; font-family:inherit;" placeholder="Escribe la contraseña...">
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA19" disabled>Conectar</button>
+        </div>`);
+      const inputPass = document.getElementById('inputPasswordA19');
+      const btn = document.getElementById('btnPasoA19');
+      inputPass.addEventListener('input', () => { btn.disabled = inputPass.value.trim().length === 0; });
+      btn.addEventListener('click', () => {
+        conexionExitosaA19 = true;
+        pintarEscritorioA19(5);
+      });
+    }
+
+    else if(paso === 5){
+      pintarVentanaInstaladorSimulado('escritorioNexaA19', 'Seleccionar tabla de datos', `
+        <p>Conexión exitosa. ¿Con cuál tabla de TECNOVENTAS RD quieres trabajar en este proyecto?</p>
+        <div id="tablasDisponiblesA19">
+          ${TABLAS_DISPONIBLES_A19.map(t => `
+            <div class="instalador-checkbox tabla-opcion-a19" data-codigo="${t.codigo}" style="justify-content:flex-start; cursor:pointer;">
+              <span class="caja"></span>
+              <div style="text-align:left;"><b>${t.nombre}</b><br><span style="font-size:12px; opacity:.75;">${t.desc}</span></div>
+            </div>`).join('')}
+        </div>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA19" disabled>Usar esta tabla</button>
+        </div>`);
+      document.querySelectorAll('#tablasDisponiblesA19 .tabla-opcion-a19').forEach(el => {
+        el.addEventListener('click', () => {
+          document.querySelectorAll('#tablasDisponiblesA19 .tabla-opcion-a19 .caja').forEach(c => c.classList.remove('marcada'));
+          el.querySelector('.caja').classList.add('marcada');
+          tablaSeleccionadaA19 = el.dataset.codigo;
+          document.getElementById('btnPasoA19').disabled = false;
+        });
+      });
+      document.getElementById('btnPasoA19').addEventListener('click', () => pintarEscritorioA19(6));
+    }
+
+    else if(paso === 6){
+      const tabla = TABLAS_DISPONIBLES_A19.find(t => t.codigo === tablaSeleccionadaA19);
+      pintarVentanaInstaladorSimulado('escritorioNexaA19', 'Proyecto listo', `
+        <div class="instalador-exito">
+          <i class="fa-solid fa-circle-check"></i>
+          <p><strong>"${nombreProyectoA19}" está conectado a ${tabla ? tabla.nombre : tablaSeleccionadaA19}</strong></p>
+          <p style="margin-top:6px;">Tu proyecto ya está listo para que empieces a construir reportes.</p>
+        </div>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnPasoA19">Finalizar</button>
+        </div>`);
+      document.getElementById('btnPasoA19').addEventListener('click', () => {
+        proyectoCreadoA19 = true;
+        document.getElementById('seccionFinalA19').classList.remove('hidden');
+        document.getElementById('btnFinalizarA19').disabled = false;
+      });
+    }
+  }
+
+  document.getElementById('btnFinalizarA19').addEventListener('click', async () => {
+    clearInterval(timerIntervalA19);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA19) / 60000;
+    const justificacion = document.getElementById('justificacionA19').value.trim();
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A19[0].nombre, niveles: CRITERIOS_BASE_A19[0].niveles, nivel: 'excelente' });
+
+    let nivelRepaso = 'insuficiente';
+    if(intentosOrdenA19 <= 2) nivelRepaso = 'excelente';
+    else if(intentosOrdenA19 <= 4) nivelRepaso = 'bueno';
+    else nivelRepaso = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A19[1].nombre, niveles: CRITERIOS_BASE_A19[1].niveles, nivel: nivelRepaso });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A19[2].nombre, niveles: CRITERIOS_BASE_A19[2].niveles,
+      nivel: (nombreProyectoA19.length >= 6) ? 'excelente' : (nombreProyectoA19.length > 0 ? 'bueno' : 'insuficiente')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A19[3].nombre, niveles: CRITERIOS_BASE_A19[3].niveles,
+      nivel: (conexionExitosaA19 && tablaSeleccionadaA19) ? 'excelente' : 'insuficiente'
+    });
+
+    let nivelJustificacion = 'insuficiente';
+    if(justificacion.length >= 20) nivelJustificacion = 'excelente';
+    else if(justificacion.length > 0) nivelJustificacion = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A19[4].nombre, niveles: CRITERIOS_BASE_A19[4].niveles, nivel: nivelJustificacion });
+
+    let nivelTiempo = 'insuficiente';
+    if(minutosTranscurridos <= tiempoEstimadoA19) nivelTiempo = 'excelente';
+    else if(minutosTranscurridos <= tiempoEstimadoA19 * 1.5) nivelTiempo = 'bueno';
+    else if(minutosTranscurridos <= tiempoEstimadoA19 * 2) nivelTiempo = 'proceso';
+    criterios.push({ nombre: CRITERIOS_BASE_A19[5].nombre, niveles: CRITERIOS_BASE_A19[5].niveles, nivel: nivelTiempo });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A19[6].nombre, niveles: CRITERIOS_BASE_A19[6].niveles, nivel: 'excelente' });
+
+    const pesoUnidad = puntajeMaxA19 / criterios.length;
+    const pesosPorNivel = { excelente:1, bueno:0.75, proceso:0.4, insuficiente:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA19').classList.add('hidden');
+    document.getElementById('vistaResultadoA19').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA19').classList.add('hidden');
+    renderRubricaDescriptiva('rubricaResultadoA19', criterios, puntajeMaxA19, notaCalculada);
+
+    const proporcionFinalA19 = puntajeMaxA19 > 0 ? notaCalculada / puntajeMaxA19 : 0;
+    mostrarLogro(proporcionFinalA19 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA19 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA19 >= 0.8) dispararConfeti();
+
+    const tablaElegida = TABLAS_DISPONIBLES_A19.find(t => t.codigo === tablaSeleccionadaA19);
+    const detalleA19 = [
+      {
+        titulo: 'Sección 1 — Orden de los pasos',
+        items: PASOS_ORDEN_A19_BASE.map(p => ({ pregunta: `Paso ${p.id}`, tuRespuesta: p.texto, correcta: true }))
+      },
+      {
+        titulo: 'Sección 2 — Proyecto y conexión a base de datos',
+        items: [
+          { pregunta: '¿Qué nombre le puso a su proyecto?', tuRespuesta: nombreProyectoA19 || 'Sin nombre', correcta: nombreProyectoA19.length > 0 },
+          { pregunta: '¿Completó la conexión a la base de datos?', tuRespuesta: conexionExitosaA19 ? 'Sí' : 'No', correcta: conexionExitosaA19 },
+          { pregunta: '¿A qué tabla conectó su proyecto?', tuRespuesta: tablaElegida ? tablaElegida.nombre : 'Ninguna', correcta: !!tablaSeleccionadaA19 },
+          { pregunta: '¿Para qué reporte le serviría esa tabla?', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 }
+        ]
+      }
+    ];
+    ultimoResultadoA19 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA19, detalle: detalleA19 };
+    renderDesgloseColoreado('resultadoDesgloseA19', detalleA19);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.9',
+        ra:'RA1',
+        ec:'EC6.1.5',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA19,
+        criterios: criterios,
+        detalle: detalleA19
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA19').addEventListener('click', () => {
+    if(!ultimoResultadoA19) return;
+    generarPdfResultado('A.1.9', ultimoResultadoA19.criterios, ultimoResultadoA19.nota, ultimoResultadoA19.puntajeMaximo, 'EC6.1.5', 'RA1', ultimoResultadoA19.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA19').addEventListener('click', () => {
+    document.getElementById('panelActividadA19').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.9', abrirActividadA19);
