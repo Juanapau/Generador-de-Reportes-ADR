@@ -1361,3 +1361,26 @@
     transform: rotateY(180deg);
   }
   body.light .carta-frente{ background:#fff; border:2px solid #c7d2fe; color: var(--light-text); }
+
+  /* ============ ORDENAR PASOS - arrastrar o flechas (A.1.9) ============ */
+  .orden-lista{ max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:10px; }
+  .orden-item{
+    display:flex; align-items:center; gap:12px; background: var(--dark-card); border:2px solid var(--dark-border);
+    border-radius:12px; padding:12px 16px; cursor:grab;
+  }
+  body.light .orden-item{ background:#fff; border:2px solid #dde5f6; }
+  .orden-item.arrastrando{ opacity:.4; }
+  .orden-numero{
+    width:26px; height:26px; border-radius:50%; background: var(--dark-gold-accent); color:#241a02;
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:13px; flex-shrink:0;
+  }
+  .orden-texto{ flex:1; font-size:14px; font-weight:600; }
+  .orden-flechas{ display:flex; flex-direction:column; gap:2px; }
+  .orden-flecha{
+    width:24px; height:20px; border-radius:5px; background: rgba(255,255,255,0.06); color: var(--dark-text);
+    border:1px solid var(--dark-border); font-size:10px; display:flex; align-items:center; justify-content:center;
+  }
+  body.light .orden-flecha{ background:#f2f5fc; color:var(--light-text); border:1px solid #dde5f6; }
+  .orden-flecha:disabled{ opacity:.3; }
+  .orden-handle{ color: var(--dark-text-dim); font-size:15px; flex-shrink:0; }
+  body.light .orden-handle{ color: var(--light-text-dim); }
