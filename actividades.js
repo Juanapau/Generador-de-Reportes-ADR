@@ -2553,15 +2553,43 @@
     }
   ];
 
-  const CRITERIOS_BASE_A17 = [
-    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'identificacion', nombre:'2. Identificación del sitio oficial', descripcion:'Identifica el sitio oficial de NexaReport dentro de un número razonable de intentos.' },
-    { key:'descarga', nombre:'3. Descarga del programa', descripcion:'Completa la simulación de descarga desde el sitio oficial.' },
-    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con criterio qué señales le permitieron reconocer el sitio oficial.' },
-    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  const PERSONAJES_A17 = [
+    {
+      nombre: 'Un compañero de trabajo',
+      avatar: '🧑‍💻',
+      pregunta: 'Encontré este resultado buscando NexaReport: un anuncio que dice "Descarga NexaReport GRATIS — Súper rápido". ¿Debería confiar en él?',
+      opciones: ['Sí, es gratis y rápido', 'No, es un anuncio pagado y eso no garantiza que sea el sitio oficial', 'Sí, porque aparece primero en la búsqueda'],
+      correctaIdx: 1
+    },
+    {
+      nombre: 'Tu jefe',
+      avatar: '🧑‍💼',
+      pregunta: 'Quiero asegurarme de que estamos descargando NexaReport del sitio correcto. ¿Cuál de estas señales confirma que es el sitio oficial?',
+      opciones: ['Que tenga muchos anuncios alrededor', 'Que el dominio coincida exactamente con el nombre de la empresa', 'Que sea el primer resultado de la búsqueda'],
+      correctaIdx: 1
+    },
+    {
+      nombre: 'Un usuario de un foro',
+      avatar: '🧑‍🎓',
+      pregunta: 'Yo encontré un enlace en un foro para descargar el programa gratis. ¿Es igual de seguro que el sitio oficial del desarrollador?',
+      opciones: ['Sí, es exactamente igual de seguro', 'No, los enlaces de foros pueden estar desactualizados o ser inseguros', 'Sí, porque lo compartió un usuario con experiencia'],
+      correctaIdx: 1
+    }
   ];
 
+  const CRITERIOS_BASE_A17 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'repaso', nombre:'2. Repaso teórico', descripcion:'Responde correctamente las preguntas del camino de aprendizaje sobre cómo identificar sitios de descarga confiables.' },
+    { key:'identificacion', nombre:'3. Identificación del sitio oficial', descripcion:'Identifica el sitio oficial de NexaReport dentro de un número razonable de intentos.' },
+    { key:'descarga', nombre:'4. Descarga del programa', descripcion:'Completa la simulación de descarga desde el sitio oficial.' },
+    { key:'justificacion', nombre:'5. Justificación', descripcion:'Explica con criterio qué señales le permitieron reconocer el sitio oficial.' },
+    { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let pasoCaminoA17 = 0;
+  let respuestasCaminoA17 = [];
+  let intentosCaminoA17 = [];
   let intentosSitioA17 = 0;
   let descargaCompletadaA17 = false;
   let puntajeMaxA17 = 0;
@@ -2613,15 +2641,19 @@
   });
 
   document.getElementById('btnComenzarA17').addEventListener('click', () => {
+    pasoCaminoA17 = 0;
+    respuestasCaminoA17 = [];
+    intentosCaminoA17 = [];
     intentosSitioA17 = 0;
     descargaCompletadaA17 = false;
     document.getElementById('justificacionA17').value = '';
+    document.getElementById('seccionNavegadorA17').classList.add('hidden');
     document.getElementById('seccionFinalA17').classList.add('hidden');
     document.getElementById('btnFinalizarA17').disabled = true;
     document.getElementById('vistaInstrumentoA17').classList.add('hidden');
     document.getElementById('vistaEjercicioA17').classList.remove('hidden');
 
-    pintarResultadosBusquedaA17();
+    pintarCaminoA17();
 
     inicioTiempoA17 = Date.now();
     clearInterval(timerIntervalA17);
@@ -2633,6 +2665,90 @@
     }, 1000);
   });
 
+  // ---------- Sección 1: camino de repaso teórico ----------
+  function pintarCaminoA17(){
+    const cont = document.getElementById('caminoA17');
+
+    const nodosHtml = PERSONAJES_A17.map((p, i) => {
+      let claseNodo = '';
+      if(i < pasoCaminoA17) claseNodo = 'completado';
+      else if(i === pasoCaminoA17) claseNodo = 'activo';
+      const linea = i < PERSONAJES_A17.length - 1
+        ? `<div class="camino-linea ${i < pasoCaminoA17 ? 'completada' : ''}"></div>` : '';
+      return `<div class="camino-nodo ${claseNodo}">${i < pasoCaminoA17 ? '<i class="fa-solid fa-check" style="color:var(--dark-green-accent);"></i>' : p.avatar}</div>${linea}`;
+    }).join('');
+
+    if(pasoCaminoA17 >= PERSONAJES_A17.length){
+      cont.innerHTML = `
+        <div class="camino-wrap">
+          <div class="camino-progreso">${nodosHtml}</div>
+          <div class="camino-tarjeta">
+            <div class="camino-avatar">🎉</div>
+            <div style="flex:1;">
+              <div class="camino-completa-msg"><i class="fa-solid fa-circle-check"></i> ¡Completaste el repaso! Ya puedes continuar con la Sección 2.</div>
+            </div>
+          </div>
+        </div>`;
+      document.getElementById('seccionNavegadorA17').classList.remove('hidden');
+      pintarResultadosBusquedaA17();
+      return;
+    }
+
+    const p = PERSONAJES_A17[pasoCaminoA17];
+    const yaResuelto = respuestasCaminoA17[pasoCaminoA17] !== undefined;
+
+    cont.innerHTML = `
+      <div class="camino-wrap">
+        <div class="camino-progreso">${nodosHtml}</div>
+        <div class="camino-tarjeta">
+          <div class="camino-avatar">${p.avatar}</div>
+          <div style="flex:1;">
+            <div class="camino-nombre-personaje">${p.nombre}</div>
+            <div class="camino-burbuja">${p.pregunta}</div>
+            <div class="asistente-opciones">
+              ${p.opciones.map((op, i) => `
+                <button type="button" class="asistente-opcion camino-opcion" data-opcion="${i}" ${yaResuelto ? 'disabled' : ''}>${op}</button>
+              `).join('')}
+            </div>
+            <div id="caminoFeedbackA17"></div>
+            ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePersonajeA17" style="width:auto; padding:10px 22px; margin-top:14px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+          </div>
+        </div>
+      </div>`;
+
+    if(yaResuelto){
+      const idxCorrecta = p.correctaIdx;
+      const btnCorrecta = document.querySelector(`#caminoA17 .camino-opcion[data-opcion="${idxCorrecta}"]`);
+      if(btnCorrecta) btnCorrecta.classList.add('correcta-marcada');
+      document.getElementById('caminoFeedbackA17').innerHTML =
+        `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ¡Correcto! ${p.opciones[idxCorrecta]}</div>`;
+      document.getElementById('btnSiguientePersonajeA17').addEventListener('click', () => {
+        pasoCaminoA17++;
+        pintarCaminoA17();
+      });
+    } else {
+      document.querySelectorAll('#caminoA17 .camino-opcion').forEach(btn => {
+        btn.addEventListener('click', () => manejarOpcionCaminoA17(Number(btn.dataset.opcion), btn));
+      });
+    }
+  }
+
+  function manejarOpcionCaminoA17(idx, btnEl){
+    const p = PERSONAJES_A17[pasoCaminoA17];
+    if(intentosCaminoA17[pasoCaminoA17] === undefined) intentosCaminoA17[pasoCaminoA17] = 0;
+    intentosCaminoA17[pasoCaminoA17]++;
+
+    if(idx === p.correctaIdx){
+      respuestasCaminoA17[pasoCaminoA17] = intentosCaminoA17[pasoCaminoA17] === 1;
+      pintarCaminoA17();
+    } else {
+      btnEl.classList.add('incorrecta-marcada');
+      sacudir(btnEl);
+      setTimeout(() => btnEl.classList.remove('incorrecta-marcada'), 500);
+    }
+  }
+
+  // ---------- Sección 2: navegador simulado ----------
   function pintarResultadosBusquedaA17(){
     const resultadosHTML = barajar(RESULTADOS_BUSQUEDA_A17).map(r => `
       <div class="resultado-busqueda" data-id="${r.id}">
@@ -2719,31 +2835,37 @@
 
     const minutosTranscurridos = (Date.now() - inicioTiempoA17) / 60000;
     const justificacion = document.getElementById('justificacionA17').value.trim();
+    const aciertosCaminoA17 = respuestasCaminoA17.filter(Boolean).length;
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A17[0].nombre, descripcion: CRITERIOS_BASE_A17[0].descripcion, nivel: 'cumple' });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[1].nombre, descripcion: CRITERIOS_BASE_A17[1].descripcion,
-      nivel: intentosSitioA17 <= 2 ? 'cumple' : 'no_cumple'
+      nivel: aciertosCaminoA17 >= 2 ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[2].nombre, descripcion: CRITERIOS_BASE_A17[2].descripcion,
-      nivel: descargaCompletadaA17 ? 'cumple' : 'no_cumple'
+      nivel: intentosSitioA17 <= 2 ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[3].nombre, descripcion: CRITERIOS_BASE_A17[3].descripcion,
-      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+      nivel: descargaCompletadaA17 ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[4].nombre, descripcion: CRITERIOS_BASE_A17[4].descripcion,
+      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A17[5].nombre, descripcion: CRITERIOS_BASE_A17[5].descripcion,
       nivel: minutosTranscurridos <= tiempoEstimadoA17 * 1.5 ? 'cumple' : 'no_cumple'
     });
 
-    criterios.push({ nombre: CRITERIOS_BASE_A17[5].nombre, descripcion: CRITERIOS_BASE_A17[5].descripcion, nivel: 'cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A17[6].nombre, descripcion: CRITERIOS_BASE_A17[6].descripcion, nivel: 'cumple' });
 
     const pesoUnidad = puntajeMaxA17 / criterios.length;
     let notaCalculada = 0;
@@ -2759,26 +2881,36 @@
     mostrarLogro(proporcionFinalA17 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA17 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA17 >= 0.8) dispararConfeti();
 
-    const detalleA17 = [{
-      titulo: 'Descarga guiada de NexaReport',
-      items: [
-        {
-          pregunta: '¿Identificó el sitio oficial de NexaReport?',
-          tuRespuesta: `Sí, en ${intentosSitioA17} intento${intentosSitioA17 > 1 ? 's' : ''} (incluyendo el acierto)`,
-          correcta: intentosSitioA17 <= 2
-        },
-        {
-          pregunta: '¿Completó la descarga desde el sitio oficial?',
-          tuRespuesta: descargaCompletadaA17 ? 'Sí, descargó NexaReport_Setup.exe' : 'No completó la descarga',
-          correcta: descargaCompletadaA17
-        },
-        {
-          pregunta: '¿Cómo supiste cuál era el sitio oficial?',
-          tuRespuesta: justificacion || 'Sin responder',
-          correcta: justificacion.length >= 20
-        }
-      ]
-    }];
+    const detalleA17 = [
+      {
+        titulo: 'Sección 1 — Repaso: ¿sitio confiable o trampa?',
+        items: PERSONAJES_A17.map((p, i) => ({
+          pregunta: `${p.nombre} preguntó: ${p.pregunta}`,
+          tuRespuesta: p.opciones[p.correctaIdx],
+          correcta: true
+        }))
+      },
+      {
+        titulo: 'Sección 2 — Descarga guiada de NexaReport',
+        items: [
+          {
+            pregunta: '¿Identificó el sitio oficial de NexaReport?',
+            tuRespuesta: `Sí, en ${intentosSitioA17} intento${intentosSitioA17 > 1 ? 's' : ''} (incluyendo el acierto)`,
+            correcta: intentosSitioA17 <= 2
+          },
+          {
+            pregunta: '¿Completó la descarga desde el sitio oficial?',
+            tuRespuesta: descargaCompletadaA17 ? 'Sí, descargó NexaReport_Setup.exe' : 'No completó la descarga',
+            correcta: descargaCompletadaA17
+          },
+          {
+            pregunta: '¿Cómo supiste cuál era el sitio oficial?',
+            tuRespuesta: justificacion || 'Sin responder',
+            correcta: justificacion.length >= 20
+          }
+        ]
+      }
+    ];
     ultimoResultadoA17 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA17, detalle: detalleA17 };
     renderDesgloseColoreado('resultadoDesgloseA17', detalleA17);
 
@@ -2815,15 +2947,29 @@
 // ============================================================================
 // A.1.8 — INSTALACIÓN GUIADA DE NEXAREPORT (instalador simulado, 7 pasos)
 // ============================================================================
-  const CRITERIOS_BASE_A18 = [
-    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'instalacion', nombre:'2. Instalación completa', descripcion:'Completa los 7 pasos del asistente de instalación hasta el final.' },
-    { key:'seguridad', nombre:'3. Decisión de seguridad', descripcion:'Rechaza la instalación del componente adicional no deseado (BuscadorTurbo) durante la instalación.' },
-    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con criterio por qué tomó esa decisión sobre el componente adicional.' },
-    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  const PREGUNTAS_CARTAS_A18 = [
+    { id:1, pregunta:'¿Por qué es importante leer los términos y condiciones antes de aceptarlos?' },
+    { id:2, pregunta:'¿Qué deberías revisar en la pantalla de "Componentes adicionales" antes de continuar?' },
+    { id:3, pregunta:'¿Qué información te muestra la pantalla de "Carpeta de destino"?' },
+    { id:4, pregunta:'¿Qué ocurre exactamente durante la barra de progreso de instalación?' },
+    { id:5, pregunta:'Si un instalador pide permisos que no tienen sentido para el programa, ¿qué deberías hacer?' },
+    { id:6, pregunta:'¿Qué opción suele ofrecer la pantalla de "Finalizar", además de cerrar el asistente?' },
+    { id:7, pregunta:'¿Por qué es riesgoso dejar marcadas casillas que no revisaste con atención?' },
+    { id:8, pregunta:'¿Qué requisitos del sistema debes verificar antes de instalar un programa como NexaReport?' }
   ];
 
+  const CRITERIOS_BASE_A18 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'repaso', nombre:'2. Repaso teórico', descripcion:'Responde con desarrollo adecuado las 5 preguntas seleccionadas en la baraja sobre el proceso de instalación.' },
+    { key:'instalacion', nombre:'3. Instalación completa', descripcion:'Completa los 7 pasos del asistente de instalación hasta el final.' },
+    { key:'seguridad', nombre:'4. Decisión de seguridad', descripcion:'Rechaza la instalación del componente adicional no deseado (BuscadorTurbo) durante la instalación.' },
+    { key:'justificacion', nombre:'5. Justificación', descripcion:'Explica con criterio por qué tomó esa decisión sobre el componente adicional.' },
+    { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let cartasVolteadasA18 = [];
+  let respuestasCartasA18 = {};
   let pasoActualA18 = 1;
   let terminosAceptadosA18 = false;
   let rechazoOfertaExtraA18 = false;
@@ -2877,17 +3023,20 @@
   });
 
   document.getElementById('btnComenzarA18').addEventListener('click', () => {
+    cartasVolteadasA18 = [];
+    respuestasCartasA18 = {};
     pasoActualA18 = 1;
     terminosAceptadosA18 = false;
     rechazoOfertaExtraA18 = false;
     instalacionCompletadaA18 = false;
     document.getElementById('justificacionA18').value = '';
+    document.getElementById('seccionInstaladorA18').classList.add('hidden');
     document.getElementById('seccionFinalA18').classList.add('hidden');
     document.getElementById('btnFinalizarA18').disabled = true;
     document.getElementById('vistaInstrumentoA18').classList.add('hidden');
     document.getElementById('vistaEjercicioA18').classList.remove('hidden');
 
-    pintarPasoA18(1);
+    pintarCartasA18();
 
     inicioTiempoA18 = Date.now();
     clearInterval(timerIntervalA18);
@@ -2898,6 +3047,79 @@
       document.getElementById('timerA18').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA18} min aprox.)</span>`;
     }, 1000);
   });
+
+  // ---------- Sección 1: baraja de preguntas ----------
+  const MAX_CARTAS_A18 = 5;
+
+  function pintarCartasA18(){
+    const cont = document.getElementById('cartasA18');
+    cont.innerHTML = `
+      <div class="cartas-contador" id="cartasContadorA18">Cartas volteadas: ${cartasVolteadasA18.length} de ${MAX_CARTAS_A18}</div>
+      <div class="cartas-grid">
+        ${PREGUNTAS_CARTAS_A18.map(p => {
+          const volteada = cartasVolteadasA18.includes(p.id);
+          return `
+            <div class="carta-pregunta ${volteada ? 'volteada' : ''}" data-id="${p.id}">
+              <div class="carta-interior">
+                <div class="carta-cara carta-dorso"><i class="fa-solid fa-question"></i></div>
+                <div class="carta-cara carta-frente">${p.pregunta}</div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+      <div id="respuestasCartasWrapA18"></div>`;
+
+    document.querySelectorAll('#cartasA18 .carta-pregunta').forEach(el => {
+      el.addEventListener('click', () => manejarClicCartaA18(Number(el.dataset.id)));
+    });
+
+    pintarCajasRespuestaCartasA18();
+  }
+
+  function manejarClicCartaA18(id){
+    if(cartasVolteadasA18.includes(id)) return;
+    if(cartasVolteadasA18.length >= MAX_CARTAS_A18) return;
+    cartasVolteadasA18.push(id);
+    pintarCartasA18();
+  }
+
+  function pintarCajasRespuestaCartasA18(){
+    const wrap = document.getElementById('respuestasCartasWrapA18');
+    if(cartasVolteadasA18.length === 0){ wrap.innerHTML = ''; return; }
+
+    wrap.innerHTML = cartasVolteadasA18.map(id => {
+      const p = PREGUNTAS_CARTAS_A18.find(x => x.id === id);
+      return `
+        <div class="justificacion-box">
+          <label for="respuestaCartaA18_${id}"><i class="fa-solid fa-pen"></i> ${p.pregunta}</label>
+          <textarea id="respuestaCartaA18_${id}" placeholder="Escribe tu respuesta...">${respuestasCartasA18[id] || ''}</textarea>
+        </div>`;
+    }).join('') + `
+      <button type="button" class="btn btn-add" id="btnContinuarCartasA18" style="margin-top:8px;" ${cartasVolteadasA18.length < MAX_CARTAS_A18 ? 'disabled' : ''}>
+        <i class="fa-solid fa-arrow-right"></i> Continuar a la instalación
+      </button>`;
+
+    cartasVolteadasA18.forEach(id => {
+      document.getElementById(`respuestaCartaA18_${id}`).addEventListener('input', (e) => {
+        respuestasCartasA18[id] = e.target.value;
+      });
+    });
+
+    const btnContinuar = document.getElementById('btnContinuarCartasA18');
+    if(btnContinuar){
+      btnContinuar.addEventListener('click', () => {
+        const faltantes = cartasVolteadasA18.filter(id => !(respuestasCartasA18[id] || '').trim());
+        if(faltantes.length > 0){
+          mostrarNotificacion('Responde las 5 preguntas antes de continuar.', 'error');
+          return;
+        }
+        document.getElementById('seccionInstaladorA18').classList.remove('hidden');
+        pintarPasoA18(1);
+      });
+    }
+  }
+
+  // ---------- Sección 2: instalador simulado ----------
 
   function pintarPasoA18(paso){
     pasoActualA18 = paso;
@@ -3012,14 +3234,16 @@
 
     const minutosTranscurridos = (Date.now() - inicioTiempoA18) / 60000;
     const justificacion = document.getElementById('justificacionA18').value.trim();
+    const respuestasValidasCartas = Object.values(respuestasCartasA18).filter(r => r.trim().length >= 15).length;
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A18[0].nombre, descripcion: CRITERIOS_BASE_A18[0].descripcion, nivel: 'cumple' });
-    criterios.push({ nombre: CRITERIOS_BASE_A18[1].nombre, descripcion: CRITERIOS_BASE_A18[1].descripcion, nivel: instalacionCompletadaA18 ? 'cumple' : 'no_cumple' });
-    criterios.push({ nombre: CRITERIOS_BASE_A18[2].nombre, descripcion: CRITERIOS_BASE_A18[2].descripcion, nivel: rechazoOfertaExtraA18 ? 'cumple' : 'no_cumple' });
-    criterios.push({ nombre: CRITERIOS_BASE_A18[3].nombre, descripcion: CRITERIOS_BASE_A18[3].descripcion, nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple' });
-    criterios.push({ nombre: CRITERIOS_BASE_A18[4].nombre, descripcion: CRITERIOS_BASE_A18[4].descripcion, nivel: minutosTranscurridos <= tiempoEstimadoA18 * 1.5 ? 'cumple' : 'no_cumple' });
-    criterios.push({ nombre: CRITERIOS_BASE_A18[5].nombre, descripcion: CRITERIOS_BASE_A18[5].descripcion, nivel: 'cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[1].nombre, descripcion: CRITERIOS_BASE_A18[1].descripcion, nivel: respuestasValidasCartas >= 4 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[2].nombre, descripcion: CRITERIOS_BASE_A18[2].descripcion, nivel: instalacionCompletadaA18 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[3].nombre, descripcion: CRITERIOS_BASE_A18[3].descripcion, nivel: rechazoOfertaExtraA18 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[4].nombre, descripcion: CRITERIOS_BASE_A18[4].descripcion, nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[5].nombre, descripcion: CRITERIOS_BASE_A18[5].descripcion, nivel: minutosTranscurridos <= tiempoEstimadoA18 * 1.5 ? 'cumple' : 'no_cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A18[6].nombre, descripcion: CRITERIOS_BASE_A18[6].descripcion, nivel: 'cumple' });
 
     const pesoUnidad = puntajeMaxA18 / criterios.length;
     let notaCalculada = 0;
@@ -3035,18 +3259,28 @@
     mostrarLogro(proporcionFinalA18 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA18 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA18 >= 0.8) dispararConfeti();
 
-    const detalleA18 = [{
-      titulo: 'Instalación guiada de NexaReport',
-      items: [
-        { pregunta: '¿Completó los 7 pasos de la instalación?', tuRespuesta: instalacionCompletadaA18 ? 'Sí' : 'No', correcta: instalacionCompletadaA18 },
-        {
-          pregunta: '¿Qué decidió sobre el componente adicional "BuscadorTurbo"?',
-          tuRespuesta: rechazoOfertaExtraA18 ? 'Lo desmarcó antes de continuar (correcto)' : 'Lo dejó marcado e instaló el componente adicional',
-          correcta: rechazoOfertaExtraA18
-        },
-        { pregunta: '¿Por qué tomó esa decisión?', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 }
-      ]
-    }];
+    const detalleA18 = [
+      {
+        titulo: 'Sección 1 — Baraja de preguntas',
+        items: cartasVolteadasA18.map(id => {
+          const p = PREGUNTAS_CARTAS_A18.find(x => x.id === id);
+          const respuesta = (respuestasCartasA18[id] || '').trim();
+          return { pregunta: p.pregunta, tuRespuesta: respuesta || 'Sin responder', correcta: respuesta.length >= 15 };
+        })
+      },
+      {
+        titulo: 'Sección 2 — Instalación guiada de NexaReport',
+        items: [
+          { pregunta: '¿Completó los 7 pasos de la instalación?', tuRespuesta: instalacionCompletadaA18 ? 'Sí' : 'No', correcta: instalacionCompletadaA18 },
+          {
+            pregunta: '¿Qué decidió sobre el componente adicional "BuscadorTurbo"?',
+            tuRespuesta: rechazoOfertaExtraA18 ? 'Lo desmarcó antes de continuar (correcto)' : 'Lo dejó marcado e instaló el componente adicional',
+            correcta: rechazoOfertaExtraA18
+          },
+          { pregunta: '¿Por qué tomó esa decisión?', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 }
+        ]
+      }
+    ];
     ultimoResultadoA18 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA18, detalle: detalleA18 };
     renderDesgloseColoreado('resultadoDesgloseA18', detalleA18);
 
