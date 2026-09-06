@@ -1102,6 +1102,81 @@
         </div>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.9: PROYECTO Y CONEXIÓN A BASE DE DATOS EN NEXAREPORT ---- -->
+    <div id="panelActividadA19" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA19"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.9 — Crear un proyecto y conectar una base de datos</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA19">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA19" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA19" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA19"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA19" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA19" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA19" class="hidden">
+        <div class="timer-badge" id="timerA19"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+
+        <div class="section-heading" style="font-size:18.5px;">Sección 1 — Ordena los pasos</div>
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Arrastra las tarjetas (o usa las flechas) para ordenar los pasos de crear un proyecto y conectarlo a una base de datos. Verifica cuando creas tener el orden correcto.
+        </div>
+        <div id="ordenA19"></div>
+
+        <div id="seccionEscritorioA19" class="hidden">
+          <div class="section-heading" style="font-size:18.5px;">Sección 2 — Crea tu proyecto en NexaReport</div>
+          <div class="empty-note" style="margin-top:0;">
+            <i class="fa-solid fa-hand-pointer"></i>
+            NexaReport ya está instalado. Crea un proyecto nuevo y conéctalo a la base de datos de TECNOVENTAS RD.
+          </div>
+          <div id="escritorioNexaA19"></div>
+        </div>
+
+        <div id="seccionFinalA19" class="hidden">
+          <div class="justificacion-box">
+            <label for="justificacionA19"><i class="fa-solid fa-pen"></i> Elegiste conectar tu proyecto a una tabla de datos. ¿Para qué tipo de reporte empresarial te serviría esa información? (criterio 4)</label>
+            <textarea id="justificacionA19" placeholder="Explica para qué usarías esos datos..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA19" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA19" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA19">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA19"></div>
+        <div id="resultadoDesgloseA19"></div>
+        <div class="acciones-resultado">
+          <button type="button" class="btn btn-primary" id="btnVolverMisActA19" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+          </button>
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfA19">
+            <i class="fa-solid fa-file-pdf"></i> Descargar resultado en PDF
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
