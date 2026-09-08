@@ -1384,3 +1384,39 @@
   .orden-flecha:disabled{ opacity:.3; }
   .orden-handle{ color: var(--dark-text-dim); font-size:15px; flex-shrink:0; }
   body.light .orden-handle{ color: var(--light-text-dim); }
+
+  /* ============ TABLA DE CUMPLIMIENTO POR RA (panel docente) ============ */
+  .btn-tabla-cumplimiento{
+    padding:10px 18px; border-radius:10px; background: rgba(79,163,255,.12); color: var(--dark-blue-accent);
+    border:1px solid var(--dark-blue-accent); font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;
+  }
+  body.light .btn-tabla-cumplimiento{ background: rgba(37,99,235,.08); color: var(--light-blue-accent); border:1px solid var(--light-blue-accent); }
+
+  .leyenda-cumple, .leyenda-no-cumple{
+    display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px; border-radius:50%;
+    font-size:11px; color:#fff; margin:0 2px;
+  }
+  .leyenda-cumple{ background: var(--dark-green-accent); }
+  .leyenda-no-cumple{ background:#ef4444; }
+
+  .tabla-cumplimiento-scroll{
+    overflow-x:auto; border:1px solid var(--dark-border); border-radius: var(--radius);
+  }
+  body.light .tabla-cumplimiento-scroll{ border:1px solid #dde5f6; }
+  table.tabla-cumplimiento{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.tabla-cumplimiento th, table.tabla-cumplimiento td{
+    padding:10px 14px; text-align:center; border-bottom:1px solid var(--dark-border); white-space:nowrap;
+  }
+  body.light table.tabla-cumplimiento th, body.light table.tabla-cumplimiento td{ border-bottom:1px solid #e2e8f0; }
+  table.tabla-cumplimiento thead th{
+    background: var(--dark-card-hover); color: var(--dark-gold-accent); font-weight:800; position:sticky; top:0; z-index:1;
+  }
+  body.light table.tabla-cumplimiento thead th{ background:#eef2fb; color:#b8790f; }
+  table.tabla-cumplimiento td.col-estudiante, table.tabla-cumplimiento th.col-estudiante{
+    text-align:left; position:sticky; left:0; background: var(--dark-card); font-weight:700; z-index:2; min-width:180px;
+  }
+  body.light table.tabla-cumplimiento td.col-estudiante, body.light table.tabla-cumplimiento th.col-estudiante{ background:#fff; }
+  table.tabla-cumplimiento thead th.col-estudiante{ z-index:3; }
+  table.tabla-cumplimiento tbody tr:nth-child(even) td:not(.col-estudiante){ background: rgba(255,255,255,0.02); }
+  .cumple-icono{ color: var(--dark-green-accent); font-size:15px; }
+  .no-cumple-icono{ color:#ef4444; font-size:15px; }
