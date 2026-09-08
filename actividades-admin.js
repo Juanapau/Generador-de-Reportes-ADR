@@ -772,3 +772,82 @@
       cont.innerHTML = '<div style="font-size:14.5px; opacity:.6;">Error al cargar recursos.</div>';
     }
   }
+
+// ============================================================================
+// TABLA DE CUMPLIMIENTO — vista rápida de qué estudiante completó qué actividad
+// dentro del RA que se esté viendo en ese momento.
+// ============================================================================
+
+  document.getElementById('btnAbrirTablaCumplimiento').addEventListener('click', () => {
+    document.getElementById('panelActividades').classList.add('hidden');
+    document.getElementById('panelTablaCumplimiento').classList.remove('hidden');
+    cargarTablaCumplimiento();
+  });
+
+  document.getElementById('btnBackFromTablaCumplimiento').addEventListener('click', () => {
+    document.getElementById('panelTablaCumplimiento').classList.add('hidden');
+    document.getElementById('panelActividades').classList.remove('hidden');
+  });
+
+  async function cargarTablaCumplimiento(){
+    document.getElementById('tituloTablaCumplimiento').textContent = `Tabla de cumplimiento — ${raActual}`;
+    const wrap = document.getElementById('tablaCumplimientoWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando tabla...</div>';
+
+    try{
+      const [dataEst, dataCal] = await Promise.all([
+        apiGet({ action:'listarEstudiantes' }),
+        apiGet({ action:'listarCalificacionesPorRA', ra: raActual })
+      ]);
+
+      if(!dataEst.success){
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudo cargar la lista de estudiantes.</div>';
+        return;
+      }
+
+      const estudiantes = dataEst.estudiantes.slice().sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+      const actividadesDelRA = actividadesCache.slice().sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), undefined, { numeric:true }));
+
+      if(actividadesDelRA.length === 0){
+        wrap.innerHTML = '<div class="empty-table-msg">Este RA todavía no tiene actividades creadas.</div>';
+        return;
+      }
+      if(estudiantes.length === 0){
+        wrap.innerHTML = '<div class="empty-table-msg">Todavía no hay estudiantes registrados.</div>';
+        return;
+      }
+
+      // Set de "usuario|codigo" para saber, de un vistazo, quién completó qué
+      const completadas = new Set();
+      if(dataCal.success){
+        dataCal.calificaciones.forEach(c => completadas.add(`${c.usuario}|${c.codigo}`));
+      }
+
+      wrap.innerHTML = `
+        <div class="tabla-cumplimiento-scroll">
+          <table class="tabla-cumplimiento">
+            <thead>
+              <tr>
+                <th class="col-estudiante">Estudiante</th>
+                ${actividadesDelRA.map(a => `<th>${a.codigo}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${estudiantes.map(est => `
+                <tr>
+                  <td class="col-estudiante">${est.nombre || est.usuario}</td>
+                  ${actividadesDelRA.map(a => {
+                    const cumple = completadas.has(`${est.usuario}|${a.codigo}`);
+                    return `<td>${cumple
+                      ? '<i class="fa-solid fa-check cumple-icono"></i>'
+                      : '<i class="fa-solid fa-xmark no-cumple-icono"></i>'}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }catch(err){
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
