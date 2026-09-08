@@ -2838,38 +2838,38 @@
     const aciertosCaminoA17 = respuestasCaminoA17.filter(Boolean).length;
 
     const criterios = [];
-    criterios.push({ nombre: CRITERIOS_BASE_A17[0].nombre, descripcion: CRITERIOS_BASE_A17[0].descripcion, nivel: 'cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A17[0].nombre, descripcion: CRITERIOS_BASE_A17[0].descripcion, nivel: 'logrado' });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[1].nombre, descripcion: CRITERIOS_BASE_A17[1].descripcion,
-      nivel: aciertosCaminoA17 >= 2 ? 'cumple' : 'no_cumple'
+      nivel: aciertosCaminoA17 >= 2 ? 'logrado' : 'no_logrado'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[2].nombre, descripcion: CRITERIOS_BASE_A17[2].descripcion,
-      nivel: intentosSitioA17 <= 2 ? 'cumple' : 'no_cumple'
+      nivel: intentosSitioA17 <= 2 ? 'logrado' : 'no_logrado'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[3].nombre, descripcion: CRITERIOS_BASE_A17[3].descripcion,
-      nivel: descargaCompletadaA17 ? 'cumple' : 'no_cumple'
+      nivel: descargaCompletadaA17 ? 'logrado' : 'no_logrado'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[4].nombre, descripcion: CRITERIOS_BASE_A17[4].descripcion,
-      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+      nivel: justificacion.length >= 20 ? 'logrado' : 'no_logrado'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A17[5].nombre, descripcion: CRITERIOS_BASE_A17[5].descripcion,
-      nivel: minutosTranscurridos <= tiempoEstimadoA17 * 1.5 ? 'cumple' : 'no_cumple'
+      nivel: minutosTranscurridos <= tiempoEstimadoA17 * 1.5 ? 'logrado' : 'no_logrado'
     });
 
-    criterios.push({ nombre: CRITERIOS_BASE_A17[6].nombre, descripcion: CRITERIOS_BASE_A17[6].descripcion, nivel: 'cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A17[6].nombre, descripcion: CRITERIOS_BASE_A17[6].descripcion, nivel: 'logrado' });
 
     const pesoUnidad = puntajeMaxA17 / criterios.length;
     let notaCalculada = 0;
-    criterios.forEach(c => { if(c.nivel === 'cumple') notaCalculada += pesoUnidad; });
+    criterios.forEach(c => { if(c.nivel === 'logrado') notaCalculada += pesoUnidad; });
     notaCalculada = Math.round(notaCalculada * 100) / 100;
 
     document.getElementById('vistaEjercicioA17').classList.add('hidden');
@@ -3714,3 +3714,249 @@
   });
 
   registrarActividadInteractiva('A.1.9', abrirActividadA19);
+
+// ============================================================================
+// A.1.10 — ¿CUÁL ES EL MÉTODO DE ENTREGA CORRECTO? (estudio de caso)
+// ============================================================================
+  const METODOS_A110 = [
+    { id:'impreso', nombre:'Impreso', icono:'🖨️' },
+    { id:'pantalla', nombre:'En pantalla', icono:'🖥️' },
+    { id:'web', nombre:'Publicación web', icono:'🌐' }
+  ];
+
+  const CASOS_A110_BASE = [
+    { id:1, escenario:'El departamento de Auditoría Externa solicita el balance general anual de la empresa para verificarlo y firmarlo.', correcto:'impreso', explicacion:'Requiere firma física y es un documento legal formal — el método impreso es el más adecuado.' },
+    { id:2, escenario:'El gerente de ventas quiere ver, en tiempo real, cómo van las ventas de hoy mientras camina por el piso de ventas con su tablet.', correcto:'pantalla', explicacion:'Necesita monitoreo en tiempo real e interactividad — un dashboard en pantalla es lo ideal.' },
+    { id:3, escenario:'La empresa tiene 5 sucursales en distintas provincias, y todas necesitan consultar el mismo reporte de inventario actualizado constantemente.', correcto:'web', explicacion:'Varias ubicaciones necesitan acceso simultáneo y centralizado — la publicación web es la mejor opción.' },
+    { id:4, escenario:'Un cliente externo solicita el reporte financiero trimestral para revisarlo desde su oficina en otra ciudad.', correcto:'web', explicacion:'Es un acceso remoto para alguien externo a la empresa — compartir por publicación web es lo más práctico.' },
+    { id:5, escenario:'El director quiere explorar los datos de un evento de ventas navideño, filtrando por región y producto, durante una reunión de análisis.', correcto:'pantalla', explicacion:'Necesita filtrar y explorar los datos de forma interactiva — un dashboard en pantalla permite justo eso.' }
+  ];
+
+  const CRITERIOS_BASE_A110 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'identificacion', nombre:'2. Identificación del método correcto', descripcion:'Elige el método de entrega correcto en la mayoría de los casos planteados.' },
+    { key:'analisis', nombre:'3. Análisis de casos', descripcion:'Analiza cada caso considerando quién lo verá, dónde y para qué, antes de elegir.' },
+    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con criterio por qué el método elegido era el más adecuado para el caso.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let pasoCasoA110 = 0;
+  let respuestasCasosA110 = [];
+  let puntajeMaxA110 = 0;
+  let tiempoEstimadoA110 = 10;
+  let inicioTiempoA110 = null;
+  let timerIntervalA110 = null;
+  let ultimoResultadoA110 = null;
+
+  async function abrirActividadA110(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA110 = puntajeMaximo;
+    tiempoEstimadoA110 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA110').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA110').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.1.10') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA110').classList.add('hidden');
+        document.getElementById('vistaEjercicioA110').classList.add('hidden');
+        document.getElementById('vistaResultadoA110').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA110', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA110', previa.detalle);
+        ultimoResultadoA110 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA110').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA110').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA110').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA110').classList.add('hidden');
+    document.getElementById('vistaResultadoA110').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA110').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA110} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.1.10', 'recursosEstudianteA110');
+
+    const criteriosPrevios = CRITERIOS_BASE_A110.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA110', criteriosPrevios, puntajeMaxA110, null);
+  }
+
+  document.getElementById('btnBackFromActividadA110').addEventListener('click', () => {
+    clearInterval(timerIntervalA110);
+    document.getElementById('panelActividadA110').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA110').addEventListener('click', () => {
+    pasoCasoA110 = 0;
+    respuestasCasosA110 = [];
+    document.getElementById('justificacionA110').value = '';
+    document.getElementById('seccionFinalA110').classList.add('hidden');
+    document.getElementById('btnFinalizarA110').disabled = true;
+    document.getElementById('vistaInstrumentoA110').classList.add('hidden');
+    document.getElementById('vistaEjercicioA110').classList.remove('hidden');
+
+    pintarCasoA110();
+
+    inicioTiempoA110 = Date.now();
+    clearInterval(timerIntervalA110);
+    timerIntervalA110 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA110) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA110').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA110} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarCasoA110(){
+    const cont = document.getElementById('casosA110');
+    actualizarBarraProgreso('progresoA110', pasoCasoA110, CASOS_A110_BASE.length);
+
+    if(pasoCasoA110 >= CASOS_A110_BASE.length){
+      cont.innerHTML = `<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste los 5 casos! Ya puedes justificar tu elección abajo.</div>`;
+      document.getElementById('seccionFinalA110').classList.remove('hidden');
+      document.getElementById('btnFinalizarA110').disabled = false;
+      return;
+    }
+
+    const caso = CASOS_A110_BASE[pasoCasoA110];
+    cont.innerHTML = `
+      <div class="caso-a110-card">
+        <div class="caso-a110-titulo">Caso ${pasoCasoA110 + 1} de ${CASOS_A110_BASE.length}</div>
+        <div class="caso-a110-escenario">${caso.escenario}</div>
+        <div class="metodos-a110-opciones">
+          ${METODOS_A110.map(m => `
+            <button type="button" class="metodo-a110-btn" data-id="${m.id}">
+              <span class="metodo-a110-icono">${m.icono}</span>
+              <span>${m.nombre}</span>
+            </button>
+          `).join('')}
+        </div>
+        <div id="feedbackCasoA110"></div>
+      </div>`;
+
+    document.querySelectorAll('#casosA110 .metodo-a110-btn').forEach(btn => {
+      btn.addEventListener('click', () => manejarRespuestaCasoA110(btn.dataset.id, caso));
+    });
+  }
+
+  function manejarRespuestaCasoA110(elegido, caso){
+    const correcta = elegido === caso.correcto;
+    respuestasCasosA110.push({
+      escenario: caso.escenario,
+      tuRespuesta: METODOS_A110.find(m => m.id === elegido).nombre,
+      correcta,
+      respuestaCorrecta: METODOS_A110.find(m => m.id === caso.correcto).nombre + ' — ' + caso.explicacion
+    });
+
+    document.querySelectorAll('#casosA110 .metodo-a110-btn').forEach(btn => {
+      btn.disabled = true;
+      if(btn.dataset.id === caso.correcto) btn.classList.add('correcta-marcada');
+      else if(btn.dataset.id === elegido) btn.classList.add('incorrecta-marcada');
+    });
+
+    document.getElementById('feedbackCasoA110').innerHTML = `
+      <div class="asistente-feedback ${correcta ? '' : 'feedback-incorrecto'}">
+        <i class="fa-solid ${correcta ? 'fa-circle-check' : 'fa-circle-info'}"></i>
+        ${correcta ? '¡Correcto!' : 'No exactamente.'} ${caso.explicacion}
+      </div>
+      <button type="button" class="btn btn-primary" id="btnSiguienteCasoA110" style="width:auto; padding:10px 22px; margin-top:14px;">
+        Siguiente caso <i class="fa-solid fa-arrow-right"></i>
+      </button>`;
+
+    document.getElementById('btnSiguienteCasoA110').addEventListener('click', () => {
+      pasoCasoA110++;
+      pintarCasoA110();
+    });
+  }
+
+  document.getElementById('btnFinalizarA110').addEventListener('click', async () => {
+    clearInterval(timerIntervalA110);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA110) / 60000;
+    const justificacion = document.getElementById('justificacionA110').value.trim();
+    const aciertosCasos = respuestasCasosA110.filter(r => r.correcta).length;
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A110[0].nombre, descripcion: CRITERIOS_BASE_A110[0].descripcion, nivel: 'logrado' });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A110[1].nombre, descripcion: CRITERIOS_BASE_A110[1].descripcion,
+      nivel: aciertosCasos >= 4 ? 'logrado' : (aciertosCasos >= 3 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A110[2].nombre, descripcion: CRITERIOS_BASE_A110[2].descripcion,
+      nivel: aciertosCasos >= 4 ? 'logrado' : (aciertosCasos >= 2 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A110[3].nombre, descripcion: CRITERIOS_BASE_A110[3].descripcion,
+      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A110[4].nombre, descripcion: CRITERIOS_BASE_A110[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA110 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA110 * 2 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A110[5].nombre, descripcion: CRITERIOS_BASE_A110[5].descripcion, nivel: 'logrado' });
+
+    const pesoUnidad = puntajeMaxA110 / criterios.length;
+    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA110').classList.add('hidden');
+    document.getElementById('vistaResultadoA110').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA110').classList.add('hidden');
+    renderRubrica('rubricaResultadoA110', criterios, puntajeMaxA110, notaCalculada);
+
+    const proporcionFinalA110 = puntajeMaxA110 > 0 ? notaCalculada / puntajeMaxA110 : 0;
+    mostrarLogro(proporcionFinalA110 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA110 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA110 >= 0.8) dispararConfeti();
+
+    const detalleA110 = [
+      { titulo: 'Casos empresariales', items: respuestasCasosA110 },
+      {
+        titulo: 'Justificación',
+        items: [{ pregunta: '¿Por qué ese método era el más adecuado?', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 }]
+      }
+    ];
+    ultimoResultadoA110 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA110, detalle: detalleA110 };
+    renderDesgloseColoreado('resultadoDesgloseA110', detalleA110);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.1.10',
+        ra:'RA1',
+        ec:'EC6.1.5',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA110,
+        criterios: criterios,
+        detalle: detalleA110
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA110').addEventListener('click', () => {
+    if(!ultimoResultadoA110) return;
+    generarPdfResultado('A.1.10', ultimoResultadoA110.criterios, ultimoResultadoA110.nota, ultimoResultadoA110.puntajeMaximo, 'EC6.1.5', 'RA1', ultimoResultadoA110.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA110').addEventListener('click', () => {
+    document.getElementById('panelActividadA110').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.1.10', abrirActividadA110);
