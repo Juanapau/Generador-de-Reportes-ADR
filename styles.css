@@ -1420,3 +1420,27 @@
   table.tabla-cumplimiento tbody tr:nth-child(even) td:not(.col-estudiante){ background: rgba(255,255,255,0.02); }
   .cumple-icono{ color: var(--dark-green-accent); font-size:15px; }
   .no-cumple-icono{ color:#ef4444; font-size:15px; }
+
+  /* ============ CASOS EMPRESARIALES - A.1.10 ============ */
+  .caso-a110-card{
+    max-width:600px; margin:0 auto; background: var(--dark-card); border:2px solid var(--dark-border);
+    border-radius:14px; padding:22px 26px;
+  }
+  body.light .caso-a110-card{ background:#fff; border:2px solid #dde5f6; }
+  .caso-a110-titulo{ font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color: var(--dark-gold-accent); margin-bottom:10px; }
+  .caso-a110-escenario{ font-size:15px; font-weight:600; line-height:1.5; margin-bottom:18px; }
+  .metodos-a110-opciones{ display:flex; flex-direction:column; gap:10px; }
+  .metodo-a110-btn{
+    display:flex; align-items:center; gap:12px; padding:12px 16px; border-radius:10px;
+    background: rgba(255,255,255,0.04); border:2px solid var(--dark-border); color: var(--dark-text);
+    font-weight:700; font-size:14px; text-align:left;
+  }
+  body.light .metodo-a110-btn{ background:#f7f9fd; border:2px solid #dde5f6; color: var(--light-text); }
+  .metodo-a110-btn:not(:disabled):hover{ border-color: var(--dark-blue-accent); }
+  .metodo-a110-icono{ font-size:20px; }
+  .metodo-a110-btn.correcta-marcada{ border-color: var(--dark-green-accent); background: rgba(34,197,94,.15); }
+  .metodo-a110-btn.incorrecta-marcada{ border-color:#ef4444; background: rgba(239,68,68,.15); }
+  .metodo-a110-btn:disabled{ opacity:.85; }
+  .asistente-feedback.feedback-incorrecto{
+    background: rgba(232,185,59,.12); border:1px solid var(--dark-gold-accent); color: var(--dark-gold-accent);
+  }
