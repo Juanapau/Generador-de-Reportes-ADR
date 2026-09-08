@@ -287,6 +287,9 @@
         <button type="button" class="back-btn" id="btnBackToRaCardsAdmin"><i class="fa-solid fa-arrow-left"></i> Volver a los RA</button>
         <div class="panel-toolbar">
           <div style="font-size:15px; color:var(--dark-text-dim);" id="totalActividadesLabel">Cargando...</div>
+          <button type="button" class="btn-tabla-cumplimiento" id="btnAbrirTablaCumplimiento">
+            <i class="fa-solid fa-table"></i> Tabla de cumplimiento
+          </button>
         </div>
         <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
           <i class="fa-solid fa-circle-info"></i>
@@ -294,6 +297,18 @@
         </div>
         <div id="listaActividadesWrap"></div>
       </div>
+    </div>
+
+    <!-- ---- TABLA DE CUMPLIMIENTO POR RA (panel docente) ---- -->
+    <div id="panelTablaCumplimiento" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromTablaCumplimiento"><i class="fa-solid fa-arrow-left"></i> Volver a las actividades</button>
+      <div class="section-heading" id="tituloTablaCumplimiento">Tabla de cumplimiento</div>
+      <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
+        <i class="fa-solid fa-circle-info"></i>
+        <span class="leyenda-cumple"><i class="fa-solid fa-check"></i></span> = actividad completada &nbsp;·&nbsp;
+        <span class="leyenda-no-cumple"><i class="fa-solid fa-xmark"></i></span> = no completada todavía
+      </div>
+      <div id="tablaCumplimientoWrap"></div>
     </div>
 
     <!-- ---- ACTIVIDADES EXTRA (panel docente) ---- -->
