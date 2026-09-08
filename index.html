@@ -1192,6 +1192,73 @@
         </div>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.1.10: MÉTODO DE ENTREGA CORRECTO PARA CADA CASO ---- -->
+    <div id="panelActividadA110" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA110"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.1.10 — ¿Cuál es el método de entrega correcto?</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA110">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA110" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA110" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA110"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA110" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA110" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA110" class="hidden">
+        <div class="timer-badge" id="timerA110"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+        <div id="progresoA110"></div>
+
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Lee cada caso empresarial y elige el método de entrega más adecuado: Impreso, En pantalla, o Publicación web.
+        </div>
+
+        <div id="casosA110"></div>
+
+        <div id="seccionFinalA110" class="hidden">
+          <div class="justificacion-box">
+            <label for="justificacionA110"><i class="fa-solid fa-pen"></i> Elige uno de los 5 casos y explica con más detalle por qué ese método era el más adecuado (criterio 4)</label>
+            <textarea id="justificacionA110" placeholder="Explica tu elección..."></textarea>
+          </div>
+
+          <button type="button" class="btn btn-primary" id="btnFinalizarA110" style="width:auto; padding:12px 28px;" disabled>
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA110" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA110">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA110"></div>
+        <div id="resultadoDesgloseA110"></div>
+        <div class="acciones-resultado">
+          <button type="button" class="btn btn-primary" id="btnVolverMisActA110" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+          </button>
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfA110">
+            <i class="fa-solid fa-file-pdf"></i> Descargar resultado en PDF
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
