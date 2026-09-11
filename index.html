@@ -171,24 +171,24 @@
           <p>Configurar cada actividad (A.1.1...), su instrumento de evaluación y su puntaje máximo antes de habilitarla.</p>
           <span class="m-tag tag-gold">Disponible</span>
         </button>
-        <div class="module-card">
+        <button type="button" class="module-card" id="cardCalificacionesAvances" style="text-align:left;">
           <div class="m-icon" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-chart-line"></i></div>
           <h3>Calificaciones y avances</h3>
           <p>Ver el progreso individual y por equipo de cada estudiante en todas las actividades.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
-        <div class="module-card">
+          <span class="m-tag tag-green">Disponible</span>
+        </button>
+        <button type="button" class="module-card" id="cardReportes" style="text-align:left;">
           <div class="m-icon" style="background:rgba(79,163,255,.15); color:var(--dark-blue-accent);"><i class="fa-solid fa-file-export"></i></div>
           <h3>Reportes PDF / Excel</h3>
           <p>Exportar calificaciones individuales o grupales en PDF o Excel.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
-        <div class="module-card">
+          <span class="m-tag tag-blue">Disponible</span>
+        </button>
+        <button type="button" class="module-card" id="cardConfiguracion" style="text-align:left;">
           <div class="m-icon" style="background:rgba(232,185,59,.15); color:var(--dark-gold-accent);"><i class="fa-solid fa-gears"></i></div>
           <h3>Configuración</h3>
           <p>Datos generales del módulo, año lectivo y parámetros del sistema.</p>
-          <span class="m-tag tag-soon">Próximo paso</span>
-        </div>
+          <span class="m-tag tag-gold">Disponible</span>
+        </button>
       </div>
     </div>
 
@@ -309,6 +309,93 @@
         <span class="leyenda-no-cumple"><i class="fa-solid fa-xmark"></i></span> = no completada todavía
       </div>
       <div id="tablaCumplimientoWrap"></div>
+    </div>
+
+    <!-- ---- CALIFICACIONES Y AVANCES (panel docente) ---- -->
+    <div id="panelCalificacionesAvances" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromCalificacionesAvances"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Calificaciones y avances</div>
+      <div class="panel-toolbar">
+        <div class="role-tabs" id="selectorRACalificaciones" style="width:auto;"></div>
+      </div>
+      <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
+        <i class="fa-solid fa-circle-info"></i>
+        Haz clic en el nombre de un estudiante para ver el detalle completo de sus calificaciones.
+      </div>
+      <div id="tablaCalificacionesAvancesWrap"></div>
+    </div>
+
+    <!-- ---- DETALLE DE CALIFICACIONES DE UN ESTUDIANTE (panel docente) ---- -->
+    <div id="panelDetalleEstudianteCalificaciones" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromDetalleEstudianteCalificaciones"><i class="fa-solid fa-arrow-left"></i> Volver a Calificaciones y avances</button>
+      <div class="section-heading" id="tituloDetalleEstudianteCalificaciones">Detalle de calificaciones</div>
+      <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfResumenEstudiante" style="margin-bottom:18px;">
+        <i class="fa-solid fa-file-pdf"></i> Descargar resumen en PDF
+      </button>
+      <div id="resumenEstudianteWrap"></div>
+      <div id="detalleEstudianteCalificacionesWrap"></div>
+    </div>
+
+    <!-- ---- REPORTES PDF / EXCEL (panel docente) ---- -->
+    <div id="panelReportes" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromReportes"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Reportes PDF / Excel</div>
+
+      <div class="reporte-opcion-card">
+        <div class="reporte-opcion-icono"><i class="fa-solid fa-file-pdf"></i></div>
+        <div style="flex:1;">
+          <h3>Reporte individual en PDF</h3>
+          <p>Un resumen completo de calificaciones de un estudiante específico, listo para imprimir o enviar.</p>
+          <select id="selectEstudianteReportePDF" class="input-generico" style="max-width:340px;">
+            <option value="">Selecciona un estudiante...</option>
+          </select>
+          <button type="button" class="btn btn-add" id="btnGenerarReportePDF" style="margin-top:12px;">
+            <i class="fa-solid fa-download"></i> Generar PDF
+          </button>
+        </div>
+      </div>
+
+      <div class="reporte-opcion-card">
+        <div class="reporte-opcion-icono" style="background:rgba(34,197,94,.15); color:var(--dark-green-accent);"><i class="fa-solid fa-file-csv"></i></div>
+        <div style="flex:1;">
+          <h3>Reporte grupal en Excel</h3>
+          <p>Todas las calificaciones del grupo en un RA, en un archivo que se abre directamente en Excel o Google Sheets.</p>
+          <select id="selectRAReporteExcel" class="input-generico" style="max-width:340px;"></select>
+          <button type="button" class="btn btn-add" id="btnGenerarReporteExcel" style="margin-top:12px;">
+            <i class="fa-solid fa-download"></i> Generar Excel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- CONFIGURACIÓN (panel docente) ---- -->
+    <div id="panelConfiguracion" class="hidden panel-secundario">
+      <button type="button" class="back-btn" id="btnBackFromConfiguracion"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
+      <div class="section-heading">Configuración</div>
+      <div class="empty-note" style="margin-top:0; margin-bottom:20px;">
+        <i class="fa-solid fa-circle-info"></i>
+        Estos datos son informativos y se muestran en distintas partes del sistema (como el pie de página).
+      </div>
+      <div class="config-form">
+        <div class="field">
+          <label>Nombre del módulo</label>
+          <input type="text" id="inputNombreModulo" placeholder="Ej. Análisis y Diseño de Reportes">
+        </div>
+        <div class="field">
+          <label>Año lectivo</label>
+          <input type="text" id="inputAnioLectivo" placeholder="Ej. 2026-2027">
+        </div>
+        <div class="field">
+          <label>Docente responsable</label>
+          <input type="text" id="inputDocenteResponsable" placeholder="Ej. Juana Altagracia Paulino de Jesús">
+        </div>
+        <button type="button" class="btn btn-primary" id="btnGuardarConfiguracion" style="width:auto; padding:12px 28px; margin-top:8px;">
+          <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+        </button>
+        <span class="save-ok-msg hidden" id="configGuardadoMsg" style="color:var(--dark-green-accent); font-weight:700; font-size:13.5px; margin-left:12px;">
+          <i class="fa-solid fa-circle-check"></i> Guardado
+        </span>
+      </div>
     </div>
 
     <!-- ---- ACTIVIDADES EXTRA (panel docente) ---- -->
@@ -1283,6 +1370,7 @@
 <script src="auth.js"></script>
 <script src="registro-estudiantes.js"></script>
 <script src="actividades-admin.js"></script>
+<script src="panel-admin-avanzado.js"></script>
 <script src="mis-actividades.js"></script>
 <script src="simulador-programa.js"></script>
 <script src="actividades.js"></script>
