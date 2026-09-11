@@ -1444,3 +1444,19 @@
   .asistente-feedback.feedback-incorrecto{
     background: rgba(232,185,59,.12); border:1px solid var(--dark-gold-accent); color: var(--dark-gold-accent);
   }
+
+  /* ============ MATRIZ DE FACTORES - caso extenso A.1.10 ============ */
+  .matriz-factores-a110{ margin:18px 0; display:flex; flex-direction:column; gap:10px; }
+  .factor-a110-item{
+    display:flex; justify-content:space-between; align-items:center; gap:14px; flex-wrap:wrap;
+    background: rgba(255,255,255,0.03); border:1px solid var(--dark-border); border-radius:10px; padding:12px 16px;
+  }
+  body.light .factor-a110-item{ background:#f7f9fd; border:1px solid #dde5f6; }
+  .factor-a110-pregunta{ font-size:13.5px; font-weight:600; flex:1; min-width:200px; }
+  .factor-a110-botones{ display:flex; gap:8px; flex-shrink:0; }
+  .factor-a110-btn{
+    padding:8px 18px; border-radius:8px; font-weight:700; font-size:13px;
+    background: rgba(255,255,255,0.05); border:1.5px solid var(--dark-border); color: var(--dark-text);
+  }
+  body.light .factor-a110-btn{ background:#fff; border:1.5px solid #dde5f6; color: var(--light-text); }
+  .factor-a110-btn.seleccionado{ background: var(--dark-blue-accent); border-color: var(--dark-blue-accent); color:#fff; }
