@@ -3732,17 +3732,34 @@
     { id:5, escenario:'El director quiere explorar los datos de un evento de ventas navideño, filtrando por región y producto, durante una reunión de análisis.', correcto:'pantalla', explicacion:'Necesita filtrar y explorar los datos de forma interactiva — un dashboard en pantalla permite justo eso.' }
   ];
 
+  const FACTORES_CASO_EXTENDIDO_A110 = [
+    { id:1, pregunta:'¿El documento requiere firma física o validación legal?', correcta:true },
+    { id:2, pregunta:'¿Los datos necesitan actualizarse en tiempo real?', correcta:false },
+    { id:3, pregunta:'¿Será consultado por varias ubicaciones al mismo tiempo?', correcta:false },
+    { id:4, pregunta:'¿Se necesita explorar o filtrar los datos de forma interactiva?', correcta:false },
+    { id:5, pregunta:'¿Debe conservarse como archivo físico por motivos legales?', correcta:true }
+  ];
+
+  const CASO_EXTENDIDO_A110 = {
+    escenario: 'TECNOVENTAS RD acaba de cerrar su año fiscal. El departamento de Contabilidad debe presentar el reporte de cierre anual a la Dirección General y, después, entregarlo a la firma de auditores externos para su revisión y aprobación formal. Este reporte no cambia una vez cerrado, y la política de la empresa exige conservar una copia firmada archivada durante al menos 5 años. El equipo de Contabilidad trabaja únicamente desde la oficina principal en Santiago.',
+    metodoCorrecto: 'impreso',
+    explicacion: 'Requiere firma física, no cambia con el tiempo, se archiva legalmente y solo lo maneja una ubicación — todas las señales apuntan al método impreso.'
+  };
+
   const CRITERIOS_BASE_A110 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'identificacion', nombre:'2. Identificación del método correcto', descripcion:'Elige el método de entrega correcto en la mayoría de los casos planteados.' },
-    { key:'analisis', nombre:'3. Análisis de casos', descripcion:'Analiza cada caso considerando quién lo verá, dónde y para qué, antes de elegir.' },
-    { key:'justificacion', nombre:'4. Justificación', descripcion:'Explica con criterio por qué el método elegido era el más adecuado para el caso.' },
-    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+    { key:'identificacion', nombre:'2. Identificación del método correcto', descripcion:'Elige el método de entrega correcto en la mayoría de los 5 casos cortos planteados.' },
+    { key:'analisis', nombre:'3. Análisis del caso extenso', descripcion:'Identifica correctamente los factores relevantes del caso extenso antes de decidir.' },
+    { key:'decision', nombre:'4. Decisión final del caso extenso', descripcion:'Elige el método de entrega correcto para el caso extenso, con base en su análisis.' },
+    { key:'justificacion', nombre:'5. Justificación', descripcion:'Explica con criterio por qué el método elegido era el más adecuado para el caso.' },
+    { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
   ];
 
   let pasoCasoA110 = 0;
   let respuestasCasosA110 = [];
+  let respuestasFactoresA110 = {};
+  let metodoFinalElegidoA110 = null;
   let puntajeMaxA110 = 0;
   let tiempoEstimadoA110 = 10;
   let inicioTiempoA110 = null;
@@ -3794,7 +3811,10 @@
   document.getElementById('btnComenzarA110').addEventListener('click', () => {
     pasoCasoA110 = 0;
     respuestasCasosA110 = [];
+    respuestasFactoresA110 = {};
+    metodoFinalElegidoA110 = null;
     document.getElementById('justificacionA110').value = '';
+    document.getElementById('seccionCasoExtendidoA110').classList.add('hidden');
     document.getElementById('seccionFinalA110').classList.add('hidden');
     document.getElementById('btnFinalizarA110').disabled = true;
     document.getElementById('vistaInstrumentoA110').classList.add('hidden');
@@ -3817,9 +3837,9 @@
     actualizarBarraProgreso('progresoA110', pasoCasoA110, CASOS_A110_BASE.length);
 
     if(pasoCasoA110 >= CASOS_A110_BASE.length){
-      cont.innerHTML = `<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste los 5 casos! Ya puedes justificar tu elección abajo.</div>`;
-      document.getElementById('seccionFinalA110').classList.remove('hidden');
-      document.getElementById('btnFinalizarA110').disabled = false;
+      cont.innerHTML = `<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste los 5 casos cortos! Ahora sigue un caso más a fondo.</div>`;
+      document.getElementById('seccionCasoExtendidoA110').classList.remove('hidden');
+      pintarCasoExtendidoA110();
       return;
     }
 
@@ -3874,12 +3894,95 @@
     });
   }
 
+  // ---------- Sección 2: caso extenso con matriz de decisión ----------
+  function pintarCasoExtendidoA110(){
+    const cont = document.getElementById('casoExtendidoA110');
+    cont.innerHTML = `
+      <div class="caso-a110-card" style="max-width:680px;">
+        <div class="caso-a110-escenario">${CASO_EXTENDIDO_A110.escenario}</div>
+        <div class="matriz-factores-a110">
+          ${FACTORES_CASO_EXTENDIDO_A110.map(f => `
+            <div class="factor-a110-item" data-id="${f.id}">
+              <div class="factor-a110-pregunta">${f.pregunta}</div>
+              <div class="factor-a110-botones">
+                <button type="button" class="factor-a110-btn" data-id="${f.id}" data-valor="si">Sí</button>
+                <button type="button" class="factor-a110-btn" data-id="${f.id}" data-valor="no">No</button>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+        <div id="zonaMetodoExtendidoA110"></div>
+      </div>`;
+
+    document.querySelectorAll('#casoExtendidoA110 .factor-a110-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = Number(btn.dataset.id);
+        respuestasFactoresA110[id] = btn.dataset.valor === 'si';
+        document.querySelectorAll(`.factor-a110-btn[data-id="${id}"]`).forEach(b => b.classList.remove('seleccionado'));
+        btn.classList.add('seleccionado');
+
+        if(Object.keys(respuestasFactoresA110).length === FACTORES_CASO_EXTENDIDO_A110.length && !document.getElementById('btnConfirmarAnalisisA110')){
+          document.getElementById('zonaMetodoExtendidoA110').innerHTML = `
+            <button type="button" class="btn btn-add" id="btnConfirmarAnalisisA110" style="margin-top:16px;">
+              <i class="fa-solid fa-check"></i> Confirmar análisis y elegir método
+            </button>`;
+          document.getElementById('btnConfirmarAnalisisA110').addEventListener('click', mostrarSeleccionMetodoExtendidoA110);
+        }
+      });
+    });
+  }
+
+  function mostrarSeleccionMetodoExtendidoA110(){
+    document.querySelectorAll('#casoExtendidoA110 .factor-a110-btn').forEach(b => b.disabled = true);
+    document.getElementById('zonaMetodoExtendidoA110').innerHTML = `
+      <div class="metodos-a110-opciones" style="margin-top:16px;">
+        ${METODOS_A110.map(m => `
+          <button type="button" class="metodo-a110-btn" data-id="${m.id}">
+            <span class="metodo-a110-icono">${m.icono}</span>
+            <span>${m.nombre}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div id="feedbackCasoExtendidoA110"></div>`;
+
+    document.querySelectorAll('#zonaMetodoExtendidoA110 .metodo-a110-btn').forEach(btn => {
+      btn.addEventListener('click', () => manejarMetodoFinalA110(btn.dataset.id));
+    });
+  }
+
+  function manejarMetodoFinalA110(elegido){
+    metodoFinalElegidoA110 = elegido;
+    const correcta = elegido === CASO_EXTENDIDO_A110.metodoCorrecto;
+
+    document.querySelectorAll('#zonaMetodoExtendidoA110 .metodo-a110-btn').forEach(btn => {
+      btn.disabled = true;
+      if(btn.dataset.id === CASO_EXTENDIDO_A110.metodoCorrecto) btn.classList.add('correcta-marcada');
+      else if(btn.dataset.id === elegido) btn.classList.add('incorrecta-marcada');
+    });
+
+    document.getElementById('feedbackCasoExtendidoA110').innerHTML = `
+      <div class="asistente-feedback ${correcta ? '' : 'feedback-incorrecto'}">
+        <i class="fa-solid ${correcta ? 'fa-circle-check' : 'fa-circle-info'}"></i>
+        ${correcta ? '¡Correcto!' : 'No exactamente.'} ${CASO_EXTENDIDO_A110.explicacion}
+      </div>
+      <button type="button" class="btn btn-primary" id="btnContinuarJustificacionA110" style="width:auto; padding:10px 22px; margin-top:14px;">
+        Continuar <i class="fa-solid fa-arrow-right"></i>
+      </button>`;
+
+    document.getElementById('btnContinuarJustificacionA110').addEventListener('click', () => {
+      document.getElementById('seccionFinalA110').classList.remove('hidden');
+      document.getElementById('btnFinalizarA110').disabled = false;
+    });
+  }
+
   document.getElementById('btnFinalizarA110').addEventListener('click', async () => {
     clearInterval(timerIntervalA110);
 
     const minutosTranscurridos = (Date.now() - inicioTiempoA110) / 60000;
     const justificacion = document.getElementById('justificacionA110').value.trim();
     const aciertosCasos = respuestasCasosA110.filter(r => r.correcta).length;
+    const aciertosFactores = FACTORES_CASO_EXTENDIDO_A110.filter(f => respuestasFactoresA110[f.id] === f.correcta).length;
+    const decisionExtendidaCorrecta = metodoFinalElegidoA110 === CASO_EXTENDIDO_A110.metodoCorrecto;
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A110[0].nombre, descripcion: CRITERIOS_BASE_A110[0].descripcion, nivel: 'logrado' });
@@ -3891,20 +3994,25 @@
 
     criterios.push({
       nombre: CRITERIOS_BASE_A110[2].nombre, descripcion: CRITERIOS_BASE_A110[2].descripcion,
-      nivel: aciertosCasos >= 4 ? 'logrado' : (aciertosCasos >= 2 ? 'proceso' : 'no_logrado')
+      nivel: aciertosFactores >= 4 ? 'logrado' : (aciertosFactores >= 3 ? 'proceso' : 'no_logrado')
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A110[3].nombre, descripcion: CRITERIOS_BASE_A110[3].descripcion,
-      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
+      nivel: decisionExtendidaCorrecta ? 'logrado' : 'no_logrado'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A110[4].nombre, descripcion: CRITERIOS_BASE_A110[4].descripcion,
+      nivel: justificacion.length >= 20 ? 'logrado' : (justificacion.length > 0 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A110[5].nombre, descripcion: CRITERIOS_BASE_A110[5].descripcion,
       nivel: minutosTranscurridos <= tiempoEstimadoA110 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA110 * 2 ? 'proceso' : 'no_logrado')
     });
 
-    criterios.push({ nombre: CRITERIOS_BASE_A110[5].nombre, descripcion: CRITERIOS_BASE_A110[5].descripcion, nivel: 'logrado' });
+    criterios.push({ nombre: CRITERIOS_BASE_A110[6].nombre, descripcion: CRITERIOS_BASE_A110[6].descripcion, nivel: 'logrado' });
 
     const pesoUnidad = puntajeMaxA110 / criterios.length;
     const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
@@ -3922,7 +4030,25 @@
     if(proporcionFinalA110 >= 0.8) dispararConfeti();
 
     const detalleA110 = [
-      { titulo: 'Casos empresariales', items: respuestasCasosA110 },
+      { titulo: 'Sección 1 — Casos empresariales cortos', items: respuestasCasosA110 },
+      {
+        titulo: 'Sección 2 — Caso extenso: análisis de factores',
+        items: FACTORES_CASO_EXTENDIDO_A110.map(f => ({
+          pregunta: f.pregunta,
+          tuRespuesta: respuestasFactoresA110[f.id] ? 'Sí' : 'No',
+          correcta: respuestasFactoresA110[f.id] === f.correcta,
+          respuestaCorrecta: f.correcta ? 'Sí' : 'No'
+        }))
+      },
+      {
+        titulo: 'Sección 2 — Caso extenso: decisión final',
+        items: [{
+          pregunta: '¿Qué método eligió para el caso extenso?',
+          tuRespuesta: metodoFinalElegidoA110 ? METODOS_A110.find(m => m.id === metodoFinalElegidoA110).nombre : 'Sin responder',
+          correcta: decisionExtendidaCorrecta,
+          respuestaCorrecta: METODOS_A110.find(m => m.id === CASO_EXTENDIDO_A110.metodoCorrecto).nombre + ' — ' + CASO_EXTENDIDO_A110.explicacion
+        }]
+      },
       {
         titulo: 'Justificación',
         items: [{ pregunta: '¿Por qué ese método era el más adecuado?', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 }]
