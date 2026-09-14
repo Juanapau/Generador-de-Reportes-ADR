@@ -317,6 +317,10 @@
             <div class="actividad-ec">${act.ec} · ${act.ra}</div>
           </div>
         </div>
+        <div class="puntaje-field" style="max-width:420px; margin-bottom:12px;">
+          <label>Título de la actividad (se ve en la lista antes de entrar)</label>
+          <input type="text" class="input-titulo-actividad" placeholder="Ej. Vistas de un reporte empresarial" value="${(act.titulo || '').replace(/"/g,'&quot;')}">
+        </div>
         <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
         <div class="editor-wrap">
           <div class="editor-toolbar">
@@ -626,6 +630,7 @@
       }
 
       btn.addEventListener('click', async () => {
+        const titulo = card.querySelector('.input-titulo-actividad').value.trim();
         const puntaje = card.querySelector('.input-puntaje').value;
         const tiempoEstimado = card.querySelector('.input-tiempo').value;
         const habilitada = card.querySelector('.input-habilitada').checked;
@@ -643,7 +648,7 @@
         okMsg.classList.remove('show');
 
         try{
-          const data = await apiPost({ action:'actualizarActividad', codigo, puntaje, tiempoEstimado, habilitada, enunciado, fechaInicio, fechaFin });
+          const data = await apiPost({ action:'actualizarActividad', codigo, titulo, puntaje, tiempoEstimado, habilitada, enunciado, fechaInicio, fechaFin });
           if(data.success){
             okMsg.classList.add('show');
             setTimeout(() => okMsg.classList.remove('show'), 2000);
