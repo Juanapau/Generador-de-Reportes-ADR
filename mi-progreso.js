@@ -102,7 +102,7 @@
           let puntosRA = 0, posiblesRA = 0, completadasRA = 0;
           const itemsHtml = actividadesDelRA.map(a => {
             const cal = califPorCodigo[a.codigo];
-            const nombre = NOMBRES_ACTIVIDADES_RA[a.codigo] || a.codigo;
+            const nombre = a.titulo || NOMBRES_ACTIVIDADES_RA[a.codigo] || a.codigo;
             posiblesRA += Number(a.puntaje) || 0;
             if(cal){ completadasRA++; puntosRA += Number(cal.nota) || 0; }
             return `
