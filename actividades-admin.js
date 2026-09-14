@@ -317,10 +317,7 @@
             <div class="actividad-ec">${act.ec} · ${act.ra}</div>
           </div>
         </div>
-        <div class="puntaje-field" style="max-width:420px; margin-bottom:12px;">
-          <label>Título de la actividad (se ve en la lista antes de entrar)</label>
-          <input type="text" class="input-titulo-actividad" placeholder="Ej. Vistas de un reporte empresarial" value="${(act.titulo || '').replace(/"/g,'&quot;')}">
-        </div>
+        <input type="text" class="input-titulo-actividad titulo-actividad-input" placeholder="Título de la actividad (se ve en la lista antes de entrar)" value="${(act.titulo || '').replace(/"/g,'&quot;')}">
         <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
         <div class="editor-wrap">
           <div class="editor-toolbar">
