@@ -96,7 +96,7 @@
         <div class="actividad-card">
           <div class="actividad-top">
             <div>
-              <div class="actividad-codigo">${act.codigo}</div>
+              <div class="actividad-codigo">${act.codigo}${act.titulo ? ` — ${act.titulo}` : ''}</div>
               <div class="actividad-ec">${act.ec} · ${act.ra}</div>
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
