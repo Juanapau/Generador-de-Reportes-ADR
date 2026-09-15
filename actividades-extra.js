@@ -8,6 +8,11 @@
   let actividadesExtraCache = [];
   let codigoExtraActual = null; // actividad extra abierta actualmente (estudiante)
 
+  // Estos 2 títulos deben coincidir EXACTAMENTE con los que la docente escriba al crear
+  // las actividades extra correspondientes desde el panel de administración.
+  const TITULO_LIBRO_DIGITAL_RA1 = 'Libro Digital — Fundamentos de Reportes Empresariales';
+  const TITULO_PRUEBA_PRACTICA_RA1 = 'Prueba Práctica — Fundamentos de Reportes Empresariales';
+
   // ---------------- Navegación ----------------
   document.getElementById('cardActividadesExtraAdmin').addEventListener('click', () => {
     document.getElementById('panelActividades').classList.add('hidden');
@@ -625,17 +630,31 @@
           <div class="actividad-enunciado contenido-enriquecido">${limpiarColoresCasiBlancos(act.enunciado)}</div>
           ${fin && !miRespuesta && !yaVencio ? `<div class="actividad-vence-aviso"><i class="fa-solid fa-hourglass-half"></i> Disponible hasta ${formatearFechaCorta(fin)}</div>` : ''}
           ${(!fueraDeVentana && textoBoton) ? `
-            <button type="button" class="btn-add abrir-extra-btn" data-codigo="${act.codigo}" style="margin-top:12px;">
+            <button type="button" class="btn-add abrir-extra-btn" data-codigo="${act.codigo}" data-titulo="${(act.titulo || '').replace(/"/g,'&quot;')}" style="margin-top:12px;">
               <i class="fa-solid ${miRespuesta ? 'fa-eye' : 'fa-play'}"></i> ${textoBoton}
             </button>` : ''}
         </div>`;
       }).join('');
 
       wrap.querySelectorAll('.abrir-extra-btn').forEach(btn => {
-        btn.addEventListener('click', () => abrirDetalleActividadExtra(btn.dataset.codigo));
+        btn.addEventListener('click', () => abrirActividadExtraORuta(btn.dataset.codigo, btn.dataset.titulo));
       });
     }catch(err){
       wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
+
+  // Algunas actividades extra tienen una mecánica completamente personalizada (como el libro
+  // digital o la prueba práctica) en vez del flujo genérico de texto/marcar. Se identifican por
+  // su TÍTULO exacto (no por código, porque el código lo asigna el backend automáticamente y no
+  // se puede predecir de antemano). Si no coincide con ninguna, se usa el flujo genérico normal.
+  function abrirActividadExtraORuta(codigo, titulo){
+    if(titulo === TITULO_LIBRO_DIGITAL_RA1){
+      abrirLibroDigitalRA1(codigo);
+    } else if(titulo === TITULO_PRUEBA_PRACTICA_RA1){
+      abrirPruebaPracticaRA1(codigo);
+    } else {
+      abrirDetalleActividadExtra(codigo);
     }
   }
 
