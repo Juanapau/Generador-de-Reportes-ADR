@@ -265,16 +265,15 @@
     { id:'ejecucion', nombre:'Vista de Ejecución' }
   ];
 
-  const VERIFICACION_PRUEBA_RA1 = {
-    filas: [
-      { producto:'Cuaderno 100 hojas', cantidad:30, precio:85 },
-      { producto:'Caja de lápices', cantidad:20, precio:120 },
-      { producto:'Marcador permanente', cantidad:10, precio:95 }
-    ],
-    totalCorrecto: 30*85 + 20*120 + 10*95
-  };
-
   let seccionActualPruebaRA1 = 0;
+  // Estado de la Sección 4 (simulador de filtro + vistas + verificación)
+  let filtroVendedorS4PruebaRA1 = '';
+  let vistasVisitadasS4PruebaRA1 = new Set();
+  let vistaActualS4PruebaRA1 = null;
+  let datosRealesS4PruebaRA1 = null;
+  let datosFiltradosS4PruebaRA1 = [];
+  let totalRealS4PruebaRA1 = 0;
+  let calcExpresionS4PruebaRA1 = '';
   let respuestasClasificacionRA1 = {};
   let respuestasPartesRA1 = {};
   let respuestasVistaRA1 = {};
@@ -323,6 +322,13 @@
     respuestasPartesRA1 = {};
     respuestasVistaRA1 = {};
     respuestaVerificacionRA1 = null;
+    filtroVendedorS4PruebaRA1 = '';
+    vistasVisitadasS4PruebaRA1 = new Set();
+    vistaActualS4PruebaRA1 = null;
+    datosRealesS4PruebaRA1 = null;
+    datosFiltradosS4PruebaRA1 = [];
+    totalRealS4PruebaRA1 = 0;
+    calcExpresionS4PruebaRA1 = '';
     document.getElementById('vistaInicioPruebaRA1').classList.add('hidden');
     document.getElementById('vistaPruebaRA1').classList.remove('hidden');
     pintarSeccionPruebaRA1();
@@ -404,24 +410,14 @@
 
     else if(seccionActualPruebaRA1 === 3){
       cont.innerHTML = `
-        <div class="section-heading" style="font-size:18px;">Sección 4 — Verifica el total</div>
-        <div class="caso-a110-card" style="max-width:100%;">
-          <p style="margin-bottom:12px; font-size:14px;">Multiplica Cantidad × Precio Unitario en cada fila, suma todos los resultados, y escribe el total verificado.</p>
-          <table style="width:100%; border-collapse:collapse; margin-bottom:16px; font-size:13.5px;">
-            <tr style="background:rgba(255,255,255,0.05);"><th style="padding:8px 10px; text-align:left;">Producto</th><th style="padding:8px 10px;">Cantidad</th><th style="padding:8px 10px;">Precio Unit.</th></tr>
-            ${VERIFICACION_PRUEBA_RA1.filas.map(f => `<tr><td style="padding:8px 10px;">${f.producto}</td><td style="padding:8px 10px; text-align:center;">${f.cantidad}</td><td style="padding:8px 10px; text-align:center;">RD$${f.precio.toFixed(2)}</td></tr>`).join('')}
-          </table>
-          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Total verificado (RD$)</label>
-          <input type="number" id="inputVerificacionPruebaRA1" class="input-generico" placeholder="Ej. 5900" style="max-width:220px;" value="${respuestaVerificacionRA1 !== null ? respuestaVerificacionRA1 : ''}">
+        <div class="section-heading" style="font-size:18px;">Sección 4 — Genera y verifica un reporte filtrado</div>
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Filtra el reporte por un vendedor, recorre las 3 vistas, y verifica el total calculándolo tú mismo.
         </div>
-        <button type="button" class="btn btn-primary" id="btnFinalizarPruebaRA1" style="width:auto; padding:12px 28px; margin-top:16px;">
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
-        </button>`;
-
-      document.getElementById('inputVerificacionPruebaRA1').addEventListener('input', (e) => {
-        respuestaVerificacionRA1 = e.target.value === '' ? null : Number(e.target.value);
-      });
-      document.getElementById('btnFinalizarPruebaRA1').addEventListener('click', finalizarPruebaPracticaRA1);
+        <div id="filtroS4PruebaRA1"></div>
+        <div id="navegadorVistasS4PruebaRA1" class="hidden"></div>`;
+      pintarFiltroS4PruebaRA1();
       return;
     }
 
@@ -434,17 +430,208 @@
     }
   }
 
+  // ---------- Sección 4: filtro + navegador de vistas + calculadora ----------
+  const CAMPOS_S4_PRUEBA_RA1 = [
+    { campo:'Producto', etiqueta:'Producto', muestra:'[Producto de ejemplo]' },
+    { campo:'Cantidad', etiqueta:'Cantidad', muestra:'XX' },
+    { campo:'PrecioUnitario', etiqueta:'Precio Unitario', muestra:'RD$X,XXX.XX' },
+    { campo:'Vendedor', etiqueta:'Vendedor', muestra:'[Vendedor]' }
+  ];
+
+  async function pintarFiltroS4PruebaRA1(){
+    const cont = document.getElementById('filtroS4PruebaRA1');
+    cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando vendedores...</div>';
+
+    const data = await cargarTablaDatos('DB_Ventas');
+    if(!data){
+      cont.innerHTML = '<div class="empty-table-msg">No se pudo cargar la base de datos. Intenta de nuevo.</div>';
+      return;
+    }
+    datosRealesS4PruebaRA1 = data;
+    const vendedoresUnicos = [...new Set(data.datos.map(d => d.Vendedor))].filter(Boolean);
+
+    cont.innerHTML = `
+      <div class="caso-a110-card" style="max-width:100%;">
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px;">Filtrar por vendedor</label>
+        <select id="selectFiltroS4PruebaRA1" class="input-generico" style="max-width:280px;">
+          <option value="" ${filtroVendedorS4PruebaRA1 ? '' : 'selected disabled'}>Selecciona un vendedor...</option>
+          ${vendedoresUnicos.map(v => `<option value="${v}" ${filtroVendedorS4PruebaRA1 === v ? 'selected' : ''}>${v}</option>`).join('')}
+        </select>
+        <button type="button" class="btn btn-add" id="btnConstruirS4PruebaRA1" style="margin-top:14px; display:block;">
+          <i class="fa-solid fa-gears"></i> Construir reporte
+        </button>
+      </div>`;
+
+    document.getElementById('selectFiltroS4PruebaRA1').addEventListener('change', (e) => { filtroVendedorS4PruebaRA1 = e.target.value; });
+    document.getElementById('btnConstruirS4PruebaRA1').addEventListener('click', () => {
+      if(!filtroVendedorS4PruebaRA1){
+        mostrarNotificacion('Selecciona un vendedor para filtrar el reporte.', 'error');
+        return;
+      }
+      datosFiltradosS4PruebaRA1 = datosRealesS4PruebaRA1.datos.filter(d => d.Vendedor === filtroVendedorS4PruebaRA1);
+      totalRealS4PruebaRA1 = datosFiltradosS4PruebaRA1.reduce((sum, f) => sum + (Number(f.Cantidad)||0) * (Number(f.PrecioUnitario)||0), 0);
+      vistasVisitadasS4PruebaRA1 = new Set();
+
+      const navCont = document.getElementById('navegadorVistasS4PruebaRA1');
+      navCont.classList.remove('hidden');
+      navCont.innerHTML = `
+        <div class="vistas-tabs-wrap" id="vistasTabsS4PruebaRA1"></div>
+        <div id="vistaContenidoS4PruebaRA1"></div>
+        <div id="seccionVerificacionS4PruebaRA1" class="hidden"></div>`;
+      cambiarVistaS4PruebaRA1('diseno');
+    });
+  }
+
+  function pintarVistasTabsS4PruebaRA1(){
+    const cont = document.getElementById('vistasTabsS4PruebaRA1');
+    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
+      const info = COLOR_VISTA_A14[v];
+      const visitada = vistasVisitadasS4PruebaRA1.has(v);
+      const activa = vistaActualS4PruebaRA1 === v;
+      return `
+        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
+        </button>`;
+    }).join('');
+    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => cambiarVistaS4PruebaRA1(btn.dataset.vista));
+    });
+  }
+
+  function cambiarVistaS4PruebaRA1(vista){
+    vistaActualS4PruebaRA1 = vista;
+    vistasVisitadasS4PruebaRA1.add(vista);
+    pintarVistasTabsS4PruebaRA1();
+    pintarContenidoVistaS4PruebaRA1(vista);
+    if(vistasVisitadasS4PruebaRA1.size >= 3){
+      document.getElementById('seccionVerificacionS4PruebaRA1').classList.remove('hidden');
+      pintarVerificacionS4PruebaRA1();
+    }
+  }
+
+  function pintarContenidoVistaS4PruebaRA1(vista){
+    const cont = document.getElementById('vistaContenidoS4PruebaRA1');
+    const info = COLOR_VISTA_A14[vista];
+    const campos = CAMPOS_S4_PRUEBA_RA1;
+
+    let filasHtml = '';
+    if(vista === 'diseno'){
+      filasHtml = `<tr>${campos.map(() => `<td class="simulador-placeholder-cell">—</td>`).join('')}</tr>`;
+    } else if(vista === 'previsualizacion'){
+      filasHtml = [1,2,3].map(() => `<tr>${campos.map(c => `<td class="simulador-placeholder-cell">${c.muestra}</td>`).join('')}</tr>`).join('');
+    } else if(vista === 'ejecucion'){
+      filasHtml = datosFiltradosS4PruebaRA1.slice(0, 10).map(fila => `
+        <tr>${campos.map(c => {
+          let valor = fila[c.campo];
+          if(c.campo === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
+          return `<td>${valor !== undefined ? valor : ''}</td>`;
+        }).join('')}</tr>`).join('');
+    }
+
+    const tituloReporte = `
+      <div style="font-weight:800; font-size:15px;">TECNOVENTAS RD, S.R.L. — Reporte de Ventas
+        ${vista !== 'diseno' ? `<span style="font-weight:600; font-size:12.5px; opacity:.7;"> · Filtrado por: ${filtroVendedorS4PruebaRA1}</span>` : ''}
+      </div>`;
+
+    const tablaHtml = `
+      <table class="simulador-tabla">
+        <thead><tr>${campos.map(c => `<th>${c.etiqueta}</th>`).join('')}</tr></thead>
+        <tbody>${filasHtml}</tbody>
+      </table>
+      ${vista === 'ejecucion' ? '<div style="margin-top:10px; font-size:12.5px; opacity:.7;"><i class="fa-solid fa-circle-info"></i> El total no se muestra aquí — calcúlalo y verifícalo abajo.</div>' : ''}`;
+
+    cont.innerHTML = `
+      <div class="simulador-pantalla">
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+        </span>
+        ${tituloReporte}
+        ${tablaHtml}
+      </div>`;
+  }
+
+  function pintarVerificacionS4PruebaRA1(){
+    const cont = document.getElementById('seccionVerificacionS4PruebaRA1');
+    cont.innerHTML = `
+      <div class="caso-a110-card" style="max-width:100%; margin-top:20px;">
+        <p style="margin-bottom:12px; font-size:14px;">Calcula el total real del reporte filtrado (con la calculadora o a mano) y escríbelo aquí.</p>
+        <div class="simulador-ejecucion-layout">
+          <div>
+            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Total verificado (RD$)</label>
+            <input type="number" id="inputVerificacionPruebaRA1" class="input-generico" placeholder="0.00" style="max-width:220px;" value="${respuestaVerificacionRA1 !== null ? respuestaVerificacionRA1 : ''}">
+          </div>
+          <div class="calculadora-mini">
+            <div class="calc-titulo"><i class="fa-solid fa-calculator"></i> Calculadora</div>
+            <div class="calc-display" id="calcDisplayS4PruebaRA1">${calcExpresionS4PruebaRA1 || '0'}</div>
+            <div class="calc-teclado">
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="7">7</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="8">8</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="9">9</button>
+              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="/">÷</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="4">4</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="5">5</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="6">6</button>
+              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="*">×</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="1">1</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="2">2</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="3">3</button>
+              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="-">−</button>
+              <button type="button" class="calc-btn calc-btn-s4 calc-clear" data-calc="C">C</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc="0">0</button>
+              <button type="button" class="calc-btn calc-btn-s4" data-calc=".">.</button>
+              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="+">+</button>
+              <button type="button" class="calc-btn calc-btn-s4 calc-eq" data-calc="=" style="grid-column:span 4;">=</button>
+            </div>
+            <div style="font-size:10.5px; opacity:.6; margin-top:8px; text-align:center;">Uso interno — no se envía al sistema.</div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" id="btnFinalizarPruebaRA1" style="width:auto; padding:12px 28px; margin-top:16px;">
+          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        </button>
+      </div>`;
+
+    document.getElementById('inputVerificacionPruebaRA1').addEventListener('input', (e) => {
+      respuestaVerificacionRA1 = e.target.value === '' ? null : Number(e.target.value);
+    });
+
+    cont.querySelectorAll('.calc-btn-s4').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const val = btn.dataset.calc;
+        if(val === 'C'){
+          calcExpresionS4PruebaRA1 = '';
+        } else if(val === '='){
+          if(calcExpresionS4PruebaRA1.trim() !== '' && /^[0-9+\-*/.() ]+$/.test(calcExpresionS4PruebaRA1)){
+            try{
+              const resultado = Function('"use strict"; return (' + calcExpresionS4PruebaRA1 + ')')();
+              calcExpresionS4PruebaRA1 = Number.isFinite(resultado) ? String(Math.round(resultado * 100) / 100) : 'Error';
+            }catch(err){
+              calcExpresionS4PruebaRA1 = 'Error';
+            }
+          }
+        } else {
+          if(calcExpresionS4PruebaRA1 === 'Error') calcExpresionS4PruebaRA1 = '';
+          calcExpresionS4PruebaRA1 += val;
+        }
+        document.getElementById('calcDisplayS4PruebaRA1').textContent = calcExpresionS4PruebaRA1 || '0';
+      });
+    });
+
+    document.getElementById('btnFinalizarPruebaRA1').addEventListener('click', finalizarPruebaPracticaRA1);
+  }
+
   async function finalizarPruebaPracticaRA1(){
     const aciertosClasificacion = CLASIFICACION_PRUEBA_RA1.filter(c => respuestasClasificacionRA1[c.id] === c.correcta).length;
     const aciertosPartes = PARTES_PRUEBA_RA1.filter(p => respuestasPartesRA1[p.id] === p.correcta).length;
     const aciertosVistas = VISTAS_PRUEBA_RA1.filter(v => respuestasVistaRA1[v.id] === v.correcta).length;
-    const verificacionCorrecta = respuestaVerificacionRA1 !== null && Math.abs(respuestaVerificacionRA1 - VERIFICACION_PRUEBA_RA1.totalCorrecto) < 1;
+    const recorrioLasTresVistas = vistasVisitadasS4PruebaRA1.size >= 3;
+    const verificacionCorrecta = recorrioLasTresVistas && respuestaVerificacionRA1 !== null && Math.abs(respuestaVerificacionRA1 - totalRealS4PruebaRA1) < 1;
 
     const criterios = [
       { nombre:'1. Clasificación correcta de reportes (Interno/Externo)', nivel: aciertosClasificacion >= 3 ? 'cumple' : 'no_cumple' },
       { nombre:'2. Identificación de las partes del reporte', nivel: aciertosPartes >= 4 ? 'cumple' : 'no_cumple' },
       { nombre:'3. Identificación de las vistas correctas', nivel: aciertosVistas >= 2 ? 'cumple' : 'no_cumple' },
-      { nombre:'4. Verificación numérica del total', nivel: verificacionCorrecta ? 'cumple' : 'no_cumple' }
+      { nombre:'4. Genera un reporte filtrado y verifica su total', nivel: verificacionCorrecta ? 'cumple' : 'no_cumple' }
     ];
 
     const pesoUnidad = puntajeMaxPruebaRA1 / criterios.length;
@@ -456,7 +643,11 @@
       { titulo:'Sección 1 — Clasificación', items: CLASIFICACION_PRUEBA_RA1.map(c => ({ pregunta:c.texto, tuRespuesta: respuestasClasificacionRA1[c.id] === 'interno' ? 'Interno' : 'Externo', correcta: respuestasClasificacionRA1[c.id] === c.correcta, respuestaCorrecta: c.correcta === 'interno' ? 'Interno' : 'Externo' })) },
       { titulo:'Sección 2 — Partes del reporte', items: PARTES_PRUEBA_RA1.map(p => ({ pregunta:p.descripcion, tuRespuesta: respuestasPartesRA1[p.id] || 'Sin responder', correcta: respuestasPartesRA1[p.id] === p.correcta, respuestaCorrecta: p.correcta })) },
       { titulo:'Sección 3 — Vistas del reporte', items: VISTAS_PRUEBA_RA1.map(v => ({ pregunta:v.escenario, tuRespuesta: (OPCIONES_VISTA_RA1.find(o=>o.id===respuestasVistaRA1[v.id])||{}).nombre || 'Sin responder', correcta: respuestasVistaRA1[v.id] === v.correcta, respuestaCorrecta: OPCIONES_VISTA_RA1.find(o=>o.id===v.correcta).nombre })) },
-      { titulo:'Sección 4 — Verificación numérica', items: [{ pregunta:'Total verificado', tuRespuesta: respuestaVerificacionRA1 !== null ? `RD$${respuestaVerificacionRA1}` : 'Sin responder', correcta: verificacionCorrecta, respuestaCorrecta: `RD$${VERIFICACION_PRUEBA_RA1.totalCorrecto}` }] }
+      { titulo:'Sección 4 — Reporte filtrado y verificado', items: [
+        { pregunta:'Vendedor usado como filtro', tuRespuesta: filtroVendedorS4PruebaRA1 || 'Sin filtrar', correcta: !!filtroVendedorS4PruebaRA1 },
+        { pregunta:'¿Recorrió las 3 vistas (Diseño, Previsualización, Ejecución)?', tuRespuesta: `${vistasVisitadasS4PruebaRA1.size} de 3`, correcta: recorrioLasTresVistas },
+        { pregunta:'Total verificado', tuRespuesta: respuestaVerificacionRA1 !== null ? `RD$${respuestaVerificacionRA1}` : 'Sin responder', correcta: verificacionCorrecta, respuestaCorrecta: `RD$${totalRealS4PruebaRA1.toFixed(2)}` }
+      ] }
     ];
 
     document.getElementById('vistaPruebaRA1').classList.add('hidden');
