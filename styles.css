@@ -1545,3 +1545,9 @@
 
   /* ============ PRUEBA PRÁCTICA (extras especiales) ============ */
   .metodo-a110-btn.seleccionado-prueba{ border-color: var(--dark-blue-accent); background: rgba(79,163,255,.15); }
+
+  /* ============ FIX GLOBAL: opciones de <select> nativo siempre legibles ============ */
+  /* El menú desplegable nativo del navegador siempre usa fondo blanco, sin importar el
+     tema de la app — por eso el texto de las opciones necesita color oscuro explícito
+     en TODOS los <select> del sistema, no solo en uno en particular. */
+  select option{ color:#1a1a1a; background:#ffffff; }
