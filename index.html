@@ -398,7 +398,51 @@
       </div>
     </div>
 
-    <!-- ---- ACTIVIDADES EXTRA (panel docente) ---- -->
+    <!-- ---- LIBRO DIGITAL DE REPASO (RA1: A.1.1 - A.1.4) ---- -->
+    <div id="panelLibroDigitalRA1" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromLibroDigitalRA1"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="libro-digital-wrap">
+        <div class="libro-digital-sidebar" id="libroSidebarRA1"></div>
+        <div class="libro-digital-contenido">
+          <div class="libro-pagina-indicador" id="libroIndicadorRA1"></div>
+          <div id="libroPaginaContenidoRA1"></div>
+          <div class="libro-digital-nav">
+            <button type="button" class="btn-secondary" id="btnLibroAnteriorRA1"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+            <button type="button" class="btn btn-primary" id="btnLibroSiguienteRA1" style="width:auto; padding:10px 22px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---- PRUEBA PRÁCTICA (RA1: A.1.1 - A.1.4) ---- -->
+    <div id="panelPruebaPracticaRA1" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromPruebaPracticaRA1"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">Prueba Práctica — Fundamentos de Reportes Empresariales</div>
+
+      <div id="vistaInicioPruebaRA1">
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-circle-info"></i>
+          Esta prueba tiene 4 secciones y cubre todo lo visto en las actividades A.1.1 a A.1.4. Se califica automáticamente al finalizar.
+        </div>
+        <button type="button" class="btn btn-primary" id="btnComenzarPruebaRA1" style="margin-top:10px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar prueba
+        </button>
+      </div>
+
+      <div id="vistaPruebaRA1" class="hidden">
+        <div id="progresoPruebaRA1"></div>
+        <div id="contenidoPruebaRA1"></div>
+      </div>
+
+      <div id="vistaResultadoPruebaRA1" class="hidden">
+        <div id="rubricaResultadoPruebaRA1"></div>
+        <div id="resultadoDesglosePruebaRA1"></div>
+        <button type="button" class="btn btn-primary" id="btnVolverMisActPruebaRA1" style="width:auto; padding:12px 28px; margin-top:14px;">
+          <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+        </button>
+      </div>
+    </div>
+
     <div id="panelActividadesExtraAdmin" class="hidden panel-secundario">
       <button type="button" class="back-btn" id="btnBackFromActividadesExtraAdmin"><i class="fa-solid fa-arrow-left"></i> Volver al panel</button>
       <div class="section-heading">Actividades Extra</div>
@@ -1375,6 +1419,7 @@
 <script src="simulador-programa.js"></script>
 <script src="actividades.js"></script>
 <script src="actividades-extra.js"></script>
+<script src="extras-especiales.js"></script>
 <script src="mi-progreso.js"></script>
 </body>
 </html>
