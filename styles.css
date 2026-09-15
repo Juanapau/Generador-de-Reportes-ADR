@@ -1498,3 +1498,50 @@
   .titulo-actividad-input:focus{ outline:2px solid var(--dark-blue-accent); outline-offset:1px; }
   .titulo-actividad-input::placeholder{ color: var(--dark-text-dim); font-weight:600; opacity:.6; }
   body.light .titulo-actividad-input::placeholder{ color: var(--light-text-dim); }
+
+  /* ============ LIBRO DIGITAL DE REPASO ============ */
+  .libro-digital-wrap{ display:flex; gap:24px; align-items:flex-start; }
+  .libro-digital-sidebar{
+    flex-shrink:0; width:230px; display:flex; flex-direction:column; gap:6px;
+    position:sticky; top:20px;
+  }
+  @media (max-width:768px){ .libro-digital-wrap{ flex-direction:column; } .libro-digital-sidebar{ width:100%; position:static; flex-direction:row; overflow-x:auto; } }
+  .libro-capitulo-btn{
+    text-align:left; padding:12px 14px; border-radius:10px; background: var(--dark-card);
+    border:1.5px solid var(--dark-border); color: var(--dark-text); font-size:13.5px; font-weight:700;
+    display:flex; align-items:center; gap:10px; flex-shrink:0;
+  }
+  body.light .libro-capitulo-btn{ background:#fff; border:1.5px solid #dde5f6; color: var(--light-text); }
+  .libro-capitulo-btn .num{
+    width:24px; height:24px; border-radius:50%; background: rgba(232,185,59,.15); color: var(--dark-gold-accent);
+    display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0;
+  }
+  .libro-capitulo-btn.activo{ border-color: var(--dark-gold-accent); background: rgba(232,185,59,.1); }
+  .libro-capitulo-btn.completado .num{ background: var(--dark-green-accent); color:#fff; }
+
+  .libro-digital-contenido{ flex:1; min-width:0; }
+  .libro-pagina-indicador{ font-size:12.5px; font-weight:700; color: var(--dark-text-dim); text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px; }
+  body.light .libro-pagina-indicador{ color: var(--light-text-dim); }
+  .libro-pagina{ font-size:15px; line-height:1.65; }
+  .libro-pagina h2{ font-size:21px; color: var(--dark-gold-accent); margin-bottom:14px; }
+  body.light .libro-pagina h2{ color:#b8790f; }
+  .libro-pagina p{ margin-bottom:12px; }
+  .libro-callout{
+    background: rgba(79,163,255,.08); border-left:4px solid var(--dark-blue-accent); border-radius:10px;
+    padding:14px 18px; margin:14px 0; font-size:14px;
+  }
+  .libro-ejemplo-box{
+    background: rgba(255,255,255,0.03); border:1px solid var(--dark-border); border-radius:10px;
+    padding:14px 18px; margin:14px 0; font-family:monospace; font-size:13px;
+  }
+  body.light .libro-ejemplo-box{ background:#f7f9fd; border:1px solid #dde5f6; }
+  .libro-pagina table{ width:100%; border-collapse:collapse; margin:14px 0; font-size:13.5px; }
+  .libro-pagina th{ background: rgba(232,185,59,.15); color: var(--dark-gold-accent); padding:8px 12px; text-align:left; }
+  .libro-pagina td{ padding:8px 12px; border-bottom:1px solid var(--dark-border); }
+  body.light .libro-pagina td{ border-bottom:1px solid #e2e8f0; }
+  .libro-pagina ul{ padding-left:22px; margin-bottom:12px; }
+  .libro-pagina li{ margin-bottom:6px; }
+  .libro-digital-nav{ display:flex; justify-content:space-between; margin-top:24px; }
+
+  /* ============ PRUEBA PRÁCTICA (extras especiales) ============ */
+  .metodo-a110-btn.seleccionado-prueba{ border-color: var(--dark-blue-accent); background: rgba(79,163,255,.15); }
