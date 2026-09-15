@@ -1,668 +1,777 @@
 // ============================================================================
-// EXTRAS ESPECIALES — 2 actividades extra con mecánica completamente propia:
-// el Libro Digital de repaso y la Prueba Práctica, ambas cubriendo A.1.1-A.1.4.
-// Se enrutan por TÍTULO exacto desde actividades-extra.js (ver TITULO_LIBRO_
-// DIGITAL_RA1 y TITULO_PRUEBA_PRACTICA_RA1 al inicio de ese archivo).
+// ACTIVIDADES EXTRA — actividades fuera de los RA, creadas libremente por la
+// docente (enunciado, recursos e instrumento propios). Instrumento: Lista de
+// cotejo (cumple/no cumple), calificada manualmente por la docente porque la
+// respuesta del estudiante es de texto libre o simplemente "realizada".
 // ============================================================================
 
-// ============================================================================
-// LIBRO DIGITAL DE REPASO
-// ============================================================================
-  const LIBRO_RA1_CAPITULOS = [
-    {
-      titulo: 'Reportes Empresariales',
-      paginas: [
-        `<div class="libro-pagina">
-          <h2>¿Qué son los reportes empresariales?</h2>
-          <p>Los reportes empresariales son documentos que recopilan, organizan y presentan información relevante para la toma de decisiones dentro de una empresa. Pueden incluir datos financieros, operativos, administrativos, estratégicos o de desempeño.</p>
-          <div class="libro-callout"><b>Objetivo principal:</b> ofrecer una visión clara y ordenada de lo que está ocurriendo en la organización, permitiendo evaluar resultados, detectar problemas, planificar acciones y mejorar procesos.</div>
-          <p>Su importancia radica en que facilitan la toma de decisiones, promueven la transparencia, mejoran la comunicación entre departamentos, permiten medir el desempeño, y favorecen la planificación y el control.</p>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Reportes internos y externos</h2>
-          <p>Los reportes se clasifican en dos grandes categorías, según a quién van dirigidos:</p>
-          <table>
-            <tr><th>Reportes Internos</th><th>Reportes Externos</th></tr>
-            <tr><td>Para uso dentro de la organización: empleados, supervisores, gerentes.</td><td>Para compartir fuera de la empresa: inversionistas, bancos, clientes, entes reguladores.</td></tr>
-            <tr><td>Ej: ventas diarias, producción, asistencia, inventario.</td><td>Ej: estados financieros, informes fiscales, reportes a inversionistas.</td></tr>
-            <tr><td>Ayudan a controlar procesos y organizar el trabajo diario.</td><td>Cumplen normativas y generan confianza hacia el exterior.</td></tr>
-          </table>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Ejemplos reales</h2>
-          <p>Así se ven en la práctica algunos ejemplos de cada tipo:</p>
-          <div class="libro-ejemplo-box">
-            TECNOVENTAS RD, S.R.L. — REPORTE DE VENTAS DIARIAS<br>
-            Fecha: 15/08/2026 | Sucursal: Santiago Centro<br>
-            TOTAL DEL DÍA: RD$101,700.00<br>
-            <span style="opacity:.7;">Uso interno — Departamento de Ventas</span>
-          </div>
-          <div class="libro-ejemplo-box">
-            GRUPO CARIBE INVERSIONES, S.A. — BALANCE GENERAL<br>
-            Al 31 de diciembre de 2025<br>
-            Patrimonio Neto: RD$26,450,000<br>
-            <span style="opacity:.7;">Distribuido a: accionistas, banco acreedor y Cámara de Comercio</span>
-          </div>
-          <p>Nota cómo el primero se queda "dentro de la casa" (uso interno), mientras que el segundo se envía fuera de la empresa, a personas ajenas a ella.</p>
-        </div>`
-      ]
-    },
-    {
-      titulo: 'Partes de un Reporte',
-      paginas: [
-        `<div class="libro-pagina">
-          <h2>Encabezado de reporte y encabezado de página</h2>
-          <p>Todo reporte generado con un programa de reportes está compuesto por 5 secciones. Cada una aparece con una frecuencia distinta.</p>
-          <div class="libro-callout"><b>Encabezado de reporte</b> (una sola vez): aparece al principio de todo el documento. Contiene el nombre de la empresa, el título del reporte y el período que cubre.</div>
-          <div class="libro-callout"><b>Encabezado de página</b> (en cada página): se repite en la parte superior de cada página. Contiene el número de página, la fecha y los títulos de las columnas.</div>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Línea de detalle y pie de página</h2>
-          <div class="libro-callout"><b>Línea de detalle</b> (una vez por registro): es el cuerpo del reporte — se repite una vez por cada producto, empleado o transacción. Es la sección más extensa, porque contiene toda la información detallada.</div>
-          <div class="libro-callout"><b>Pie de página</b> (en cada página): se ubica en la parte inferior de cada página. Contiene el número de página y, a veces, un subtotal de esa página.</div>
-          <div class="libro-ejemplo-box">
-            Laptop HP 15&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;RD$28,500.00&nbsp;&nbsp;&nbsp;RD$85,500.00<br>
-            Mouse inalámbrico&nbsp;&nbsp;&nbsp;12&nbsp;&nbsp;&nbsp;RD$650.00&nbsp;&nbsp;&nbsp;RD$7,800.00
-          </div>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Pie de reporte y resumen completo</h2>
-          <div class="libro-callout"><b>Pie de reporte</b> (una sola vez): es la última sección, aparece al final de todo el documento. Cierra el reporte con el total general y el responsable.</div>
-          <table>
-            <tr><th>Parte</th><th>Frecuencia</th></tr>
-            <tr><td>Encabezado de reporte</td><td>Una sola vez, al inicio</td></tr>
-            <tr><td>Encabezado de página</td><td>En cada página</td></tr>
-            <tr><td>Línea de detalle</td><td>Una vez por registro</td></tr>
-            <tr><td>Pie de página</td><td>En cada página</td></tr>
-            <tr><td>Pie de reporte</td><td>Una sola vez, al final</td></tr>
-          </table>
-        </div>`
-      ]
-    },
-    {
-      titulo: 'Vistas de un Reporte',
-      paginas: [
-        `<div class="libro-pagina">
-          <h2>¿Por qué varias vistas?</h2>
-          <p>Cuando alguien diseña un reporte, el proceso avanza en etapas, y en cada etapa el programa lo muestra de forma distinta. A eso se le llama <b>vista</b>.</p>
-          <div class="libro-callout">Piénsalo así: es como escribir un documento — primero escribes y das formato (diseño), luego usas "vista previa" (previsualización), y finalmente lo imprimes o envías (ejecución).</div>
-          <p><b>Vista de Diseño:</b> aquí se construye la estructura del reporte — se colocan encabezados, se conectan los datos, se ajustan colores y anchos de columna. Todavía no hay datos reales, solo casillas reservadas.</p>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Previsualización y Ejecución</h2>
-          <p><b>Vista de Previsualización:</b> permite revisar cómo se verá el reporte ya diseñado, usando datos de muestra (no reales). Sirve para detectar errores de formato antes de usar información real.</p>
-          <p><b>Vista de Ejecución:</b> es el momento en que el reporte corre de verdad — consulta la base de datos real y genera el documento final que finalmente recibe el usuario.</p>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Resumen comparativo</h2>
-          <table>
-            <tr><th>Vista</th><th>¿Datos reales?</th><th>¿Se puede modificar el diseño?</th></tr>
-            <tr><td>Diseño</td><td>No</td><td>Sí</td></tr>
-            <tr><td>Previsualización</td><td>No (de muestra)</td><td>No, solo se revisa</td></tr>
-            <tr><td>Ejecución</td><td>Sí</td><td>No</td></tr>
-          </table>
-          <p>Las 3 vistas siguen siempre este orden: <b>Diseño → Previsualización → Ejecución</b>. No tendría sentido ejecutar con datos reales antes de revisar el diseño.</p>
-        </div>`
-      ]
-    },
-    {
-      titulo: 'Ejecutar y Verificar',
-      paginas: [
-        `<div class="libro-pagina">
-          <h2>¿Por qué filtrar y verificar?</h2>
-          <p>En una empresa real casi nunca se pide "todos los datos de todo". Para eso existen los <b>filtros</b>: permiten ejecutar un reporte mostrando solo la información que realmente se necesita.</p>
-          <div class="libro-callout"><b>Idea clave:</b> Filtrar + Ejecutar + Verificar es el flujo de trabajo real de cualquier persona que genera reportes en una empresa.</div>
-          <p><b>Paso 1 — Elegir columnas:</b> decides qué información tendrá tu reporte. <b>Paso 2 — Aplicar un filtro:</b> seleccionas un criterio para mostrar solo una parte de los datos (ej. un solo vendedor).</p>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Diseño, previsualización y ejecución con filtro</h2>
-          <p><b>Paso 3 — Revisar diseño y previsualización:</b> confirmas que la estructura esté correcta, ahora ya con tu filtro seleccionado.</p>
-          <p><b>Paso 4 — Ejecutar con datos reales filtrados:</b> el sistema consulta la base de datos real y muestra únicamente las filas que cumplen tu filtro.</p>
-          <div class="libro-ejemplo-box">
-            Cuaderno 100 hojas&nbsp;&nbsp;&nbsp;40&nbsp;&nbsp;&nbsp;RD$85.00&nbsp;&nbsp;&nbsp;Ana Ramírez<br>
-            Caja de lápices&nbsp;&nbsp;&nbsp;25&nbsp;&nbsp;&nbsp;RD$120.00&nbsp;&nbsp;&nbsp;Ana Ramírez
-          </div>
-        </div>`,
-        `<div class="libro-pagina">
-          <h2>Verificar el total</h2>
-          <p><b>Paso 5 — Verificar sumando manualmente:</b> para cada fila, multiplicas Cantidad × Precio Unitario, y luego sumas todos los resultados.</p>
-          <div class="libro-ejemplo-box">
-            Cuaderno 100 hojas: 40 × RD$85.00 = RD$3,400.00<br>
-            Caja de lápices: 25 × RD$120.00 = RD$3,000.00<br>
-            Marcador permanente: 15 × RD$95.00 = RD$1,425.00<br>
-            <b>TOTAL VERIFICADO: RD$7,825.00</b>
-          </div>
-          <p>Si tu suma coincide con el total real que maneja el sistema, ¡tu reporte está verificado y es confiable! <b>Flujo completo:</b> Elegir columnas → Aplicar filtro → Revisar diseño/previsualización → Ejecutar con datos reales → Verificar el total.</p>
-        </div>`
-      ]
-    }
-  ];
+  let actividadesExtraCache = [];
+  let codigoExtraActual = null; // actividad extra abierta actualmente (estudiante)
 
-  // Oculta todos los paneles de nivel superior antes de mostrar uno nuevo — evita que un panel
-  // que quedó abierto por otra vía (ej. la vista genérica de actividad extra) se quede visible
-  // por debajo del que se está por mostrar.
-  function ocultarTodosLosPanelesPrincipales_(){
-    document.querySelectorAll('.panel-secundario').forEach(p => p.classList.add('hidden'));
-    document.querySelectorAll('.panel-actividad-interactiva').forEach(p => p.classList.add('hidden'));
-    document.getElementById('panelDocente').classList.add('hidden');
-  }
+  // Estos 2 títulos deben coincidir EXACTAMENTE con los que la docente escriba al crear
+  // las actividades extra correspondientes desde el panel de administración.
+  const TITULO_LIBRO_DIGITAL_RA1 = 'Libro Digital — Fundamentos de Reportes Empresariales';
+  const TITULO_PRUEBA_PRACTICA_RA1 = 'Prueba Práctica — Fundamentos de Reportes Empresariales';
 
-  let capituloActualLibroRA1 = 0;
-  let paginaActualLibroRA1 = 0;
-  let codigoLibroActualRA1 = null;
-
-  document.getElementById('btnBackFromLibroDigitalRA1').addEventListener('click', () => {
-    document.getElementById('panelLibroDigitalRA1').classList.add('hidden');
-    document.getElementById('panelMisActividades').classList.remove('hidden');
+  // ---------------- Navegación ----------------
+  document.getElementById('cardActividadesExtraAdmin').addEventListener('click', () => {
+    document.getElementById('panelActividades').classList.add('hidden');
+    document.getElementById('panelActividadesExtraAdmin').classList.remove('hidden');
+    cargarActividadesExtraAdmin();
+  });
+  document.getElementById('btnBackFromActividadesExtraAdmin').addEventListener('click', () => {
+    document.getElementById('panelActividadesExtraAdmin').classList.add('hidden');
+    document.getElementById('panelActividades').classList.remove('hidden');
+    document.getElementById('vistaRaCardsAdmin').classList.remove('hidden');
+    document.getElementById('vistaListaActividades').classList.add('hidden');
+  });
+  document.getElementById('btnBackFromCalificarExtra').addEventListener('click', () => {
+    document.getElementById('panelCalificarExtra').classList.add('hidden');
+    document.getElementById('panelActividadesExtraAdmin').classList.remove('hidden');
   });
 
-  async function abrirLibroDigitalRA1(codigo){
-    codigoLibroActualRA1 = codigo;
-    capituloActualLibroRA1 = 0;
-    paginaActualLibroRA1 = 0;
-    ocultarTodosLosPanelesPrincipales_();
-    document.getElementById('panelLibroDigitalRA1').classList.remove('hidden');
-    pintarLibroDigitalRA1();
-  }
-
-  function pintarSidebarLibroRA1(){
-    const cont = document.getElementById('libroSidebarRA1');
-    cont.innerHTML = LIBRO_RA1_CAPITULOS.map((cap, i) => `
-      <button type="button" class="libro-capitulo-btn ${i === capituloActualLibroRA1 ? 'activo' : ''} ${i < capituloActualLibroRA1 ? 'completado' : ''}" data-cap="${i}">
-        <span class="num">${i < capituloActualLibroRA1 ? '<i class=\"fa-solid fa-check\"></i>' : i + 1}</span>
-        ${cap.titulo}
-      </button>
-    `).join('');
-    cont.querySelectorAll('.libro-capitulo-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        capituloActualLibroRA1 = Number(btn.dataset.cap);
-        paginaActualLibroRA1 = 0;
-        pintarLibroDigitalRA1();
-      });
-    });
-  }
-
-  function pintarLibroDigitalRA1(){
-    pintarSidebarLibroRA1();
-    const cap = LIBRO_RA1_CAPITULOS[capituloActualLibroRA1];
-    document.getElementById('libroIndicadorRA1').textContent =
-      `Capítulo ${capituloActualLibroRA1 + 1} de ${LIBRO_RA1_CAPITULOS.length} — Página ${paginaActualLibroRA1 + 1} de ${cap.paginas.length}`;
-    document.getElementById('libroPaginaContenidoRA1').innerHTML = cap.paginas[paginaActualLibroRA1];
-
-    document.getElementById('btnLibroAnteriorRA1').disabled = (capituloActualLibroRA1 === 0 && paginaActualLibroRA1 === 0);
-
-    const esUltimaPaginaDelLibro = capituloActualLibroRA1 === LIBRO_RA1_CAPITULOS.length - 1 && paginaActualLibroRA1 === cap.paginas.length - 1;
-    const btnSiguiente = document.getElementById('btnLibroSiguienteRA1');
-    btnSiguiente.innerHTML = esUltimaPaginaDelLibro
-      ? '<i class="fa-solid fa-check-double"></i> Finalizar y marcar como leído'
-      : 'Siguiente <i class="fa-solid fa-arrow-right"></i>';
-
-    window.scrollTo({ top: 0, behavior:'smooth' });
-  }
-
-  document.getElementById('btnLibroAnteriorRA1').addEventListener('click', () => {
-    if(paginaActualLibroRA1 > 0){
-      paginaActualLibroRA1--;
-    } else if(capituloActualLibroRA1 > 0){
-      capituloActualLibroRA1--;
-      paginaActualLibroRA1 = LIBRO_RA1_CAPITULOS[capituloActualLibroRA1].paginas.length - 1;
-    }
-    pintarLibroDigitalRA1();
-  });
-
-  document.getElementById('btnLibroSiguienteRA1').addEventListener('click', async () => {
-    const cap = LIBRO_RA1_CAPITULOS[capituloActualLibroRA1];
-    const esUltimaPaginaDelLibro = capituloActualLibroRA1 === LIBRO_RA1_CAPITULOS.length - 1 && paginaActualLibroRA1 === cap.paginas.length - 1;
-
-    if(esUltimaPaginaDelLibro){
-      try{
-        await apiPost({ action:'enviarRespuestaExtra', usuario: currentUser.usuario, codigo: codigoLibroActualRA1, respuestaTexto:'Libro leído completo.' });
-      }catch(err){ /* si falla, igual se deja ver el mensaje de éxito */ }
-      mostrarLogro('¡Repaso completado!', 'fa-book');
-      dispararConfeti();
-      document.getElementById('panelLibroDigitalRA1').classList.add('hidden');
-      document.getElementById('panelMisActividades').classList.remove('hidden');
-      cargarActividadesExtraEstudiante();
-      return;
-    }
-
-    if(paginaActualLibroRA1 < cap.paginas.length - 1){
-      paginaActualLibroRA1++;
-    } else {
-      capituloActualLibroRA1++;
-      paginaActualLibroRA1 = 0;
-    }
-    pintarLibroDigitalRA1();
-  });
-
-// ============================================================================
-// PRUEBA PRÁCTICA — 4 secciones, autocalificada al finalizar
-// ============================================================================
-  const CLASIFICACION_PRUEBA_RA1 = [
-    { id:1, texto:'Reporte de ventas diarias, dirigido a los supervisores de turno', correcta:'interno' },
-    { id:2, texto:'Balance general presentado a los accionistas e inversionistas', correcta:'externo' },
-    { id:3, texto:'Informe de asistencia del personal, para el departamento de Recursos Humanos', correcta:'interno' },
-    { id:4, texto:'Declaración jurada de impuestos presentada ante la DGII', correcta:'externo' }
-  ];
-
-  const PARTES_PRUEBA_RA1 = [
-    { id:1, descripcion:'Aparece una sola vez, al principio de todo el documento, con el nombre de la empresa y el período.', correcta:'Encabezado de reporte' },
-    { id:2, descripcion:'Se repite en la parte superior de cada página, con los títulos de las columnas.', correcta:'Encabezado de página' },
-    { id:3, descripcion:'Se repite una vez por cada registro de datos — es el cuerpo del reporte.', correcta:'Línea de detalle' },
-    { id:4, descripcion:'Se ubica en la parte inferior de cada página, con el número de página y el subtotal.', correcta:'Pie de página' },
-    { id:5, descripcion:'Aparece una sola vez, al final del documento, con el total general.', correcta:'Pie de reporte' }
-  ];
-  const OPCIONES_PARTES_RA1 = ['Encabezado de reporte', 'Encabezado de página', 'Línea de detalle', 'Pie de página', 'Pie de reporte'];
-
-  const VISTAS_PRUEBA_RA1 = [
-    { id:1, escenario:'El equipo de diseño arrastra el logo de la empresa y ajusta el ancho de las columnas, antes de conectar los datos reales.', correcta:'diseno' },
-    { id:2, escenario:'El analista revisa cómo se verán los totales y los saltos de página usando datos de prueba, antes de imprimir 200 copias.', correcta:'previsualizacion' },
-    { id:3, escenario:'El sistema genera automáticamente el reporte de nómina cada quincena, consultando los registros reales de cada empleado.', correcta:'ejecucion' }
-  ];
-  const OPCIONES_VISTA_RA1 = [
-    { id:'diseno', nombre:'Vista de Diseño' },
-    { id:'previsualizacion', nombre:'Vista de Previsualización' },
-    { id:'ejecucion', nombre:'Vista de Ejecución' }
-  ];
-
-  let seccionActualPruebaRA1 = 0;
-  // Estado de la Sección 4 (simulador de filtro + vistas + verificación)
-  let filtroVendedorS4PruebaRA1 = '';
-  let vistasVisitadasS4PruebaRA1 = new Set();
-  let vistaActualS4PruebaRA1 = null;
-  let datosRealesS4PruebaRA1 = null;
-  let datosFiltradosS4PruebaRA1 = [];
-  let totalRealS4PruebaRA1 = 0;
-  let calcExpresionS4PruebaRA1 = '';
-  let respuestasClasificacionRA1 = {};
-  let respuestasPartesRA1 = {};
-  let respuestasVistaRA1 = {};
-  let respuestaVerificacionRA1 = null;
-  let codigoPruebaActualRA1 = null;
-  let puntajeMaxPruebaRA1 = 0;
-  let ultimoResultadoPruebaRA1 = null;
-
-  document.getElementById('btnBackFromPruebaPracticaRA1').addEventListener('click', () => {
-    document.getElementById('panelPruebaPracticaRA1').classList.add('hidden');
-    document.getElementById('panelMisActividades').classList.remove('hidden');
-  });
-
-  document.getElementById('btnVolverMisActPruebaRA1').addEventListener('click', () => {
-    document.getElementById('panelPruebaPracticaRA1').classList.add('hidden');
-    document.getElementById('panelMisActividades').classList.remove('hidden');
+  document.getElementById('cardActividadesExtraEstudiante').addEventListener('click', () => {
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadesExtraEstudiante').classList.remove('hidden');
     cargarActividadesExtraEstudiante();
   });
-
-  async function abrirPruebaPracticaRA1(codigo){
-    codigoPruebaActualRA1 = codigo;
-    const act = actividadesExtraCache.find(a => a.codigo === codigo);
-    puntajeMaxPruebaRA1 = act ? act.puntajeMaximo : 4;
-
-    ocultarTodosLosPanelesPrincipales_();
-    document.getElementById('panelPruebaPracticaRA1').classList.remove('hidden');
-    document.getElementById('vistaInicioPruebaRA1').classList.remove('hidden');
-    document.getElementById('vistaPruebaRA1').classList.add('hidden');
-    document.getElementById('vistaResultadoPruebaRA1').classList.add('hidden');
-
-    // Si ya la completó antes, se muestra directamente el resultado guardado
-    try{
-      const data = await apiGet({ action:'listarRespuestasExtra', usuario: currentUser.usuario });
-      const previa = data.success ? data.respuestas.find(r => r.codigo === codigo && r.estado === 'calificado') : null;
-      if(previa){
-        document.getElementById('vistaInicioPruebaRA1').classList.add('hidden');
-        document.getElementById('vistaResultadoPruebaRA1').classList.remove('hidden');
-        renderListaCotejo('rubricaResultadoPruebaRA1', previa.criteriosCalificados, previa.puntajeMaximo, previa.nota);
-      }
-    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
-  }
-
-  document.getElementById('btnComenzarPruebaRA1').addEventListener('click', () => {
-    seccionActualPruebaRA1 = 0;
-    respuestasClasificacionRA1 = {};
-    respuestasPartesRA1 = {};
-    respuestasVistaRA1 = {};
-    respuestaVerificacionRA1 = null;
-    filtroVendedorS4PruebaRA1 = '';
-    vistasVisitadasS4PruebaRA1 = new Set();
-    vistaActualS4PruebaRA1 = null;
-    datosRealesS4PruebaRA1 = null;
-    datosFiltradosS4PruebaRA1 = [];
-    totalRealS4PruebaRA1 = 0;
-    calcExpresionS4PruebaRA1 = '';
-    document.getElementById('vistaInicioPruebaRA1').classList.add('hidden');
-    document.getElementById('vistaPruebaRA1').classList.remove('hidden');
-    pintarSeccionPruebaRA1();
+  document.getElementById('btnBackFromActividadesExtraEstudiante').addEventListener('click', () => {
+    document.getElementById('panelActividadesExtraEstudiante').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+  document.getElementById('btnBackFromDetalleActividadExtra').addEventListener('click', () => {
+    document.getElementById('panelDetalleActividadExtra').classList.add('hidden');
+    document.getElementById('panelActividadesExtraEstudiante').classList.remove('hidden');
   });
 
-  function pintarSeccionPruebaRA1(){
-    actualizarBarraProgreso('progresoPruebaRA1', seccionActualPruebaRA1, 4);
-    const cont = document.getElementById('contenidoPruebaRA1');
+// ============================================================================
+// PANEL DOCENTE — crear y administrar actividades extra
+// ============================================================================
 
-    if(seccionActualPruebaRA1 === 0){
-      cont.innerHTML = `
-        <div class="section-heading" style="font-size:18px;">Sección 1 — Clasifica cada reporte</div>
-        ${CLASIFICACION_PRUEBA_RA1.map(c => `
-          <div class="caso-a110-card" style="max-width:100%; margin-bottom:14px;">
-            <div class="caso-a110-escenario">${c.texto}</div>
-            <div class="metodos-a110-opciones" style="flex-direction:row; gap:12px;">
-              <button type="button" class="metodo-a110-btn prueba-clasif-btn ${respuestasClasificacionRA1[c.id]==='interno'?'seleccionado-prueba':''}" data-id="${c.id}" data-valor="interno" style="flex:1;">Interno</button>
-              <button type="button" class="metodo-a110-btn prueba-clasif-btn ${respuestasClasificacionRA1[c.id]==='externo'?'seleccionado-prueba':''}" data-id="${c.id}" data-valor="externo" style="flex:1;">Externo</button>
-            </div>
-          </div>
-        `).join('')}
-        <button type="button" class="btn btn-primary" id="btnContinuarSeccionPruebaRA1" style="width:auto; padding:12px 28px;" ${Object.keys(respuestasClasificacionRA1).length < CLASIFICACION_PRUEBA_RA1.length ? 'disabled' : ''}>Continuar <i class="fa-solid fa-arrow-right"></i></button>`;
-
-      cont.querySelectorAll('.prueba-clasif-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = Number(btn.dataset.id);
-          respuestasClasificacionRA1[id] = btn.dataset.valor;
-          pintarSeccionPruebaRA1();
-        });
-      });
-    }
-
-    else if(seccionActualPruebaRA1 === 1){
-      cont.innerHTML = `
-        <div class="section-heading" style="font-size:18px;">Sección 2 — ¿Qué parte del reporte es?</div>
-        ${PARTES_PRUEBA_RA1.map(p => `
-          <div class="caso-a110-card" style="max-width:100%; margin-bottom:14px;">
-            <div class="caso-a110-escenario">${p.descripcion}</div>
-            <select class="input-generico prueba-parte-select" data-id="${p.id}" style="margin-top:10px;">
-              <option value="">Selecciona la parte...</option>
-              ${OPCIONES_PARTES_RA1.map(op => `<option value="${op}" ${respuestasPartesRA1[p.id]===op?'selected':''}>${op}</option>`).join('')}
-            </select>
-          </div>
-        `).join('')}
-        <button type="button" class="btn btn-primary" id="btnContinuarSeccionPruebaRA1" style="width:auto; padding:12px 28px;" ${Object.keys(respuestasPartesRA1).length < PARTES_PRUEBA_RA1.length ? 'disabled' : ''}>Continuar <i class="fa-solid fa-arrow-right"></i></button>`;
-
-      cont.querySelectorAll('.prueba-parte-select').forEach(sel => {
-        sel.addEventListener('change', () => {
-          respuestasPartesRA1[Number(sel.dataset.id)] = sel.value;
-          const btn = document.getElementById('btnContinuarSeccionPruebaRA1');
-          if(btn) btn.disabled = Object.keys(respuestasPartesRA1).filter(k => respuestasPartesRA1[k]).length < PARTES_PRUEBA_RA1.length;
-        });
-      });
-    }
-
-    else if(seccionActualPruebaRA1 === 2){
-      cont.innerHTML = `
-        <div class="section-heading" style="font-size:18px;">Sección 3 — ¿Cuál vista es?</div>
-        ${VISTAS_PRUEBA_RA1.map(v => `
-          <div class="caso-a110-card" style="max-width:100%; margin-bottom:14px;">
-            <div class="caso-a110-escenario">${v.escenario}</div>
-            <div class="metodos-a110-opciones">
-              ${OPCIONES_VISTA_RA1.map(op => `
-                <button type="button" class="metodo-a110-btn prueba-vista-btn ${respuestasVistaRA1[v.id]===op.id?'seleccionado-prueba':''}" data-id="${v.id}" data-valor="${op.id}">${op.nombre}</button>
-              `).join('')}
-            </div>
-          </div>
-        `).join('')}
-        <button type="button" class="btn btn-primary" id="btnContinuarSeccionPruebaRA1" style="width:auto; padding:12px 28px;" ${Object.keys(respuestasVistaRA1).length < VISTAS_PRUEBA_RA1.length ? 'disabled' : ''}>Continuar <i class="fa-solid fa-arrow-right"></i></button>`;
-
-      cont.querySelectorAll('.prueba-vista-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const id = Number(btn.dataset.id);
-          respuestasVistaRA1[id] = btn.dataset.valor;
-          pintarSeccionPruebaRA1();
-        });
-      });
-    }
-
-    else if(seccionActualPruebaRA1 === 3){
-      cont.innerHTML = `
-        <div class="section-heading" style="font-size:18px;">Sección 4 — Genera y verifica un reporte filtrado</div>
-        <div class="empty-note" style="margin-top:0;">
-          <i class="fa-solid fa-hand-pointer"></i>
-          Filtra el reporte por un vendedor, recorre las 3 vistas, y verifica el total calculándolo tú mismo.
-        </div>
-        <div id="filtroS4PruebaRA1"></div>
-        <div id="navegadorVistasS4PruebaRA1" class="hidden"></div>`;
-      pintarFiltroS4PruebaRA1();
-      return;
-    }
-
-    const btnContinuar = document.getElementById('btnContinuarSeccionPruebaRA1');
-    if(btnContinuar){
-      btnContinuar.addEventListener('click', () => {
-        seccionActualPruebaRA1++;
-        pintarSeccionPruebaRA1();
-      });
-    }
-  }
-
-  // ---------- Sección 4: filtro + navegador de vistas + calculadora ----------
-  const CAMPOS_S4_PRUEBA_RA1 = [
-    { campo:'Producto', etiqueta:'Producto', muestra:'[Producto de ejemplo]' },
-    { campo:'Cantidad', etiqueta:'Cantidad', muestra:'XX' },
-    { campo:'PrecioUnitario', etiqueta:'Precio Unitario', muestra:'RD$X,XXX.XX' },
-    { campo:'Vendedor', etiqueta:'Vendedor', muestra:'[Vendedor]' }
-  ];
-
-  async function pintarFiltroS4PruebaRA1(){
-    const cont = document.getElementById('filtroS4PruebaRA1');
-    cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando vendedores...</div>';
-
-    const data = await cargarTablaDatos('DB_Ventas');
-    if(!data){
-      cont.innerHTML = '<div class="empty-table-msg">No se pudo cargar la base de datos. Intenta de nuevo.</div>';
-      return;
-    }
-    datosRealesS4PruebaRA1 = data;
-    const vendedoresUnicos = [...new Set(data.datos.map(d => d.Vendedor))].filter(Boolean);
-
-    cont.innerHTML = `
-      <div class="caso-a110-card" style="max-width:100%;">
-        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px;">Filtrar por vendedor</label>
-        <select id="selectFiltroS4PruebaRA1" class="input-generico" style="max-width:280px;">
-          <option value="" ${filtroVendedorS4PruebaRA1 ? '' : 'selected disabled'}>Selecciona un vendedor...</option>
-          ${vendedoresUnicos.map(v => `<option value="${v}" ${filtroVendedorS4PruebaRA1 === v ? 'selected' : ''}>${v}</option>`).join('')}
-        </select>
-        <button type="button" class="btn btn-add" id="btnConstruirS4PruebaRA1" style="margin-top:14px; display:block;">
-          <i class="fa-solid fa-gears"></i> Construir reporte
-        </button>
-      </div>`;
-
-    document.getElementById('selectFiltroS4PruebaRA1').addEventListener('change', (e) => { filtroVendedorS4PruebaRA1 = e.target.value; });
-    document.getElementById('btnConstruirS4PruebaRA1').addEventListener('click', () => {
-      if(!filtroVendedorS4PruebaRA1){
-        mostrarNotificacion('Selecciona un vendedor para filtrar el reporte.', 'error');
+  async function cargarActividadesExtraAdmin(){
+    const wrap = document.getElementById('listaActividadesExtraAdminWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
+    try{
+      const data = await apiGet({ action:'listarActividadesExtra' });
+      if(!data.success){
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudo cargar la lista de actividades extra.</div>';
         return;
       }
-      datosFiltradosS4PruebaRA1 = datosRealesS4PruebaRA1.datos.filter(d => d.Vendedor === filtroVendedorS4PruebaRA1);
-      totalRealS4PruebaRA1 = datosFiltradosS4PruebaRA1.reduce((sum, f) => sum + (Number(f.Cantidad)||0) * (Number(f.PrecioUnitario)||0), 0);
-      vistasVisitadasS4PruebaRA1 = new Set();
-
-      const navCont = document.getElementById('navegadorVistasS4PruebaRA1');
-      navCont.classList.remove('hidden');
-      navCont.innerHTML = `
-        <div class="vistas-tabs-wrap" id="vistasTabsS4PruebaRA1"></div>
-        <div id="vistaContenidoS4PruebaRA1"></div>
-        <div id="seccionVerificacionS4PruebaRA1" class="hidden"></div>`;
-      cambiarVistaS4PruebaRA1('diseno');
-    });
-  }
-
-  function pintarVistasTabsS4PruebaRA1(){
-    const cont = document.getElementById('vistasTabsS4PruebaRA1');
-    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
-      const info = COLOR_VISTA_A14[v];
-      const visitada = vistasVisitadasS4PruebaRA1.has(v);
-      const activa = vistaActualS4PruebaRA1 === v;
-      return `
-        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
-          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
-          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
-        </button>`;
-    }).join('');
-    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => cambiarVistaS4PruebaRA1(btn.dataset.vista));
-    });
-  }
-
-  function cambiarVistaS4PruebaRA1(vista){
-    vistaActualS4PruebaRA1 = vista;
-    vistasVisitadasS4PruebaRA1.add(vista);
-    pintarVistasTabsS4PruebaRA1();
-    pintarContenidoVistaS4PruebaRA1(vista);
-    if(vistasVisitadasS4PruebaRA1.size >= 3){
-      document.getElementById('seccionVerificacionS4PruebaRA1').classList.remove('hidden');
-      pintarVerificacionS4PruebaRA1();
+      actividadesExtraCache = data.actividades;
+      pintarActividadesExtraAdmin();
+    }catch(err){
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
     }
   }
 
-  function pintarContenidoVistaS4PruebaRA1(vista){
-    const cont = document.getElementById('vistaContenidoS4PruebaRA1');
-    const info = COLOR_VISTA_A14[vista];
-    const campos = CAMPOS_S4_PRUEBA_RA1;
+  function pintarActividadesExtraAdmin(){
+    const wrap = document.getElementById('listaActividadesExtraAdminWrap');
 
-    let filasHtml = '';
-    if(vista === 'diseno'){
-      filasHtml = `<tr>${campos.map(() => `<td class="simulador-placeholder-cell">—</td>`).join('')}</tr>`;
-    } else if(vista === 'previsualizacion'){
-      filasHtml = [1,2,3].map(() => `<tr>${campos.map(c => `<td class="simulador-placeholder-cell">${c.muestra}</td>`).join('')}</tr>`).join('');
-    } else if(vista === 'ejecucion'){
-      filasHtml = datosFiltradosS4PruebaRA1.slice(0, 10).map(fila => `
-        <tr>${campos.map(c => {
-          let valor = fila[c.campo];
-          if(c.campo === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
-          return `<td>${valor !== undefined ? valor : ''}</td>`;
-        }).join('')}</tr>`).join('');
+    if(actividadesExtraCache.length === 0){
+      wrap.innerHTML = `<div class="empty-table-msg">
+        <i class="fa-solid fa-star"></i><br>
+        Todavía no has creado ninguna actividad extra. Usa el botón de arriba para crear la primera.
+      </div>`;
+      return;
     }
 
-    const tituloReporte = `
-      <div style="font-weight:800; font-size:15px;">TECNOVENTAS RD, S.R.L. — Reporte de Ventas
-        ${vista !== 'diseno' ? `<span style="font-weight:600; font-size:12.5px; opacity:.7;"> · Filtrado por: ${filtroVendedorS4PruebaRA1}</span>` : ''}
-      </div>`;
-
-    const tablaHtml = `
-      <table class="simulador-tabla">
-        <thead><tr>${campos.map(c => `<th>${c.etiqueta}</th>`).join('')}</tr></thead>
-        <tbody>${filasHtml}</tbody>
-      </table>
-      ${vista === 'ejecucion' ? '<div style="margin-top:10px; font-size:12.5px; opacity:.7;"><i class="fa-solid fa-circle-info"></i> El total no se muestra aquí — calcúlalo y verifícalo abajo.</div>' : ''}`;
-
-    cont.innerHTML = `
-      <div class="simulador-pantalla">
-        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};">
-          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
-        </span>
-        ${tituloReporte}
-        ${tablaHtml}
-      </div>`;
-  }
-
-  function pintarVerificacionS4PruebaRA1(){
-    const cont = document.getElementById('seccionVerificacionS4PruebaRA1');
-    cont.innerHTML = `
-      <div class="caso-a110-card" style="max-width:100%; margin-top:20px;">
-        <p style="margin-bottom:12px; font-size:14px;">Calcula el total real del reporte filtrado (con la calculadora o a mano) y escríbelo aquí.</p>
-        <div class="simulador-ejecucion-layout">
+    wrap.innerHTML = actividadesExtraCache.map(act => `
+      <div class="actividad-card" data-codigo="${act.codigo}">
+        <div class="actividad-top">
           <div>
-            <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Total verificado (RD$)</label>
-            <input type="number" id="inputVerificacionPruebaRA1" class="input-generico" placeholder="0.00" style="max-width:220px;" value="${respuestaVerificacionRA1 !== null ? respuestaVerificacionRA1 : ''}">
-          </div>
-          <div class="calculadora-mini">
-            <div class="calc-titulo"><i class="fa-solid fa-calculator"></i> Calculadora</div>
-            <div class="calc-display" id="calcDisplayS4PruebaRA1">${calcExpresionS4PruebaRA1 || '0'}</div>
-            <div class="calc-teclado">
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="7">7</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="8">8</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="9">9</button>
-              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="/">÷</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="4">4</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="5">5</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="6">6</button>
-              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="*">×</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="1">1</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="2">2</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="3">3</button>
-              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="-">−</button>
-              <button type="button" class="calc-btn calc-btn-s4 calc-clear" data-calc="C">C</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc="0">0</button>
-              <button type="button" class="calc-btn calc-btn-s4" data-calc=".">.</button>
-              <button type="button" class="calc-btn calc-btn-s4 calc-op" data-calc="+">+</button>
-              <button type="button" class="calc-btn calc-btn-s4 calc-eq" data-calc="=" style="grid-column:span 4;">=</button>
-            </div>
-            <div style="font-size:10.5px; opacity:.6; margin-top:8px; text-align:center;">Uso interno — no se envía al sistema.</div>
+            <div class="actividad-codigo">${act.codigo}</div>
+            <div class="actividad-ec">Actividad Extra</div>
           </div>
         </div>
-        <button type="button" class="btn btn-primary" id="btnFinalizarPruebaRA1" style="width:auto; padding:12px 28px; margin-top:16px;">
-          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
-        </button>
-      </div>`;
 
-    document.getElementById('inputVerificacionPruebaRA1').addEventListener('input', (e) => {
-      respuestaVerificacionRA1 = e.target.value === '' ? null : Number(e.target.value);
-    });
+        <input type="text" class="input-titulo-extra titulo-actividad-input" placeholder="Título de la actividad (se ve en la lista antes de entrar)" value="${(act.titulo || '').replace(/"/g,'&quot;')}">
 
-    cont.querySelectorAll('.calc-btn-s4').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const val = btn.dataset.calc;
-        if(val === 'C'){
-          calcExpresionS4PruebaRA1 = '';
-        } else if(val === '='){
-          if(calcExpresionS4PruebaRA1.trim() !== '' && /^[0-9+\-*/.() ]+$/.test(calcExpresionS4PruebaRA1)){
-            try{
-              const resultado = Function('"use strict"; return (' + calcExpresionS4PruebaRA1 + ')')();
-              calcExpresionS4PruebaRA1 = Number.isFinite(resultado) ? String(Math.round(resultado * 100) / 100) : 'Error';
-            }catch(err){
-              calcExpresionS4PruebaRA1 = 'Error';
-            }
+        <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
+        ${construirEditorEnunciadoHTML(act.enunciado)}
+
+        <div class="actividad-controls">
+          <div class="puntaje-field">
+            <label>Puntaje máx.</label>
+            <input type="number" min="0" step="0.5" class="input-puntaje" value="${act.puntajeMaximo || 0}">
+          </div>
+          <div class="puntaje-field">
+            <label>Tiempo est. (min)</label>
+            <input type="number" min="1" step="1" class="input-tiempo" value="${act.tiempoEstimadoMin || 10}">
+          </div>
+          <div class="switch-field">
+            <label class="switch">
+              <input type="checkbox" class="input-habilitada" ${act.habilitada ? 'checked' : ''}>
+              <span class="switch-slider"></span>
+            </label>
+            <span class="switch-label">Habilitada</span>
+          </div>
+        </div>
+
+        <div class="disponibilidad-section">
+          <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:14px 0 8px;">
+            <i class="fa-solid fa-calendar-days"></i> Ventana de disponibilidad para el estudiante (opcional)
+          </label>
+          <div class="actividad-controls" style="margin-top:0;">
+            <div class="puntaje-field">
+              <label>Disponible desde</label>
+              <input type="datetime-local" class="input-fecha-inicio" value="${act.fechaInicio || ''}">
+            </div>
+            <div class="puntaje-field">
+              <label>Disponible hasta</label>
+              <input type="datetime-local" class="input-fecha-fin" value="${act.fechaFin || ''}">
+            </div>
+          </div>
+        </div>
+
+        <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:16px 0 8px;">
+          <i class="fa-solid fa-reply"></i> ¿Cómo responderá el estudiante?
+        </label>
+        <div class="role-tabs tipo-respuesta-tabs" style="width:auto; max-width:420px;">
+          <button type="button" class="role-tab tipo-respuesta-tab ${(act.tipoRespuesta || 'texto') === 'texto' ? 'active' : ''}" data-tipo="texto">Escribe una respuesta</button>
+          <button type="button" class="role-tab tipo-respuesta-tab ${act.tipoRespuesta === 'marcar' ? 'active' : ''}" data-tipo="marcar">Solo marca como realizada</button>
+        </div>
+        <input type="hidden" class="input-tipo-respuesta" value="${act.tipoRespuesta || 'texto'}">
+
+        <div class="switch-field" style="margin:18px 0 4px;">
+          <label class="switch">
+            <input type="checkbox" class="input-tiene-instrumento" ${act.tieneInstrumento !== false ? 'checked' : ''}>
+            <span class="switch-slider"></span>
+          </label>
+          <span class="switch-label"><i class="fa-solid fa-list-check"></i> Esta actividad tiene instrumento de evaluación (se califica)</span>
+        </div>
+        <div class="empty-note instrumento-off-nota ${act.tieneInstrumento !== false ? 'hidden' : ''}" style="margin:6px 0 14px; padding:10px 14px; font-size:12.5px;">
+          <i class="fa-solid fa-circle-info"></i>
+          Sin instrumento: la actividad es solo complementaria. Al enviarla, queda marcada como completada automáticamente, sin calificación ni puntaje.
+        </div>
+
+        <div class="instrumento-extra-wrap ${act.tieneInstrumento === false ? 'hidden' : ''}">
+          <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:8px 0 8px;">
+            <i class="fa-solid fa-list-check"></i> Instrumento — Lista de cotejo (criterios de evaluación)
+          </label>
+          <div class="criterios-extra-lista" data-criterios-de="${act.codigo}"></div>
+          <button type="button" class="btn-add-criterio-extra" style="margin:8px 0 4px; padding:9px 16px; background:rgba(79,163,255,.12); color:var(--dark-blue-accent); border:1px solid var(--dark-blue-accent); border-radius:9px; font-weight:700; font-size:13.5px;">
+            <i class="fa-solid fa-plus"></i> Agregar criterio
+          </button>
+        </div>
+
+        <div class="recursos-section">
+          <div style="font-weight:800; font-size:15px; margin-top:16px; margin-bottom:8px;">
+            <i class="fa-solid fa-paperclip"></i> Recursos de apoyo
+          </div>
+          <div class="recursos-lista" data-recursos-de="${act.codigo}">
+            <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+          </div>
+          <div class="role-tabs" style="margin:10px 0 12px; width:auto; max-width:260px;">
+            <button type="button" class="role-tab recurso-tipo-tab active" data-tipo="enlace">Enlace</button>
+            <button type="button" class="role-tab recurso-tipo-tab" data-tipo="archivo">Archivo</button>
+          </div>
+          <div class="recurso-form recurso-form-enlace">
+            <div class="field">
+              <label>Nombre del recurso</label>
+              <input type="text" class="input-recurso-nombre" placeholder="Ej. Guía de estudio">
+            </div>
+            <div class="field">
+              <label>Enlace (URL)</label>
+              <input type="text" class="input-recurso-url" placeholder="https://...">
+            </div>
+            <button type="button" class="btn-add btn-add-recurso" style="padding:10px 16px;">
+              <i class="fa-solid fa-plus"></i> Agregar
+            </button>
+          </div>
+          <div class="recurso-form recurso-form-archivo hidden">
+            <div class="field">
+              <label>Nombre del recurso</label>
+              <input type="text" class="input-recurso-nombre-archivo" placeholder="Ej. Guía en PDF">
+            </div>
+            <div class="field">
+              <label>Archivo (PDF, Word, PPT — máx. 5 MB)</label>
+              <input type="file" class="input-recurso-archivo" accept=".pdf,.doc,.docx,.ppt,.pptx">
+            </div>
+            <button type="button" class="btn-add btn-add-recurso-archivo" style="padding:10px 16px;">
+              <i class="fa-solid fa-upload"></i> Subir
+            </button>
+          </div>
+          <div class="form-msg" style="margin-top:6px;" data-msg-de="${act.codigo}"></div>
+        </div>
+
+        <div class="actividad-guardar-final" style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <button type="button" class="btn btn-primary btn-save-act-extra" style="width:auto; padding:12px 26px;">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+          </button>
+          <button type="button" class="btn-ver-respuestas-extra" style="padding:12px 20px; background:rgba(232,185,59,.12); color:var(--dark-gold-accent); border:1px solid var(--dark-gold-accent); border-radius:10px; font-weight:700;">
+            <i class="fa-solid fa-inbox"></i> Ver respuestas de estudiantes
+          </button>
+          <button type="button" class="btn-eliminar-extra" style="padding:12px 16px; background:rgba(239,68,68,.1); color:#ef4444; border:1px solid #ef4444; border-radius:10px; font-weight:700;">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+          <span class="save-ok-msg hidden" style="color:var(--dark-green-accent); font-weight:700; font-size:13.5px;"><i class="fa-solid fa-circle-check"></i> Guardado</span>
+        </div>
+      </div>
+    `).join('');
+
+    wrap.querySelectorAll('.actividad-card').forEach(card => {
+      const codigo = card.dataset.codigo;
+      const act = actividadesExtraCache.find(a => a.codigo === codigo);
+
+      conectarEditorEnunciado(card);
+      cargarRecursosAdmin(codigo, card);
+      wireRecursosExtra(card, codigo);
+
+      // Tabs de tipo de respuesta
+      card.querySelectorAll('.tipo-respuesta-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          card.querySelectorAll('.tipo-respuesta-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          card.querySelector('.input-tipo-respuesta').value = tab.dataset.tipo;
+        });
+      });
+
+      // Interruptor: ¿tiene instrumento de evaluación?
+      card.querySelector('.input-tiene-instrumento').addEventListener('change', (e) => {
+        card.querySelector('.instrumento-extra-wrap').classList.toggle('hidden', !e.target.checked);
+        card.querySelector('.instrumento-off-nota').classList.toggle('hidden', e.target.checked);
+      });
+
+      // Constructor de criterios (Lista de cotejo)
+      const criteriosIniciales = (act.criterios && act.criterios.length) ? act.criterios : [{nombre:'', descripcion:''}, {nombre:'', descripcion:''}];
+      pintarCriteriosExtra(card, criteriosIniciales);
+
+      card.querySelector('.btn-add-criterio-extra').addEventListener('click', () => {
+        agregarFilaCriterioExtra(card, { nombre:'', descripcion:'' });
+      });
+
+      // Guardar
+      const btnGuardar = card.querySelector('.btn-save-act-extra');
+      const okMsg = card.querySelector('.save-ok-msg');
+      btnGuardar.addEventListener('click', async () => {
+        const titulo = card.querySelector('.input-titulo-extra').value.trim();
+        const enunciado = card.querySelector('.input-enunciado').innerHTML.trim();
+        const puntajeMaximo = card.querySelector('.input-puntaje').value;
+        const tiempoEstimadoMin = card.querySelector('.input-tiempo').value;
+        const habilitada = card.querySelector('.input-habilitada').checked;
+        const fechaInicio = card.querySelector('.input-fecha-inicio').value;
+        const fechaFin = card.querySelector('.input-fecha-fin').value;
+        const tipoRespuesta = card.querySelector('.input-tipo-respuesta').value;
+        const tieneInstrumento = card.querySelector('.input-tiene-instrumento').checked;
+
+        const criterios = [];
+        card.querySelectorAll('.criterio-extra-row').forEach(row => {
+          const nombre = row.querySelector('.input-criterio-nombre').value.trim();
+          const descripcion = row.querySelector('.input-criterio-descripcion').value.trim();
+          if(nombre) criterios.push({ nombre, descripcion });
+        });
+
+        if(!titulo){ mostrarNotificacion('Escribe un título para la actividad.', 'error'); return; }
+        if(tieneInstrumento && criterios.length === 0){ mostrarNotificacion('Agrega al menos un criterio de evaluación, o desactiva el instrumento si esta actividad es solo complementaria.', 'error'); return; }
+
+        btnGuardar.disabled = true;
+        try{
+          const resp = await apiPost({
+            action:'guardarActividadExtra',
+            codigo, titulo, enunciado,
+            criterios: tieneInstrumento ? criterios : [],
+            puntajeMaximo: tieneInstrumento ? puntajeMaximo : 0,
+            tiempoEstimadoMin, tipoRespuesta, habilitada,
+            fechaInicio, fechaFin, tieneInstrumento
+          });
+          if(resp.success){
+            okMsg.classList.remove('hidden');
+            setTimeout(() => okMsg.classList.add('hidden'), 2500);
+            cargarActividadesExtraAdmin();
+          } else {
+            mostrarNotificacion(resp.error || 'No se pudo guardar la actividad.', 'error');
           }
-        } else {
-          if(calcExpresionS4PruebaRA1 === 'Error') calcExpresionS4PruebaRA1 = '';
-          calcExpresionS4PruebaRA1 += val;
+        }catch(err){
+          mostrarNotificacion('Error de conexión con el servidor.', 'error');
+        }finally{
+          btnGuardar.disabled = false;
         }
-        document.getElementById('calcDisplayS4PruebaRA1').textContent = calcExpresionS4PruebaRA1 || '0';
+      });
+
+      // Ver respuestas
+      card.querySelector('.btn-ver-respuestas-extra').addEventListener('click', () => {
+        abrirCalificarExtra(codigo, act.titulo);
+      });
+
+      // Eliminar
+      card.querySelector('.btn-eliminar-extra').addEventListener('click', async () => {
+        if(!await confirmarAccion(`¿Eliminar la actividad "${act.titulo || codigo}"? Esta acción no se puede deshacer.`, 'Eliminar actividad extra')) return;
+        const resp = await apiPost({ action:'eliminarActividadExtra', codigo });
+        if(resp.success){
+          mostrarNotificacion('Actividad extra eliminada.', 'success');
+          cargarActividadesExtraAdmin();
+        } else {
+          mostrarNotificacion(resp.error || 'No se pudo eliminar.', 'error');
+        }
+      });
+    });
+  }
+
+  function pintarCriteriosExtra(card, criterios){
+    const cont = card.querySelector('.criterios-extra-lista');
+    cont.innerHTML = '';
+    criterios.forEach(c => agregarFilaCriterioExtra(card, c));
+  }
+
+  function agregarFilaCriterioExtra(card, criterio){
+    const cont = card.querySelector('.criterios-extra-lista');
+    const fila = document.createElement('div');
+    fila.className = 'criterio-extra-row';
+    fila.style.cssText = 'display:flex; gap:8px; margin-bottom:8px; align-items:flex-start;';
+    fila.innerHTML = `
+      <input type="text" class="input-criterio-nombre textarea-generico" style="min-height:auto; padding:9px 12px; flex:1; max-width:220px;" placeholder="Nombre del criterio" value="${(criterio.nombre || '').replace(/"/g,'&quot;')}">
+      <textarea class="input-criterio-descripcion textarea-generico" style="min-height:44px; flex:2;" placeholder="Descripción del desempeño esperado">${criterio.descripcion || ''}</textarea>
+      <button type="button" class="btn-quitar-criterio" style="background:rgba(239,68,68,.1); color:#ef4444; border:1px solid #ef4444; border-radius:8px; width:38px; height:38px; flex-shrink:0;"><i class="fa-solid fa-trash"></i></button>
+    `;
+    fila.querySelector('.btn-quitar-criterio').addEventListener('click', () => fila.remove());
+    cont.appendChild(fila);
+  }
+
+  function wireRecursosExtra(card, codigo){
+    card.querySelectorAll('.recurso-tipo-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        card.querySelectorAll('.recurso-tipo-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const esArchivo = tab.dataset.tipo === 'archivo';
+        card.querySelector('.recurso-form-enlace').classList.toggle('hidden', esArchivo);
+        card.querySelector('.recurso-form-archivo').classList.toggle('hidden', !esArchivo);
       });
     });
 
-    document.getElementById('btnFinalizarPruebaRA1').addEventListener('click', finalizarPruebaPracticaRA1);
+    const msgBox = card.querySelector(`[data-msg-de="${codigo}"]`);
+
+    const btnAdd = card.querySelector('.btn-add-recurso');
+    btnAdd.addEventListener('click', async () => {
+      const nombre = card.querySelector('.input-recurso-nombre').value.trim();
+      const url = card.querySelector('.input-recurso-url').value.trim();
+      if(!nombre || !url){ mostrarNotificacion('Completa el nombre y el enlace del recurso.', 'error'); return; }
+      btnAdd.disabled = true;
+      try{
+        const data = await apiPost({ action:'agregarRecurso', codigo, tipo:'enlace', nombre, url });
+        if(data.success){
+          card.querySelector('.input-recurso-nombre').value = '';
+          card.querySelector('.input-recurso-url').value = '';
+          cargarRecursosAdmin(codigo, card);
+        } else {
+          mostrarNotificacion(data.error || 'No se pudo agregar el recurso.', 'error');
+        }
+      }catch(err){
+        mostrarNotificacion('Error de conexión con el servidor.', 'error');
+      }finally{
+        btnAdd.disabled = false;
+      }
+    });
+
+    const btnAddArchivo = card.querySelector('.btn-add-recurso-archivo');
+    btnAddArchivo.addEventListener('click', () => {
+      const nombre = card.querySelector('.input-recurso-nombre-archivo').value.trim();
+      const fileInput = card.querySelector('.input-recurso-archivo');
+      const archivo = fileInput.files[0];
+      if(!nombre || !archivo){ mostrarNotificacion('Completa el nombre y selecciona un archivo.', 'error'); return; }
+      if(archivo.size > 5 * 1024 * 1024){ mostrarNotificacion('El archivo supera los 5 MB.', 'error'); return; }
+
+      btnAddArchivo.disabled = true;
+      msgBox.className = 'form-msg';
+      msgBox.textContent = 'Subiendo archivo, puede tardar unos segundos...';
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64 = e.target.result.split(',')[1];
+        try{
+          const data = await apiPost({
+            action:'agregarRecursoArchivo', codigo, nombre,
+            archivoBase64: base64, nombreArchivo: archivo.name, mimeType: archivo.type || 'application/octet-stream'
+          });
+          if(data.success){
+            msgBox.className = 'form-msg ok';
+            msgBox.textContent = 'Archivo subido correctamente.';
+            card.querySelector('.input-recurso-nombre-archivo').value = '';
+            fileInput.value = '';
+            cargarRecursosAdmin(codigo, card);
+          } else {
+            msgBox.className = 'form-msg err';
+            msgBox.textContent = data.error || 'No se pudo subir el archivo.';
+          }
+        }catch(err){
+          msgBox.className = 'form-msg err';
+          msgBox.textContent = 'Error de conexión con el servidor.';
+        }finally{
+          btnAddArchivo.disabled = false;
+        }
+      };
+      reader.readAsDataURL(archivo);
+    });
   }
 
-  async function finalizarPruebaPracticaRA1(){
-    const aciertosClasificacion = CLASIFICACION_PRUEBA_RA1.filter(c => respuestasClasificacionRA1[c.id] === c.correcta).length;
-    const aciertosPartes = PARTES_PRUEBA_RA1.filter(p => respuestasPartesRA1[p.id] === p.correcta).length;
-    const aciertosVistas = VISTAS_PRUEBA_RA1.filter(v => respuestasVistaRA1[v.id] === v.correcta).length;
-    const recorrioLasTresVistas = vistasVisitadasS4PruebaRA1.size >= 3;
-    const verificacionCorrecta = recorrioLasTresVistas && respuestaVerificacionRA1 !== null && Math.abs(respuestaVerificacionRA1 - totalRealS4PruebaRA1) < 1;
+  document.getElementById('btnNuevaActividadExtra').addEventListener('click', async () => {
+    const resp = await apiPost({
+      action:'guardarActividadExtra',
+      codigo: '', titulo:'Nueva actividad extra', enunciado:'', criterios:[],
+      puntajeMaximo:10, tiempoEstimadoMin:10, tipoRespuesta:'texto', habilitada:false,
+      fechaInicio:'', fechaFin:''
+    });
+    if(resp.success){
+      mostrarNotificacion('Actividad extra creada. Complétala abajo.', 'success');
+      cargarActividadesExtraAdmin();
+    } else {
+      mostrarNotificacion(resp.error || 'No se pudo crear la actividad.', 'error');
+    }
+  });
 
-    const criterios = [
-      { nombre:'1. Clasificación correcta de reportes (Interno/Externo)', nivel: aciertosClasificacion >= 3 ? 'cumple' : 'no_cumple' },
-      { nombre:'2. Identificación de las partes del reporte', nivel: aciertosPartes >= 4 ? 'cumple' : 'no_cumple' },
-      { nombre:'3. Identificación de las vistas correctas', nivel: aciertosVistas >= 2 ? 'cumple' : 'no_cumple' },
-      { nombre:'4. Genera un reporte filtrado y verifica su total', nivel: verificacionCorrecta ? 'cumple' : 'no_cumple' }
-    ];
+// ============================================================================
+// PANEL DOCENTE — calificar respuestas de una actividad extra
+// ============================================================================
 
-    const pesoUnidad = puntajeMaxPruebaRA1 / criterios.length;
-    let nota = 0;
-    criterios.forEach(c => { if(c.nivel === 'cumple') nota += pesoUnidad; });
-    nota = Math.round(nota * 100) / 100;
-
-    const detalle = [
-      { titulo:'Sección 1 — Clasificación', items: CLASIFICACION_PRUEBA_RA1.map(c => ({ pregunta:c.texto, tuRespuesta: respuestasClasificacionRA1[c.id] === 'interno' ? 'Interno' : 'Externo', correcta: respuestasClasificacionRA1[c.id] === c.correcta, respuestaCorrecta: c.correcta === 'interno' ? 'Interno' : 'Externo' })) },
-      { titulo:'Sección 2 — Partes del reporte', items: PARTES_PRUEBA_RA1.map(p => ({ pregunta:p.descripcion, tuRespuesta: respuestasPartesRA1[p.id] || 'Sin responder', correcta: respuestasPartesRA1[p.id] === p.correcta, respuestaCorrecta: p.correcta })) },
-      { titulo:'Sección 3 — Vistas del reporte', items: VISTAS_PRUEBA_RA1.map(v => ({ pregunta:v.escenario, tuRespuesta: (OPCIONES_VISTA_RA1.find(o=>o.id===respuestasVistaRA1[v.id])||{}).nombre || 'Sin responder', correcta: respuestasVistaRA1[v.id] === v.correcta, respuestaCorrecta: OPCIONES_VISTA_RA1.find(o=>o.id===v.correcta).nombre })) },
-      { titulo:'Sección 4 — Reporte filtrado y verificado', items: [
-        { pregunta:'Vendedor usado como filtro', tuRespuesta: filtroVendedorS4PruebaRA1 || 'Sin filtrar', correcta: !!filtroVendedorS4PruebaRA1 },
-        { pregunta:'¿Recorrió las 3 vistas (Diseño, Previsualización, Ejecución)?', tuRespuesta: `${vistasVisitadasS4PruebaRA1.size} de 3`, correcta: recorrioLasTresVistas },
-        { pregunta:'Total verificado', tuRespuesta: respuestaVerificacionRA1 !== null ? `RD$${respuestaVerificacionRA1}` : 'Sin responder', correcta: verificacionCorrecta, respuestaCorrecta: `RD$${totalRealS4PruebaRA1.toFixed(2)}` }
-      ] }
-    ];
-
-    document.getElementById('vistaPruebaRA1').classList.add('hidden');
-    document.getElementById('vistaResultadoPruebaRA1').classList.remove('hidden');
-    renderListaCotejo('rubricaResultadoPruebaRA1', criterios, puntajeMaxPruebaRA1, nota);
-    renderDesgloseColoreado('resultadoDesglosePruebaRA1', detalle);
-
-    const proporcion = puntajeMaxPruebaRA1 > 0 ? nota / puntajeMaxPruebaRA1 : 0;
-    mostrarLogro(proporcion >= 0.8 ? '¡Excelente! Prueba completada' : 'Prueba completada', proporcion >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
-    if(proporcion >= 0.8) dispararConfeti();
+  async function abrirCalificarExtra(codigo, titulo){
+    document.getElementById('panelActividadesExtraAdmin').classList.add('hidden');
+    document.getElementById('panelCalificarExtra').classList.remove('hidden');
+    document.getElementById('tituloCalificarExtra').textContent = `Respuestas — ${titulo || codigo}`;
+    const wrap = document.getElementById('listaRespuestasExtraWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando respuestas...</div>';
 
     try{
-      await apiPost({ action:'enviarRespuestaExtra', usuario: currentUser.usuario, codigo: codigoPruebaActualRA1, respuestaTexto:'Prueba práctica completada (autocalificada).' });
-      await apiPost({ action:'calificarRespuestaExtra', usuario: currentUser.usuario, codigo: codigoPruebaActualRA1, criterios, nota, puntajeMaximo: puntajeMaxPruebaRA1 });
+      const act = actividadesExtraCache.find(a => a.codigo === codigo) || { criterios:[], puntajeMaximo:10, tipoRespuesta:'texto', tieneInstrumento:true };
+      const [dataResp, dataEst] = await Promise.all([
+        apiGet({ action:'listarRespuestasPorActividadExtra', codigo }),
+        apiGet({ action:'listarEstudiantes' })
+      ]);
+
+      if(!dataResp.success || dataResp.respuestas.length === 0){
+        wrap.innerHTML = `<div class="empty-table-msg">
+          <i class="fa-solid fa-inbox"></i><br>
+          Todavía ningún estudiante ha enviado su respuesta para esta actividad.
+        </div>`;
+        return;
+      }
+
+      const nombresPorUsuario = {};
+      if(dataEst.success) dataEst.estudiantes.forEach(e => { nombresPorUsuario[e.usuario] = e.nombre; });
+
+      wrap.innerHTML = dataResp.respuestas.map(r => {
+        const nombre = nombresPorUsuario[r.usuario] || r.usuario;
+        const calificado = r.estado === 'calificado';
+        const completadaSinInstrumento = r.estado === 'completado';
+        return `
+        <div class="actividad-card" data-usuario="${r.usuario}">
+          <div class="actividad-top">
+            <div>
+              <div class="actividad-codigo" style="font-size:16px;">${nombre}</div>
+              <div class="actividad-ec">Enviado: ${formatearFechaCorta(r.fechaEnvio) || '—'} ${calificado ? `· Calificado: ${formatearFechaCorta(r.fechaCalificacion)}` : ''}</div>
+            </div>
+            <span class="estado-badge ${calificado || completadaSinInstrumento ? 'estado-activa' : 'estado-pendiente'}">
+              <i class="fa-solid ${calificado || completadaSinInstrumento ? 'fa-circle-check' : 'fa-hourglass-half'}"></i> ${calificado ? `Calificado — ${r.nota}/${r.puntajeMaximo}` : (completadaSinInstrumento ? 'Completada (sin instrumento)' : 'Pendiente')}
+            </span>
+          </div>
+
+          ${act.tipoRespuesta === 'marcar'
+            ? `<div class="empty-note" style="margin-top:10px;"><i class="fa-solid fa-circle-check"></i> El estudiante marcó esta actividad como realizada.</div>`
+            : `<div class="actividad-enunciado contenido-enriquecido" style="margin-top:10px; white-space:pre-wrap;">${(r.respuestaTexto || '(sin contenido)').replace(/</g,'&lt;')}</div>`
+          }
+
+          ${act.tieneInstrumento === false ? `
+            <div class="empty-note" style="margin-top:14px;">
+              <i class="fa-solid fa-circle-info"></i> Esta actividad no tiene instrumento de evaluación — no requiere calificación.
+            </div>
+          ` : `
+            <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:16px 0 8px;">Calificación (Lista de cotejo)</label>
+            <div class="calificar-criterios-lista"></div>
+            <button type="button" class="btn btn-primary btn-guardar-calificacion-extra" style="width:auto; padding:11px 24px; margin-top:10px;">
+              <i class="fa-solid fa-floppy-disk"></i> Guardar calificación
+            </button>
+          `}
+        </div>`;
+      }).join('');
+
+      if(act.tieneInstrumento === false) return; // sin instrumento: no hay nada más que conectar (solo lectura)
+
+      wrap.querySelectorAll('.actividad-card').forEach(card => {
+        const usuario = card.dataset.usuario;
+        const r = dataResp.respuestas.find(x => x.usuario === usuario);
+        const nivelesGuardados = {};
+        (r.criteriosCalificados || []).forEach(c => { nivelesGuardados[c.nombre] = c.nivel; });
+
+        const listaCriterios = card.querySelector('.calificar-criterios-lista');
+        listaCriterios.innerHTML = (act.criterios || []).map((c, i) => `
+          <div class="calificar-criterio-item" data-nombre="${c.nombre.replace(/"/g,'&quot;')}" data-descripcion="${(c.descripcion||'').replace(/"/g,'&quot;')}" style="padding:10px 14px; margin-bottom:8px; background:var(--dark-card); border:1px solid var(--dark-border); border-radius:10px;">
+            <div style="font-weight:700; font-size:14px; margin-bottom:4px;">${i+1}. ${c.nombre}</div>
+            <div style="font-size:12.5px; opacity:.75; margin-bottom:8px;">${c.descripcion || ''}</div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="btn-nivel-extra ${nivelesGuardados[c.nombre] === 'cumple' ? 'activo-cumple' : ''}" data-nivel="cumple"><i class="fa-solid fa-check"></i> Cumple</button>
+              <button type="button" class="btn-nivel-extra ${nivelesGuardados[c.nombre] === 'no_cumple' ? 'activo-no-cumple' : ''}" data-nivel="no_cumple"><i class="fa-solid fa-xmark"></i> No cumple</button>
+            </div>
+          </div>
+        `).join('');
+
+        listaCriterios.querySelectorAll('.calificar-criterio-item').forEach(item => {
+          item.querySelectorAll('.btn-nivel-extra').forEach(btn => {
+            btn.addEventListener('click', () => {
+              item.querySelectorAll('.btn-nivel-extra').forEach(b => b.classList.remove('activo-cumple', 'activo-no-cumple'));
+              btn.classList.add(btn.dataset.nivel === 'cumple' ? 'activo-cumple' : 'activo-no-cumple');
+            });
+          });
+        });
+
+        card.querySelector('.btn-guardar-calificacion-extra').addEventListener('click', async () => {
+          const criteriosCalificados = [];
+          let faltantes = 0;
+          listaCriterios.querySelectorAll('.calificar-criterio-item').forEach(item => {
+            const elegido = item.querySelector('.btn-nivel-extra.activo-cumple, .btn-nivel-extra.activo-no-cumple');
+            if(!elegido){ faltantes++; return; }
+            criteriosCalificados.push({
+              nombre: item.dataset.nombre,
+              descripcion: item.dataset.descripcion,
+              nivel: elegido.dataset.nivel
+            });
+          });
+          if(faltantes > 0){ mostrarNotificacion('Marca "Cumple" o "No cumple" en todos los criterios antes de guardar.', 'error'); return; }
+
+          const pesoUnidad = (act.puntajeMaximo || 0) / criteriosCalificados.length;
+          let nota = 0;
+          criteriosCalificados.forEach(c => { if(c.nivel === 'cumple') nota += pesoUnidad; });
+          nota = Math.round(nota * 100) / 100;
+
+          const resp = await apiPost({
+            action:'calificarRespuestaExtra',
+            usuario, codigo,
+            criterios: criteriosCalificados,
+            nota, puntajeMaximo: act.puntajeMaximo
+          });
+          if(resp.success){
+            mostrarNotificacion(`Calificación guardada: ${nota}/${act.puntajeMaximo}`, 'success');
+            abrirCalificarExtra(codigo, titulo);
+          } else {
+            mostrarNotificacion(resp.error || 'No se pudo guardar la calificación.', 'error');
+          }
+        });
+      });
     }catch(err){
-      console.error('No se pudo guardar la calificación de la prueba', err);
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
+
+// ============================================================================
+// PANEL ESTUDIANTE — lista de actividades extra disponibles
+// ============================================================================
+
+  async function cargarActividadesExtraEstudiante(){
+    const wrap = document.getElementById('listaActividadesExtraEstudianteWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
+    try{
+      const [dataAct, dataResp] = await Promise.all([
+        apiGet({ action:'listarActividadesExtra' }),
+        apiGet({ action:'listarRespuestasExtra', usuario: currentUser.usuario })
+      ]);
+      if(!dataAct.success){
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudieron cargar las actividades.</div>';
+        return;
+      }
+      actividadesExtraCache = dataAct.actividades;
+      const habilitadas = actividadesExtraCache.filter(a => modoPreviewDocente || a.habilitada);
+
+      if(habilitadas.length === 0){
+        wrap.innerHTML = `<div class="empty-note">
+          <i class="fa-solid fa-circle-info"></i>
+          Tu docente aún no ha habilitado ninguna actividad extra.
+        </div>`;
+        return;
+      }
+
+      const respuestasPorCodigo = {};
+      if(dataResp.success) dataResp.respuestas.forEach(r => { respuestasPorCodigo[r.codigo] = r; });
+
+      wrap.innerHTML = habilitadas.map(act => {
+        const miRespuesta = respuestasPorCodigo[act.codigo];
+        const ahora = new Date();
+        const inicio = act.fechaInicio ? new Date(act.fechaInicio) : null;
+        const fin = act.fechaFin ? new Date(act.fechaFin) : null;
+        const aunNoInicia = inicio && ahora < inicio;
+        const yaVencio = fin && ahora > fin;
+        const fueraDeVentana = (aunNoInicia || yaVencio) && !miRespuesta && !modoPreviewDocente;
+
+        let estadoBadge, textoBoton;
+        if(modoPreviewDocente && !act.habilitada){
+          estadoBadge = '<span class="estado-badge estado-vencida"><i class="fa-solid fa-eye-slash"></i> No habilitada (solo tú la ves)</span>';
+          textoBoton = 'Realizar actividad';
+        } else if(miRespuesta && miRespuesta.estado === 'calificado'){
+          estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Calificada — ${miRespuesta.nota}/${miRespuesta.puntajeMaximo}</span>`;
+          textoBoton = 'Ver resultado';
+        } else if(miRespuesta && miRespuesta.estado === 'completado'){
+          estadoBadge = `<span class="estado-badge estado-activa"><i class="fa-solid fa-circle-check"></i> Completada</span>`;
+          textoBoton = 'Ver mi envío';
+        } else if(miRespuesta && miRespuesta.estado === 'pendiente'){
+          estadoBadge = `<span class="estado-badge estado-pendiente"><i class="fa-solid fa-hourglass-half"></i> Enviada — en espera de calificación</span>`;
+          textoBoton = 'Ver mi envío';
+        } else if(aunNoInicia){
+          estadoBadge = `<span class="estado-badge estado-pendiente"><i class="fa-solid fa-clock"></i> Disponible desde ${formatearFechaCorta(inicio)}</span>`;
+          textoBoton = '';
+        } else if(yaVencio){
+          estadoBadge = `<span class="estado-badge estado-vencida"><i class="fa-solid fa-lock"></i> Cerrada desde ${formatearFechaCorta(fin)}</span>`;
+          textoBoton = '';
+        } else {
+          estadoBadge = '<span class="estado-badge estado-activa"><i class="fa-solid fa-play"></i> Disponible</span>';
+          textoBoton = 'Realizar actividad';
+        }
+
+        return `
+        <div class="actividad-card">
+          <div class="actividad-top">
+            <div>
+              <div class="actividad-codigo">${act.titulo || act.codigo}</div>
+              <div class="actividad-ec">Actividad Extra</div>
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <span class="puntaje-pill"><i class="fa-solid fa-star"></i> ${act.puntajeMaximo} pts</span>
+              ${estadoBadge}
+            </div>
+          </div>
+          <div class="actividad-enunciado contenido-enriquecido">${limpiarColoresCasiBlancos(act.enunciado)}</div>
+          ${fin && !miRespuesta && !yaVencio ? `<div class="actividad-vence-aviso"><i class="fa-solid fa-hourglass-half"></i> Disponible hasta ${formatearFechaCorta(fin)}</div>` : ''}
+          ${(!fueraDeVentana && textoBoton) ? `
+            <button type="button" class="btn-add abrir-extra-btn" data-codigo="${act.codigo}" data-titulo="${(act.titulo || '').replace(/"/g,'&quot;')}" style="margin-top:12px;">
+              <i class="fa-solid ${miRespuesta ? 'fa-eye' : 'fa-play'}"></i> ${textoBoton}
+            </button>` : ''}
+        </div>`;
+      }).join('');
+
+      wrap.querySelectorAll('.abrir-extra-btn').forEach(btn => {
+        btn.addEventListener('click', () => abrirActividadExtraORuta(btn.dataset.codigo, btn.dataset.titulo));
+      });
+    }catch(err){
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
+
+  // Algunas actividades extra tienen una mecánica completamente personalizada (como el libro
+  // digital o la prueba práctica) en vez del flujo genérico de texto/marcar. Se identifican por
+  // su TÍTULO (no por código, porque el código lo asigna el backend automáticamente y no se
+  // puede predecir de antemano). La comparación se normaliza (minúsculas, espacios y tipo de
+  // guion) para que no falle por pequeñas diferencias al escribir el título en el panel.
+  function normalizarTituloExtra_(t){
+    return String(t || '')
+      .toLowerCase()
+      .replace(/[-–—]/g, '-')   // cualquier tipo de guion (corto, medio, largo) se trata igual
+      .replace(/\s+/g, ' ')     // espacios repetidos o accidentales
+      .trim();
+  }
+
+  function abrirActividadExtraORuta(codigo, titulo){
+    const tNorm = normalizarTituloExtra_(titulo);
+    if(tNorm === normalizarTituloExtra_(TITULO_LIBRO_DIGITAL_RA1)){
+      abrirLibroDigitalRA1(codigo);
+    } else if(tNorm === normalizarTituloExtra_(TITULO_PRUEBA_PRACTICA_RA1)){
+      abrirPruebaPracticaRA1(codigo);
+    } else {
+      abrirDetalleActividadExtra(codigo);
+    }
+  }
+
+// ============================================================================
+// PANEL ESTUDIANTE — ver/realizar una actividad extra
+// ============================================================================
+
+  async function abrirDetalleActividadExtra(codigo){
+    codigoExtraActual = codigo;
+    const act = actividadesExtraCache.find(a => a.codigo === codigo);
+    if(!act) return;
+
+    document.getElementById('panelActividadesExtraEstudiante').classList.add('hidden');
+    document.getElementById('panelDetalleActividadExtra').classList.remove('hidden');
+    document.getElementById('tituloDetalleActividadExtra').textContent = act.titulo || codigo;
+    document.getElementById('enunciadoActividadExtra').innerHTML = limpiarColoresCasiBlancos(act.enunciado) || '';
+    document.getElementById('zonaResultadoExtra').classList.add('hidden');
+    cargarRecursosActividad(codigo, 'recursosActividadExtra');
+
+    const instrumentoPrevioCont = document.getElementById('instrumentoPrevioActividadExtra');
+    if(act.tieneInstrumento === false){
+      instrumentoPrevioCont.innerHTML = `<div class="empty-note" style="margin-bottom:16px;"><i class="fa-solid fa-circle-info"></i> Esta actividad es complementaria y no tiene instrumento de evaluación — no se califica.</div>`;
+    } else {
+      const criteriosPrevios = (act.criterios || []).map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+      renderListaCotejo('instrumentoPrevioActividadExtra', criteriosPrevios, act.puntajeMaximo, null);
+    }
+
+    const zonaRespuesta = document.getElementById('zonaRespuestaExtra');
+    zonaRespuesta.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando tu envío...</div>';
+
+    try{
+      const data = await apiGet({ action:'listarRespuestasExtra', usuario: currentUser.usuario });
+      const miRespuesta = data.success ? data.respuestas.find(r => r.codigo === codigo) : null;
+
+      if(miRespuesta && miRespuesta.estado === 'completado'){
+        zonaRespuesta.innerHTML = act.tipoRespuesta === 'marcar'
+          ? '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> Marcaste esta actividad como realizada. ¡Completada!</div>'
+          : `<div class="section-heading" style="font-size:16px; margin-top:0;">Tu respuesta enviada</div>
+             <div class="actividad-enunciado contenido-enriquecido" style="white-space:pre-wrap;">${(miRespuesta.respuestaTexto || '').replace(/</g,'&lt;')}</div>
+             <div class="empty-note" style="margin-top:14px;"><i class="fa-solid fa-circle-check"></i> Actividad completada — sin calificación, ya que es una actividad complementaria.</div>`;
+        return;
+      }
+
+      if(miRespuesta && miRespuesta.estado === 'calificado'){
+        zonaRespuesta.innerHTML = act.tipoRespuesta === 'marcar'
+          ? '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> Marcaste esta actividad como realizada.</div>'
+          : `<div class="section-heading" style="font-size:16px;">Tu respuesta enviada</div>
+             <div class="actividad-enunciado contenido-enriquecido" style="white-space:pre-wrap;">${(miRespuesta.respuestaTexto || '').replace(/</g,'&lt;')}</div>`;
+        document.getElementById('zonaResultadoExtra').classList.remove('hidden');
+        renderListaCotejo('rubricaResultadoExtra', miRespuesta.criteriosCalificados, miRespuesta.puntajeMaximo, miRespuesta.nota);
+        return;
+      }
+
+      if(miRespuesta && miRespuesta.estado === 'pendiente'){
+        pintarZonaRespuestaExtra(act, miRespuesta);
+        zonaRespuesta.insertAdjacentHTML('afterbegin', `
+          <div class="empty-note"><i class="fa-solid fa-hourglass-half"></i> Ya enviaste tu respuesta — está en espera de calificación. Puedes actualizarla mientras tu docente no la haya calificado.</div>
+        `);
+        return;
+      }
+
+      pintarZonaRespuestaExtra(act, null);
+    }catch(err){
+      zonaRespuesta.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
+
+  function pintarZonaRespuestaExtra(act, miRespuesta){
+    const zonaRespuesta = document.getElementById('zonaRespuestaExtra');
+
+    if(act.tipoRespuesta === 'marcar'){
+      zonaRespuesta.innerHTML = `
+        <button type="button" class="btn btn-primary" id="btnEnviarRespuestaExtra" style="width:auto; padding:12px 28px; margin-top:10px;">
+          <i class="fa-solid fa-circle-check"></i> Marcar como realizada
+        </button>`;
+      document.getElementById('btnEnviarRespuestaExtra').addEventListener('click', async () => {
+        if(!await confirmarAccion('¿Confirmas que ya realizaste esta actividad?', 'Marcar como realizada')) return;
+        await enviarRespuestaExtraServidor('');
+      });
+    } else {
+      zonaRespuesta.innerHTML = `
+        <div class="justificacion-box">
+          <label for="inputRespuestaExtra"><i class="fa-solid fa-pen"></i> Tu respuesta</label>
+          <textarea id="inputRespuestaExtra" placeholder="Escribe aquí tu respuesta...">${miRespuesta ? (miRespuesta.respuestaTexto || '') : ''}</textarea>
+        </div>
+        <button type="button" class="btn btn-primary" id="btnEnviarRespuestaExtra" style="width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-paper-plane"></i> ${miRespuesta ? 'Actualizar respuesta' : 'Enviar respuesta'}
+        </button>`;
+      document.getElementById('btnEnviarRespuestaExtra').addEventListener('click', async () => {
+        const texto = document.getElementById('inputRespuestaExtra').value.trim();
+        if(!texto){ mostrarNotificacion('Escribe tu respuesta antes de enviar.', 'error'); return; }
+        await enviarRespuestaExtraServidor(texto);
+      });
+    }
+  }
+
+  async function enviarRespuestaExtraServidor(respuestaTexto){
+    try{
+      const act = actividadesExtraCache.find(a => a.codigo === codigoExtraActual);
+      const resp = await apiPost({
+        action:'enviarRespuestaExtra', usuario: currentUser.usuario, codigo: codigoExtraActual, respuestaTexto,
+        tieneInstrumento: act ? act.tieneInstrumento !== false : true
+      });
+      if(resp.success){
+        mostrarLogro('Respuesta enviada correctamente', 'fa-paper-plane');
+        abrirDetalleActividadExtra(codigoExtraActual);
+      } else {
+        mostrarNotificacion(resp.error || 'No se pudo enviar tu respuesta.', 'error');
+      }
+    }catch(err){
+      mostrarNotificacion('Error de conexión con el servidor.', 'error');
     }
   }
