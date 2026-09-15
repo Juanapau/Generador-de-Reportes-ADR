@@ -646,12 +646,22 @@
 
   // Algunas actividades extra tienen una mecánica completamente personalizada (como el libro
   // digital o la prueba práctica) en vez del flujo genérico de texto/marcar. Se identifican por
-  // su TÍTULO exacto (no por código, porque el código lo asigna el backend automáticamente y no
-  // se puede predecir de antemano). Si no coincide con ninguna, se usa el flujo genérico normal.
+  // su TÍTULO (no por código, porque el código lo asigna el backend automáticamente y no se
+  // puede predecir de antemano). La comparación se normaliza (minúsculas, espacios y tipo de
+  // guion) para que no falle por pequeñas diferencias al escribir el título en el panel.
+  function normalizarTituloExtra_(t){
+    return String(t || '')
+      .toLowerCase()
+      .replace(/[-–—]/g, '-')   // cualquier tipo de guion (corto, medio, largo) se trata igual
+      .replace(/\s+/g, ' ')     // espacios repetidos o accidentales
+      .trim();
+  }
+
   function abrirActividadExtraORuta(codigo, titulo){
-    if(titulo === TITULO_LIBRO_DIGITAL_RA1){
+    const tNorm = normalizarTituloExtra_(titulo);
+    if(tNorm === normalizarTituloExtra_(TITULO_LIBRO_DIGITAL_RA1)){
       abrirLibroDigitalRA1(codigo);
-    } else if(titulo === TITULO_PRUEBA_PRACTICA_RA1){
+    } else if(tNorm === normalizarTituloExtra_(TITULO_PRUEBA_PRACTICA_RA1)){
       abrirPruebaPracticaRA1(codigo);
     } else {
       abrirDetalleActividadExtra(codigo);
