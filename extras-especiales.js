@@ -14,36 +14,64 @@
       paginas: [
         `<div class="libro-pagina">
           <h2>¿Qué son los reportes empresariales?</h2>
-          <p>Los reportes empresariales son documentos que recopilan, organizan y presentan información relevante para la toma de decisiones dentro de una empresa. Pueden incluir datos financieros, operativos, administrativos, estratégicos o de desempeño.</p>
+          <p>Los reportes empresariales son documentos que recopilan, organizan y presentan información relevante para la toma de decisiones dentro de una empresa. Estos reportes pueden incluir datos financieros, operativos, administrativos, estratégicos o de desempeño.</p>
           <div class="libro-callout"><b>Objetivo principal:</b> ofrecer una visión clara y ordenada de lo que está ocurriendo en la organización, permitiendo evaluar resultados, detectar problemas, planificar acciones y mejorar procesos.</div>
-          <p>Su importancia radica en que facilitan la toma de decisiones, promueven la transparencia, mejoran la comunicación entre departamentos, permiten medir el desempeño, y favorecen la planificación y el control.</p>
         </div>`,
         `<div class="libro-pagina">
-          <h2>Reportes internos y externos</h2>
-          <p>Los reportes se clasifican en dos grandes categorías, según a quién van dirigidos:</p>
-          <table>
-            <tr><th>Reportes Internos</th><th>Reportes Externos</th></tr>
-            <tr><td>Para uso dentro de la organización: empleados, supervisores, gerentes.</td><td>Para compartir fuera de la empresa: inversionistas, bancos, clientes, entes reguladores.</td></tr>
-            <tr><td>Ej: ventas diarias, producción, asistencia, inventario.</td><td>Ej: estados financieros, informes fiscales, reportes a inversionistas.</td></tr>
-            <tr><td>Ayudan a controlar procesos y organizar el trabajo diario.</td><td>Cumplen normativas y generan confianza hacia el exterior.</td></tr>
-          </table>
+          <h2>¿Por qué son importantes?</h2>
+          <p>La importancia de los reportes empresariales radica en que:</p>
+          <ul>
+            <li><b>Facilitan la toma de decisiones:</b> permiten que directivos, gerentes y empleados comprendan la situación actual y actúen con base en información real.</li>
+            <li><b>Promueven la transparencia:</b> ayudan a mantener un registro confiable de las operaciones y resultados.</li>
+            <li><b>Mejoran la comunicación:</b> la información se presenta de forma clara y accesible para los diferentes departamentos o públicos.</li>
+            <li><b>Permiten medir el desempeño:</b> ayudan a evaluar si se están cumpliendo los objetivos establecidos.</li>
+            <li><b>Favorecen la planificación y el control:</b> sirven como guía para diseñar estrategias a futuro.</li>
+          </ul>
         </div>`,
         `<div class="libro-pagina">
-          <h2>Ejemplos reales</h2>
-          <p>Así se ven en la práctica algunos ejemplos de cada tipo:</p>
+          <h2>Clasificación: Reportes Internos</h2>
+          <p>Los reportes se clasifican principalmente en dos grandes categorías: internos y externos.</p>
+          <p><b>Reportes Internos:</b> son aquellos elaborados para el uso dentro de la organización. Están dirigidos a empleados, supervisores, gerentes y directivos. Suelen contener información operativa y administrativa.</p>
+          <p><b>Ejemplos:</b></p>
+          <ul>
+            <li>Reportes de ventas diarias o mensuales</li>
+            <li>Reportes de producción</li>
+            <li>Reportes de asistencia del personal</li>
+            <li>Informes de inventario</li>
+            <li>Reportes de desempeño por área</li>
+          </ul>
+          <div class="libro-callout"><b>Utilidad:</b> ayudan a controlar procesos, evaluar resultados y organizar el trabajo diario.</div>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>Clasificación: Reportes Externos</h2>
+          <p><b>Reportes Externos:</b> están diseñados para ser compartidos con personas o entidades fuera de la empresa, como inversionistas, proveedores, bancos, clientes o instituciones gubernamentales.</p>
+          <p><b>Ejemplos:</b></p>
+          <ul>
+            <li>Estados financieros (balance general, estado de resultados)</li>
+            <li>Informes fiscales</li>
+            <li>Reportes para inversionistas o socios</li>
+            <li>Informes de responsabilidad social</li>
+          </ul>
+          <div class="libro-callout"><b>Objetivo:</b> cumplir normativas, generar confianza y comunicar el estado y desempeño de la empresa hacia el exterior.</div>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>Así se ven en papel</h2>
+          <p>Estos son ejemplos ilustrativos de cómo luce cada tipo de reporte. Fíjate en la información que cada uno incluye y a quién está dirigido.</p>
+          <p><b>Reportes internos:</b></p>
           <div class="libro-ejemplo-box">
-            TECNOVENTAS RD, S.R.L. — REPORTE DE VENTAS DIARIAS<br>
-            Fecha: 15/08/2026 | Sucursal: Santiago Centro<br>
-            TOTAL DEL DÍA: RD$101,700.00<br>
-            <span style="opacity:.7;">Uso interno — Departamento de Ventas</span>
+            TECNOVENTAS RD, S.R.L. — REPORTE DE VENTAS DIARIAS<br>Fecha: 15/08/2026 | Sucursal: Santiago Centro<br>TOTAL DEL DÍA: RD$101,700.00<br><span style="opacity:.7;">Uso interno — Departamento de Ventas</span>
           </div>
           <div class="libro-ejemplo-box">
-            GRUPO CARIBE INVERSIONES, S.A. — BALANCE GENERAL<br>
-            Al 31 de diciembre de 2025<br>
-            Patrimonio Neto: RD$26,450,000<br>
-            <span style="opacity:.7;">Distribuido a: accionistas, banco acreedor y Cámara de Comercio</span>
+            FERRETERÍA EL PROGRESO — INFORME DE INVENTARIO<br>Almacén: Principal | Corte al: 14/08/2026<br>FR-118 Varilla 3/8" — Existencia 45, Mínimo 80 — <b>REORDEN</b><br><span style="opacity:.7;">Uso interno — Departamento de Almacén</span>
           </div>
-          <p>Nota cómo el primero se queda "dentro de la casa" (uso interno), mientras que el segundo se envía fuera de la empresa, a personas ajenas a ella.</p>
+          <p><b>Reportes externos:</b></p>
+          <div class="libro-ejemplo-box">
+            GRUPO CARIBE INVERSIONES, S.A. — BALANCE GENERAL<br>Al 31 de diciembre de 2025<br>Patrimonio Neto: RD$26,450,000<br><span style="opacity:.7;">Distribuido a: accionistas, banco acreedor y Cámara de Comercio</span>
+          </div>
+          <div class="libro-ejemplo-box">
+            DISTRIBUIDORA NORTE, EIRL — DECLARACIÓN JURADA ITBIS<br>RNC: 1-31-45678-2 | Período: Julio 2026<br>ITBIS a pagar: RD$333,000<br><span style="opacity:.7;">Presentado ante la Dirección General de Impuestos Internos (DGII)</span>
+          </div>
+          <p>En resumen, los reportes empresariales son herramientas indispensables para el funcionamiento eficiente de cualquier organización. Ya sean internos o externos, cada uno cumple un propósito específico y contribuye a que la empresa pueda crecer, mejorar y tomar decisiones estratégicas basadas en información confiable.</p>
         </div>`
       ]
     },
@@ -51,31 +79,80 @@
       titulo: 'Partes de un Reporte',
       paginas: [
         `<div class="libro-pagina">
-          <h2>Encabezado de reporte y encabezado de página</h2>
-          <p>Todo reporte generado con un programa de reportes está compuesto por 5 secciones. Cada una aparece con una frecuencia distinta.</p>
-          <div class="libro-callout"><b>Encabezado de reporte</b> (una sola vez): aparece al principio de todo el documento. Contiene el nombre de la empresa, el título del reporte y el período que cubre.</div>
-          <div class="libro-callout"><b>Encabezado de página</b> (en cada página): se repite en la parte superior de cada página. Contiene el número de página, la fecha y los títulos de las columnas.</div>
+          <h2>¿Por qué es importante conocer las partes?</h2>
+          <p>Un reporte empresarial no es un bloque de texto sin orden: está dividido en secciones específicas, cada una con una función distinta. Conocer estas partes permite diseñar reportes bien estructurados, fáciles de leer y que comuniquen la información de forma clara, sin importar si el reporte tiene una sola página o cientos de ellas.</p>
+          <div class="libro-callout"><b>Idea clave:</b> cada parte de un reporte aparece con una frecuencia distinta — algunas salen una sola vez en todo el documento, y otras se repiten en cada página o por cada dato registrado. Entender esta diferencia es esencial para diseñar reportes correctamente.</div>
+          <p>Todo reporte generado con un programa de reportes está compuesto por estas cinco secciones.</p>
         </div>`,
         `<div class="libro-pagina">
-          <h2>Línea de detalle y pie de página</h2>
-          <div class="libro-callout"><b>Línea de detalle</b> (una vez por registro): es el cuerpo del reporte — se repite una vez por cada producto, empleado o transacción. Es la sección más extensa, porque contiene toda la información detallada.</div>
-          <div class="libro-callout"><b>Pie de página</b> (en cada página): se ubica en la parte inferior de cada página. Contiene el número de página y, a veces, un subtotal de esa página.</div>
+          <h2>1. Encabezado de reporte <span style="font-size:12px; background:rgba(232,185,59,.15); color:var(--dark-gold-accent); padding:2px 8px; border-radius:20px;">Una sola vez</span></h2>
+          <p>Es la primera sección del reporte. Aparece <b>una única vez</b>, al principio de todo el documento, sin importar cuántas páginas tenga el reporte. Identifica de qué trata el reporte en general.</p>
+          <p><b>Normalmente contiene:</b></p>
+          <ul>
+            <li>Nombre o logotipo de la empresa</li>
+            <li>Título del reporte</li>
+            <li>Período que cubre (mes, trimestre, año)</li>
+          </ul>
+          <div class="libro-ejemplo-box"><b>TECNOVENTAS RD, S.R.L.</b><br>Reporte de Ventas Mensuales — Enero 2026</div>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>2. Encabezado de página <span style="font-size:12px; background:rgba(232,185,59,.15); color:var(--dark-gold-accent); padding:2px 8px; border-radius:20px;">En cada página</span></h2>
+          <p>A diferencia del encabezado de reporte, esta sección <b>se repite en la parte superior de cada página</b>. Sirve para que, si alguien abre el reporte en cualquier página, sepa dónde está ubicado y qué información va a encontrar a continuación.</p>
+          <p><b>Normalmente contiene:</b></p>
+          <ul>
+            <li>Número de página y fecha de generación</li>
+            <li>Títulos de las columnas de la tabla de datos</li>
+            <li>Filtros aplicados (ej. sucursal, vendedor)</li>
+          </ul>
+          <div class="libro-ejemplo-box">Página 1 · Generado: 31/01/2026 · Vendedor: Todos<br>Producto | Cant. | Precio Unit. | Total</div>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>3. Línea de detalle <span style="font-size:12px; background:rgba(34,197,94,.15); color:var(--dark-green-accent); padding:2px 8px; border-radius:20px;">Una vez por registro</span></h2>
+          <p>Es el <b>cuerpo del reporte</b>: se repite una vez por cada registro o fila de datos (cada producto, cada empleado, cada transacción). Es la sección más extensa del reporte, ya que contiene toda la información detallada.</p>
+          <p><b>Normalmente contiene:</b></p>
+          <ul>
+            <li>Los datos individuales de cada registro (uno por fila)</li>
+            <li>Valores numéricos, fechas, nombres, según el tipo de reporte</li>
+          </ul>
           <div class="libro-ejemplo-box">
-            Laptop HP 15&nbsp;&nbsp;&nbsp;3&nbsp;&nbsp;&nbsp;RD$28,500.00&nbsp;&nbsp;&nbsp;RD$85,500.00<br>
-            Mouse inalámbrico&nbsp;&nbsp;&nbsp;12&nbsp;&nbsp;&nbsp;RD$650.00&nbsp;&nbsp;&nbsp;RD$7,800.00
+            Laptop HP 15 — 3 — RD$28,500.00 — RD$85,500.00<br>
+            Mouse inalámbrico — 12 — RD$650.00 — RD$7,800.00
           </div>
         </div>`,
         `<div class="libro-pagina">
-          <h2>Pie de reporte y resumen completo</h2>
-          <div class="libro-callout"><b>Pie de reporte</b> (una sola vez): es la última sección, aparece al final de todo el documento. Cierra el reporte con el total general y el responsable.</div>
+          <h2>4. Pie de página <span style="font-size:12px; background:rgba(232,185,59,.15); color:var(--dark-gold-accent); padding:2px 8px; border-radius:20px;">En cada página</span></h2>
+          <p>Se ubica en la parte inferior de <b>cada página</b>, igual que el encabezado de página se repite en la parte superior. Ayuda a ubicar en qué página se está y, en algunos reportes, resume los datos de esa página específica.</p>
+          <p><b>Normalmente contiene:</b></p>
+          <ul>
+            <li>Número de página (ej. "Página 1 de 2")</li>
+            <li>Subtotal correspondiente a esa página</li>
+          </ul>
+          <div class="libro-ejemplo-box">Página 1 de 2 · Subtotal de esta página: <b>RD$101,700.00</b></div>
+
+          <h2 style="margin-top:22px;">5. Pie de reporte <span style="font-size:12px; background:rgba(168,85,247,.15); color:#a855f7; padding:2px 8px; border-radius:20px;">Una sola vez</span></h2>
+          <p>Es la última sección del reporte. Aparece <b>una única vez</b>, al final de todo el documento (después de la última página), no en cada página. Cierra el reporte con la información consolidada de todo el período.</p>
+          <p><b>Normalmente contiene:</b> total general de todo el reporte, y nombre del departamento o persona responsable.</p>
+          <div class="libro-ejemplo-box">TOTAL GENERAL DEL REPORTE: RD$198,450.00<br>Elaborado por: Departamento de Ventas</div>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>Así se ven todas juntas</h2>
+          <p>El siguiente es un reporte completo de TECNOVENTAS RD, S.R.L., con cada una de sus 5 partes:</p>
+          <div class="libro-ejemplo-box">
+            <b>1. ENCABEZADO DE REPORTE</b> — TECNOVENTAS RD, S.R.L. · Reporte de Ventas Mensuales — Enero 2026<br><br>
+            <b>2. ENCABEZADO DE PÁGINA</b> — Página 1 · Generado: 31/01/2026 · Vendedor: Todos<br><br>
+            <b>3. LÍNEA DE DETALLE</b> — Laptop HP 15, 3, RD$28,500.00, RD$85,500.00<br><br>
+            <b>4. PIE DE PÁGINA</b> — Página 1 de 2 · Subtotal: RD$101,700.00<br><br>
+            <b>5. PIE DE REPORTE</b> — TOTAL GENERAL: RD$198,450.00 · Elaborado por: Departamento de Ventas
+          </div>
           <table>
-            <tr><th>Parte</th><th>Frecuencia</th></tr>
-            <tr><td>Encabezado de reporte</td><td>Una sola vez, al inicio</td></tr>
-            <tr><td>Encabezado de página</td><td>En cada página</td></tr>
-            <tr><td>Línea de detalle</td><td>Una vez por registro</td></tr>
-            <tr><td>Pie de página</td><td>En cada página</td></tr>
-            <tr><td>Pie de reporte</td><td>Una sola vez, al final</td></tr>
+            <tr><th>Parte</th><th>Frecuencia</th><th>Contenido</th></tr>
+            <tr><td>Encabezado de reporte</td><td>Una sola vez, al inicio</td><td>Nombre de la empresa, título, período</td></tr>
+            <tr><td>Encabezado de página</td><td>En cada página</td><td>Número de página, fecha, títulos de columnas</td></tr>
+            <tr><td>Línea de detalle</td><td>Una vez por registro</td><td>Datos individuales (productos, montos, etc.)</td></tr>
+            <tr><td>Pie de página</td><td>En cada página</td><td>Número de página, subtotal de esa página</td></tr>
+            <tr><td>Pie de reporte</td><td>Una sola vez, al final</td><td>Total general, responsable del reporte</td></tr>
           </table>
+          <p>Cada parte de un reporte cumple una función específica: unas identifican el documento como un todo (encabezado y pie de reporte), otras se repiten para mantener la orientación del lector en cada página (encabezado y pie de página), y la línea de detalle es donde vive la información real.</p>
         </div>`
       ]
     },
@@ -83,25 +160,49 @@
       titulo: 'Vistas de un Reporte',
       paginas: [
         `<div class="libro-pagina">
-          <h2>¿Por qué varias vistas?</h2>
-          <p>Cuando alguien diseña un reporte, el proceso avanza en etapas, y en cada etapa el programa lo muestra de forma distinta. A eso se le llama <b>vista</b>.</p>
-          <div class="libro-callout">Piénsalo así: es como escribir un documento — primero escribes y das formato (diseño), luego usas "vista previa" (previsualización), y finalmente lo imprimes o envías (ejecución).</div>
-          <p><b>Vista de Diseño:</b> aquí se construye la estructura del reporte — se colocan encabezados, se conectan los datos, se ajustan colores y anchos de columna. Todavía no hay datos reales, solo casillas reservadas.</p>
+          <h2>¿Por qué un reporte tiene varias "vistas"?</h2>
+          <p>Cuando alguien diseña un reporte en un programa generador, no pasa directamente de "idea" a "reporte terminado". El proceso avanza en <b>etapas</b>, y en cada etapa el programa muestra el reporte de una manera distinta. A esto se le llama <b>vista</b>.</p>
+          <div class="libro-callout"><b>Piénsalo así:</b> es parecido a escribir un documento en el procesador de texto — primero escribes y das formato (diseño), luego usas "Vista previa de impresión" para revisar cómo quedará en papel (previsualización), y finalmente lo imprimes o lo envías con el contenido definitivo (ejecución). Un reporte empresarial sigue exactamente esa misma lógica.</div>
         </div>`,
         `<div class="libro-pagina">
-          <h2>Previsualización y Ejecución</h2>
-          <p><b>Vista de Previsualización:</b> permite revisar cómo se verá el reporte ya diseñado, usando datos de muestra (no reales). Sirve para detectar errores de formato antes de usar información real.</p>
-          <p><b>Vista de Ejecución:</b> es el momento en que el reporte corre de verdad — consulta la base de datos real y genera el documento final que finalmente recibe el usuario.</p>
+          <h2>1. Vista de Diseño <span style="font-size:12px; background:rgba(168,85,247,.15); color:#a855f7; padding:2px 8px; border-radius:20px;">Primera etapa</span></h2>
+          <p>Es donde se <b>construye la estructura</b> del reporte: se colocan los encabezados, se arrastran los campos de la base de datos hacia la cuadrícula, se ajustan colores, fuentes y el ancho de las columnas. En esta vista <b>todavía no hay datos reales</b> — solo casillas y espacios reservados.</p>
+          <p style="font-style:italic; opacity:.85;">Es como el "borrador" de un documento: se define cómo se va a ver, pero el contenido final aún no está.</p>
+          <p><b>Aquí se puede:</b></p>
+          <ul>
+            <li>Agregar y mover encabezados, líneas de detalle y pies</li>
+            <li>Conectar el reporte a la base de datos</li>
+            <li>Definir formatos (colores, fuentes, tamaños de columna)</li>
+          </ul>
+          <div class="libro-ejemplo-box">Modo edición — arrastrando elementos<br>[ Encabezado de reporte ]<br>[ Columna ] [ Columna ] [ Columna ]<br>[ Pie de reporte ]</div>
+          <p><b>Ejemplo:</b> el equipo de diseño arrastra el logotipo de la empresa hacia la parte superior del reporte y ajusta el ancho de la columna de precios, antes de conectar los datos reales.</p>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>2. Vista de Previsualización <span style="font-size:12px; background:rgba(232,185,59,.15); color:var(--dark-gold-accent); padding:2px 8px; border-radius:20px;">Segunda etapa</span></h2>
+          <p>Permite <b>revisar cómo se verá</b> el reporte ya diseñado, usando <b>datos de muestra</b> (de prueba, no reales). Sirve para detectar errores de formato, saltos de página incorrectos o columnas mal alineadas <b>antes</b> de ejecutar el reporte con información real.</p>
+          <p style="font-style:italic; opacity:.85;">Es como la "Vista previa de impresión": ves cómo va a quedar, pero normalmente ya no puedes rediseñar la estructura desde ahí.</p>
+          <p><b>Aquí se puede:</b> revisar la distribución de las páginas, verificar que los totales y formatos se vean bien, y detectar errores antes de usar datos reales.</p>
+          <div class="libro-ejemplo-box">Modo previsualización — datos de muestra<br>Producto | Cant. | Total<br>[Producto de ejemplo] | XX | RD$X,XXX</div>
+          <p><b>Ejemplo:</b> antes de imprimir 200 copias de un reporte, el analista revisa cómo se verán los totales y los saltos de página usando datos de prueba.</p>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>3. Vista de Ejecución <span style="font-size:12px; background:rgba(34,197,94,.15); color:var(--dark-green-accent); padding:2px 8px; border-radius:20px;">Tercera etapa</span></h2>
+          <p>Es el momento en que el reporte <b>corre de verdad</b>: consulta la base de datos real y genera el documento final, con información actualizada. Este es el reporte que finalmente <b>recibe el usuario</b> (un gerente, un cliente, un departamento).</p>
+          <p style="font-style:italic; opacity:.85;">Es como imprimir o enviar el documento definitivo: ya no es un borrador ni una prueba, es el resultado real.</p>
+          <p><b>Aquí se puede:</b> ver los datos reales y actualizados de la empresa, imprimir/publicar/guardar el reporte final, y entregarlo a quien lo solicitó.</p>
+          <div class="libro-ejemplo-box">Modo ejecución — datos reales<br>Laptop HP 15 — 3 — RD$85,500.00<br>Mouse inalámbrico — 12 — RD$7,800.00</div>
+          <p><b>Ejemplo:</b> el sistema genera automáticamente el reporte de nómina cada quincena, consultando los registros reales de cada empleado.</p>
+          <p>Las 3 vistas siguen siempre este orden natural: <b>Diseño → Previsualización → Ejecución</b>. No tendría sentido ejecutar un reporte con datos reales antes de revisar su diseño, ni revisar el diseño sin antes haberlo construido.</p>
         </div>`,
         `<div class="libro-pagina">
           <h2>Resumen comparativo</h2>
           <table>
-            <tr><th>Vista</th><th>¿Datos reales?</th><th>¿Se puede modificar el diseño?</th></tr>
-            <tr><td>Diseño</td><td>No</td><td>Sí</td></tr>
-            <tr><td>Previsualización</td><td>No (de muestra)</td><td>No, solo se revisa</td></tr>
-            <tr><td>Ejecución</td><td>Sí</td><td>No</td></tr>
+            <tr><th>Vista</th><th>¿Datos reales?</th><th>¿Se puede modificar diseño?</th><th>¿Para qué se usa?</th></tr>
+            <tr><td>Diseño</td><td>No</td><td>Sí</td><td>Construir la estructura del reporte</td></tr>
+            <tr><td>Previsualización</td><td>No (de muestra)</td><td>No, solo se revisa</td><td>Comprobar cómo se verá antes de ejecutar</td></tr>
+            <tr><td>Ejecución</td><td>Sí</td><td>No</td><td>Generar el reporte final para el usuario</td></tr>
           </table>
-          <p>Las 3 vistas siguen siempre este orden: <b>Diseño → Previsualización → Ejecución</b>. No tendría sentido ejecutar con datos reales antes de revisar el diseño.</p>
+          <p>Las vistas de un reporte no son pantallas al azar: representan las etapas naturales de su creación, desde una estructura vacía hasta el documento final con información real. Reconocer en qué vista está un reporte —observando si hay datos reales, de muestra, o ninguno— es clave para entender en qué momento del proceso se encuentra.</p>
         </div>`
       ]
     },
@@ -109,30 +210,57 @@
       titulo: 'Ejecutar y Verificar',
       paginas: [
         `<div class="libro-pagina">
-          <h2>¿Por qué filtrar y verificar?</h2>
-          <p>En una empresa real casi nunca se pide "todos los datos de todo". Para eso existen los <b>filtros</b>: permiten ejecutar un reporte mostrando solo la información que realmente se necesita.</p>
-          <div class="libro-callout"><b>Idea clave:</b> Filtrar + Ejecutar + Verificar es el flujo de trabajo real de cualquier persona que genera reportes en una empresa.</div>
-          <p><b>Paso 1 — Elegir columnas:</b> decides qué información tendrá tu reporte. <b>Paso 2 — Aplicar un filtro:</b> seleccionas un criterio para mostrar solo una parte de los datos (ej. un solo vendedor).</p>
+          <h2>¿Por qué filtrar y verificar un reporte?</h2>
+          <p>En una empresa real, casi nunca se pide "todos los datos de todo". Un gerente pide, por ejemplo, "las ventas de un vendedor específico" o "los productos de una sola categoría". Para eso existen los <b>filtros</b>: permiten ejecutar un reporte mostrando solo la información que realmente se necesita.</p>
+          <p>Y una vez que el reporte se ejecuta con datos reales, un buen diseñador de reportes no confía ciegamente en el sistema: <b>verifica</b> que los totales sean correctos, sumando manualmente algunos datos para confirmar que todo cuadra.</p>
+          <div class="libro-callout"><b>Idea clave:</b> Filtrar + Ejecutar + Verificar es el flujo de trabajo real de cualquier persona que genera reportes en una empresa, no solo una actividad escolar.</div>
         </div>`,
         `<div class="libro-pagina">
-          <h2>Diseño, previsualización y ejecución con filtro</h2>
-          <p><b>Paso 3 — Revisar diseño y previsualización:</b> confirmas que la estructura esté correcta, ahora ya con tu filtro seleccionado.</p>
-          <p><b>Paso 4 — Ejecutar con datos reales filtrados:</b> el sistema consulta la base de datos real y muestra únicamente las filas que cumplen tu filtro.</p>
+          <h2>Paso 1 — Elige las columnas de tu reporte</h2>
+          <p>Al igual que en actividades anteriores, primero decides qué información tendrá tu reporte.</p>
           <div class="libro-ejemplo-box">
-            Cuaderno 100 hojas&nbsp;&nbsp;&nbsp;40&nbsp;&nbsp;&nbsp;RD$85.00&nbsp;&nbsp;&nbsp;Ana Ramírez<br>
-            Caja de lápices&nbsp;&nbsp;&nbsp;25&nbsp;&nbsp;&nbsp;RD$120.00&nbsp;&nbsp;&nbsp;Ana Ramírez
+            ✓ Producto (obligatoria)<br>✓ Cantidad (obligatoria)<br>✓ Precio Unitario (obligatoria)<br>☐ Categoría<br>✓ Vendedor
+          </div>
+          <h2 style="margin-top:22px;">Paso 2 — Aplica un filtro</h2>
+          <p>Antes de ejecutar, seleccionas un criterio para que el reporte muestre solo una parte de los datos — por ejemplo, un solo vendedor.</p>
+          <div class="libro-ejemplo-box">🔍 Filtrar por vendedor: Ana Ramírez ▾</div>
+          <p>Esto significa que, al ejecutar, <b>solo aparecerán las ventas hechas por Ana Ramírez</b> — ninguna otra persona.</p>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>Paso 3 — Revisa el Diseño y la Previsualización</h2>
+          <p>Confirmas que la estructura esté correcta y revisas cómo se verá con datos de muestra, exactamente igual que en la actividad anterior — pero ahora ya con tu filtro seleccionado.</p>
+          <div class="libro-ejemplo-box">
+            Previsualización, datos de muestra:<br>Producto | Cant. | Precio | Vendedor<br>[Producto] | XX | RD$X,XXX | Ana Ramírez
           </div>
         </div>`,
         `<div class="libro-pagina">
-          <h2>Verificar el total</h2>
-          <p><b>Paso 5 — Verificar sumando manualmente:</b> para cada fila, multiplicas Cantidad × Precio Unitario, y luego sumas todos los resultados.</p>
+          <h2>Paso 4 — Ejecuta el reporte con datos reales filtrados</h2>
+          <p>El sistema consulta la base de datos real y muestra <b>únicamente</b> las filas que cumplen tu filtro. Observa que esta vez <b>no aparece un total ya calculado</b> — eso es justamente lo que verificarás en el siguiente paso.</p>
+          <div class="libro-ejemplo-box">
+            Ejecución, datos reales de Ana Ramírez:<br>
+            Cuaderno 100 hojas — 40 — RD$85.00 — Ana Ramírez<br>
+            Caja de lápices — 25 — RD$120.00 — Ana Ramírez<br>
+            Marcador permanente — 15 — RD$95.00 — Ana Ramírez
+          </div>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>Paso 5 — Verifica el total sumando manualmente</h2>
+          <p>Para cada fila, multiplicas <b>Cantidad × Precio Unitario</b>, y luego sumas todos los resultados. Ese es el total real de tu reporte filtrado.</p>
           <div class="libro-ejemplo-box">
             Cuaderno 100 hojas: 40 × RD$85.00 = RD$3,400.00<br>
             Caja de lápices: 25 × RD$120.00 = RD$3,000.00<br>
             Marcador permanente: 15 × RD$95.00 = RD$1,425.00<br>
             <b>TOTAL VERIFICADO: RD$7,825.00</b>
           </div>
-          <p>Si tu suma coincide con el total real que maneja el sistema, ¡tu reporte está verificado y es confiable! <b>Flujo completo:</b> Elegir columnas → Aplicar filtro → Revisar diseño/previsualización → Ejecutar con datos reales → Verificar el total.</p>
+          <p>Si tu suma coincide con el total real que maneja el sistema, ¡tu reporte está verificado y es confiable!</p>
+        </div>`,
+        `<div class="libro-pagina">
+          <h2>Resumen del flujo completo</h2>
+          <p>Cada vez que generes un reporte filtrado, sigue este mismo orden:</p>
+          <div class="libro-callout" style="text-align:center; font-weight:700;">
+            1. Elegir columnas → 2. Aplicar filtro → 3. Revisar diseño/previsualización → 4. Ejecutar con datos reales → 5. Verificar el total
+          </div>
+          <p>Filtrar un reporte no es solo "quitar información" — es entregar exactamente lo que el usuario necesita, sin datos de más. Y verificar los totales manualmente es lo que separa a un buen diseñador de reportes de alguien que solo confía a ciegas en la pantalla. Practicar este flujo completo te prepara para construir reportes reales y confiables.</p>
         </div>`
       ]
     }
