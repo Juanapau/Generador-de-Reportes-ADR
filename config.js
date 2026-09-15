@@ -11,15 +11,35 @@
   let docenteOriginal = null; // guarda al docente cuando está "viendo como" un estudiante
   let modoPreviewDocente = false; // true cuando el docente está en su propia vista previa de estudiante (ve todo, sin guardar nada)
 
-  // ---------- Helper de conexión ----------
+  // ---------- Helper de conexión (con reintentos automáticos) ----------
+  // Google Apps Script a veces tarda en "despertar" o hay un hipo momentáneo de red.
+  // Antes, cualquier falla se mostraba de inmediato como error. Ahora se reintenta
+  // automáticamente antes de rendirse, en un solo lugar que beneficia a TODA la app
+  // (cada pantalla llama a apiGet/apiPost, así que arreglarlo aquí lo arregla en todos lados).
+  async function fetchConReintentos_(url, opciones, intentos){
+    for(let intento = 1; intento <= intentos; intento++){
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 20000); // 20s por intento — Apps Script puede tardar en arrancar
+      try{
+        const res = await fetch(url, { ...opciones, signal: controller.signal });
+        clearTimeout(timeoutId);
+        if(!res.ok) throw new Error('HTTP ' + res.status);
+        return await res.json();
+      }catch(err){
+        clearTimeout(timeoutId);
+        if(intento === intentos) throw err; // se agotaron los intentos, ahora sí se propaga el error
+        await new Promise(r => setTimeout(r, 700 * intento)); // espera un poco más cada vez antes de reintentar
+      }
+    }
+  }
+
   async function apiGet(params){
     // Se agrega un parámetro anti-caché (_t) y cache:'no-store' porque el navegador
     // puede reutilizar una respuesta anterior para la misma URL (ej. el login),
     // devolviendo datos desactualizados como el estado de "primer acceso".
     const allParams = { ...params, _t: Date.now() };
     const url = CONFIG.API_URL + '?' + new URLSearchParams(allParams).toString();
-    const res = await fetch(url, { cache: 'no-store' });
-    return res.json();
+    return fetchConReintentos_(url, { cache: 'no-store' }, 3);
   }
   const ACCIONES_BLOQUEADAS_EN_PREVIEW = ['guardarCalificacion', 'enviarRespuestaExtra', 'calificarRespuestaExtra'];
   async function apiPost(data){
@@ -28,11 +48,7 @@
       console.log('[Vista previa de administrador] No se guardó en el servidor:', data.action);
       return { success:true };
     }
-    const res = await fetch(CONFIG.API_URL, {
-      method: 'POST',
-      body: JSON.stringify(data)
-    });
-    return res.json();
+    return fetchConReintentos_(CONFIG.API_URL, { method:'POST', body: JSON.stringify(data) }, 3);
   }
 
   // ---------- Registro de actividades interactivas ----------
