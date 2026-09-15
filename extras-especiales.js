@@ -138,6 +138,15 @@
     }
   ];
 
+  // Oculta todos los paneles de nivel superior antes de mostrar uno nuevo — evita que un panel
+  // que quedó abierto por otra vía (ej. la vista genérica de actividad extra) se quede visible
+  // por debajo del que se está por mostrar.
+  function ocultarTodosLosPanelesPrincipales_(){
+    document.querySelectorAll('.panel-secundario').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('.panel-actividad-interactiva').forEach(p => p.classList.add('hidden'));
+    document.getElementById('panelDocente').classList.add('hidden');
+  }
+
   let capituloActualLibroRA1 = 0;
   let paginaActualLibroRA1 = 0;
   let codigoLibroActualRA1 = null;
@@ -151,7 +160,7 @@
     codigoLibroActualRA1 = codigo;
     capituloActualLibroRA1 = 0;
     paginaActualLibroRA1 = 0;
-    document.getElementById('panelMisActividades').classList.add('hidden');
+    ocultarTodosLosPanelesPrincipales_();
     document.getElementById('panelLibroDigitalRA1').classList.remove('hidden');
     pintarLibroDigitalRA1();
   }
@@ -290,7 +299,7 @@
     const act = actividadesExtraCache.find(a => a.codigo === codigo);
     puntajeMaxPruebaRA1 = act ? act.puntajeMaximo : 4;
 
-    document.getElementById('panelMisActividades').classList.add('hidden');
+    ocultarTodosLosPanelesPrincipales_();
     document.getElementById('panelPruebaPracticaRA1').classList.remove('hidden');
     document.getElementById('vistaInicioPruebaRA1').classList.remove('hidden');
     document.getElementById('vistaPruebaRA1').classList.add('hidden');
