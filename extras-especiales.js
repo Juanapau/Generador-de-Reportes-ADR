@@ -395,7 +395,7 @@
 
   let seccionActualPruebaRA1 = 0;
   // Estado de la Sección 4 (simulador de filtro + vistas + verificación)
-  let filtroVendedorS4PruebaRA1 = '';
+  let filtroCategoriaS4PruebaRA1 = '';
   let vistasVisitadasS4PruebaRA1 = new Set();
   let vistaActualS4PruebaRA1 = null;
   let datosRealesS4PruebaRA1 = null;
@@ -405,6 +405,10 @@
   let respuestasClasificacionRA1 = {};
   let respuestasPartesRA1 = {};
   let respuestasVistaRA1 = {};
+  let ordenPartesPruebaRA1 = [];
+  let opcionesPartesPorPreguntaRA1 = {};
+  let ordenVistasPruebaRA1 = [];
+  let opcionesVistaPorPreguntaRA1 = {};
   let respuestaVerificacionRA1 = null;
   let codigoPruebaActualRA1 = null;
   let puntajeMaxPruebaRA1 = 0;
@@ -450,13 +454,24 @@
     respuestasPartesRA1 = {};
     respuestasVistaRA1 = {};
     respuestaVerificacionRA1 = null;
-    filtroVendedorS4PruebaRA1 = '';
+    filtroCategoriaS4PruebaRA1 = '';
     vistasVisitadasS4PruebaRA1 = new Set();
     vistaActualS4PruebaRA1 = null;
     datosRealesS4PruebaRA1 = null;
     datosFiltradosS4PruebaRA1 = [];
     totalRealS4PruebaRA1 = 0;
     calcExpresionS4PruebaRA1 = '';
+
+    // Se baraja el orden de las preguntas y, por cada pregunta, el orden de sus opciones —
+    // así ni las preguntas ni las respuestas salen siempre en el mismo orden.
+    ordenPartesPruebaRA1 = barajar(PARTES_PRUEBA_RA1);
+    opcionesPartesPorPreguntaRA1 = {};
+    PARTES_PRUEBA_RA1.forEach(p => { opcionesPartesPorPreguntaRA1[p.id] = barajar(OPCIONES_PARTES_RA1); });
+
+    ordenVistasPruebaRA1 = barajar(VISTAS_PRUEBA_RA1);
+    opcionesVistaPorPreguntaRA1 = {};
+    VISTAS_PRUEBA_RA1.forEach(v => { opcionesVistaPorPreguntaRA1[v.id] = barajar(OPCIONES_VISTA_RA1); });
+
     document.getElementById('vistaInicioPruebaRA1').classList.add('hidden');
     document.getElementById('vistaPruebaRA1').classList.remove('hidden');
     pintarSeccionPruebaRA1();
@@ -492,12 +507,12 @@
     else if(seccionActualPruebaRA1 === 1){
       cont.innerHTML = `
         <div class="section-heading" style="font-size:18px;">Sección 2 — ¿Qué parte del reporte es?</div>
-        ${PARTES_PRUEBA_RA1.map(p => `
+        ${ordenPartesPruebaRA1.map(p => `
           <div class="caso-a110-card" style="max-width:100%; margin-bottom:14px;">
             <div class="caso-a110-escenario">${p.descripcion}</div>
             <select class="input-generico prueba-parte-select" data-id="${p.id}" style="margin-top:10px;">
               <option value="">Selecciona la parte...</option>
-              ${OPCIONES_PARTES_RA1.map(op => `<option value="${op}" ${respuestasPartesRA1[p.id]===op?'selected':''}>${op}</option>`).join('')}
+              ${opcionesPartesPorPreguntaRA1[p.id].map(op => `<option value="${op}" ${respuestasPartesRA1[p.id]===op?'selected':''}>${op}</option>`).join('')}
             </select>
           </div>
         `).join('')}
@@ -515,11 +530,11 @@
     else if(seccionActualPruebaRA1 === 2){
       cont.innerHTML = `
         <div class="section-heading" style="font-size:18px;">Sección 3 — ¿Cuál vista es?</div>
-        ${VISTAS_PRUEBA_RA1.map(v => `
+        ${ordenVistasPruebaRA1.map(v => `
           <div class="caso-a110-card" style="max-width:100%; margin-bottom:14px;">
             <div class="caso-a110-escenario">${v.escenario}</div>
             <div class="metodos-a110-opciones">
-              ${OPCIONES_VISTA_RA1.map(op => `
+              ${opcionesVistaPorPreguntaRA1[v.id].map(op => `
                 <button type="button" class="metodo-a110-btn prueba-vista-btn ${respuestasVistaRA1[v.id]===op.id?'seleccionado-prueba':''}" data-id="${v.id}" data-valor="${op.id}">${op.nombre}</button>
               `).join('')}
             </div>
@@ -541,7 +556,7 @@
         <div class="section-heading" style="font-size:18px;">Sección 4 — Genera y verifica un reporte filtrado</div>
         <div class="empty-note" style="margin-top:0;">
           <i class="fa-solid fa-hand-pointer"></i>
-          Filtra el reporte por un vendedor, recorre las 3 vistas, y verifica el total calculándolo tú mismo.
+          Filtra el reporte por una categoría, recorre las 3 vistas, y verifica el total calculándolo tú mismo.
         </div>
         <div id="filtroS4PruebaRA1"></div>
         <div id="navegadorVistasS4PruebaRA1" class="hidden"></div>`;
@@ -563,12 +578,12 @@
     { campo:'Producto', etiqueta:'Producto', muestra:'[Producto de ejemplo]' },
     { campo:'Cantidad', etiqueta:'Cantidad', muestra:'XX' },
     { campo:'PrecioUnitario', etiqueta:'Precio Unitario', muestra:'RD$X,XXX.XX' },
-    { campo:'Vendedor', etiqueta:'Vendedor', muestra:'[Vendedor]' }
+    { campo:'Categoria', etiqueta:'Categoría', muestra:'[Categoría]' }
   ];
 
   async function pintarFiltroS4PruebaRA1(){
     const cont = document.getElementById('filtroS4PruebaRA1');
-    cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando vendedores...</div>';
+    cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando categorías...</div>';
 
     const data = await cargarTablaDatos('DB_Ventas');
     if(!data){
@@ -576,27 +591,27 @@
       return;
     }
     datosRealesS4PruebaRA1 = data;
-    const vendedoresUnicos = [...new Set(data.datos.map(d => d.Vendedor))].filter(Boolean);
+    const categoriasUnicas = [...new Set(data.datos.map(d => d.Categoria))].filter(Boolean);
 
     cont.innerHTML = `
       <div class="caso-a110-card" style="max-width:100%;">
-        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px;">Filtrar por vendedor</label>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:8px;">Filtrar por categoría</label>
         <select id="selectFiltroS4PruebaRA1" class="input-generico" style="max-width:280px;">
-          <option value="" ${filtroVendedorS4PruebaRA1 ? '' : 'selected disabled'}>Selecciona un vendedor...</option>
-          ${vendedoresUnicos.map(v => `<option value="${v}" ${filtroVendedorS4PruebaRA1 === v ? 'selected' : ''}>${v}</option>`).join('')}
+          <option value="" ${filtroCategoriaS4PruebaRA1 ? '' : 'selected disabled'}>Selecciona una categoría...</option>
+          ${categoriasUnicas.map(c => `<option value="${c}" ${filtroCategoriaS4PruebaRA1 === c ? 'selected' : ''}>${c}</option>`).join('')}
         </select>
         <button type="button" class="btn btn-add" id="btnConstruirS4PruebaRA1" style="margin-top:14px; display:block;">
           <i class="fa-solid fa-gears"></i> Construir reporte
         </button>
       </div>`;
 
-    document.getElementById('selectFiltroS4PruebaRA1').addEventListener('change', (e) => { filtroVendedorS4PruebaRA1 = e.target.value; });
+    document.getElementById('selectFiltroS4PruebaRA1').addEventListener('change', (e) => { filtroCategoriaS4PruebaRA1 = e.target.value; });
     document.getElementById('btnConstruirS4PruebaRA1').addEventListener('click', () => {
-      if(!filtroVendedorS4PruebaRA1){
-        mostrarNotificacion('Selecciona un vendedor para filtrar el reporte.', 'error');
+      if(!filtroCategoriaS4PruebaRA1){
+        mostrarNotificacion('Selecciona una categoría para filtrar el reporte.', 'error');
         return;
       }
-      datosFiltradosS4PruebaRA1 = datosRealesS4PruebaRA1.datos.filter(d => d.Vendedor === filtroVendedorS4PruebaRA1);
+      datosFiltradosS4PruebaRA1 = datosRealesS4PruebaRA1.datos.filter(d => d.Categoria === filtroCategoriaS4PruebaRA1);
       totalRealS4PruebaRA1 = datosFiltradosS4PruebaRA1.reduce((sum, f) => sum + (Number(f.Cantidad)||0) * (Number(f.PrecioUnitario)||0), 0);
       vistasVisitadasS4PruebaRA1 = new Set();
 
@@ -659,7 +674,7 @@
 
     const tituloReporte = `
       <div style="font-weight:800; font-size:15px;">TECNOVENTAS RD, S.R.L. — Reporte de Ventas
-        ${vista !== 'diseno' ? `<span style="font-weight:600; font-size:12.5px; opacity:.7;"> · Filtrado por: ${filtroVendedorS4PruebaRA1}</span>` : ''}
+        ${vista !== 'diseno' ? `<span style="font-weight:600; font-size:12.5px; opacity:.7;"> · Filtrado por: ${filtroCategoriaS4PruebaRA1}</span>` : ''}
       </div>`;
 
     const tablaHtml = `
@@ -772,7 +787,7 @@
       { titulo:'Sección 2 — Partes del reporte', items: PARTES_PRUEBA_RA1.map(p => ({ pregunta:p.descripcion, tuRespuesta: respuestasPartesRA1[p.id] || 'Sin responder', correcta: respuestasPartesRA1[p.id] === p.correcta, respuestaCorrecta: p.correcta })) },
       { titulo:'Sección 3 — Vistas del reporte', items: VISTAS_PRUEBA_RA1.map(v => ({ pregunta:v.escenario, tuRespuesta: (OPCIONES_VISTA_RA1.find(o=>o.id===respuestasVistaRA1[v.id])||{}).nombre || 'Sin responder', correcta: respuestasVistaRA1[v.id] === v.correcta, respuestaCorrecta: OPCIONES_VISTA_RA1.find(o=>o.id===v.correcta).nombre })) },
       { titulo:'Sección 4 — Reporte filtrado y verificado', items: [
-        { pregunta:'Vendedor usado como filtro', tuRespuesta: filtroVendedorS4PruebaRA1 || 'Sin filtrar', correcta: !!filtroVendedorS4PruebaRA1 },
+        { pregunta:'Categoría usada como filtro', tuRespuesta: filtroCategoriaS4PruebaRA1 || 'Sin filtrar', correcta: !!filtroCategoriaS4PruebaRA1 },
         { pregunta:'¿Recorrió las 3 vistas (Diseño, Previsualización, Ejecución)?', tuRespuesta: `${vistasVisitadasS4PruebaRA1.size} de 3`, correcta: recorrioLasTresVistas },
         { pregunta:'Total verificado', tuRespuesta: respuestaVerificacionRA1 !== null ? `RD$${respuestaVerificacionRA1}` : 'Sin responder', correcta: verificacionCorrecta, respuestaCorrecta: `RD$${totalRealS4PruebaRA1.toFixed(2)}` }
       ] }
