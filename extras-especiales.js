@@ -618,7 +618,7 @@
       const navCont = document.getElementById('navegadorVistasS4PruebaRA1');
       navCont.classList.remove('hidden');
       navCont.innerHTML = `
-        <div class="vistas-tabs-wrap" id="vistasTabsS4PruebaRA1"></div>
+        <div class="vistas-tabs" id="vistasTabsS4PruebaRA1"></div>
         <div id="vistaContenidoS4PruebaRA1"></div>
         <div id="seccionVerificacionS4PruebaRA1" class="hidden"></div>`;
       cambiarVistaS4PruebaRA1('diseno');
