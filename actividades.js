@@ -1799,11 +1799,68 @@
     '¿En qué se diferencia del otro programa que investigaron?'
   ];
 
+  // Las 3 primeras preguntas son de hecho (respuesta objetiva por programa) y se pueden validar
+  // contra palabras clave esperadas. Las 3 últimas son de opinión/análisis — ahí no hay una única
+  // respuesta correcta, así que en vez de verificar contenido exacto se exige que sea una
+  // respuesta sustancial (varias palabras reales), para filtrar texto sin sentido.
+  const PALABRAS_CLAVE_A15 = {
+    'Microsoft Power BI': {
+      0: ['microsoft'],
+      1: ['gratis', 'gratuito', 'pago', 'premium', 'pro', 'freemium', 'ambas'],
+      2: ['excel', 'sql', 'azure', 'microsoft 365', 'sharepoint', 'nube', 'base de datos', 'office']
+    },
+    'Google Looker Studio': {
+      0: ['google'],
+      1: ['gratis', 'gratuito', 'free'],
+      2: ['analytics', 'google ads', 'ads', 'sheets', 'bigquery']
+    },
+    'SAP Crystal Reports': {
+      0: ['sap'],
+      1: ['pago', 'licencia', 'comercial'],
+      2: ['sql', 'oracle', 'base de datos', 'odbc', 'excel']
+    },
+    'JasperReports': {
+      0: ['jaspersoft', 'tibco', 'codigo abierto', 'open source'],
+      1: ['gratis', 'gratuito', 'open source', 'codigo abierto', 'libre', 'ambas'],
+      2: ['java', 'jdbc', 'base de datos', 'xml', 'mysql']
+    }
+  };
+
+  function normalizarTextoA15_(t){
+    return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+  }
+
+  // Cuenta palabras que parecen "de verdad" (solo letras, 3+ caracteres) — sirve para detectar
+  // texto sin sentido tipo "asdkjaskjd" en las preguntas de opinión, que no tienen una única
+  // respuesta correcta contra la cual comparar.
+  function contarPalabrasRealesA15_(texto){
+    const normalizado = normalizarTextoA15_(texto);
+    const palabras = normalizado.split(/\s+/).filter(p => /^[a-zñ]{3,}$/.test(p));
+    return palabras.length;
+  }
+
+  // Evalúa si la respuesta de una celda es válida: para las preguntas 1-3 (de hecho) exige que
+  // aparezca alguna palabra clave esperada para ESE programa específico; para las preguntas 4-6
+  // (de opinión) exige una cantidad mínima de palabras reales, ya que no hay una única respuesta
+  // correcta que verificar.
+  function evaluarRespuestaA15(texto, programa, indicePregunta){
+    const respuesta = (texto || '').trim();
+    if(!respuesta) return false;
+
+    const clavesPrograma = PALABRAS_CLAVE_A15[programa];
+    if(clavesPrograma && clavesPrograma[indicePregunta]){
+      const normalizado = normalizarTextoA15_(respuesta);
+      return clavesPrograma[indicePregunta].some(clave => normalizado.includes(normalizarTextoA15_(clave)));
+    }
+    // Preguntas de opinión (índices 3, 4, 5): sin palabra clave única, se exige sustancia real
+    return contarPalabrasRealesA15_(respuesta) >= 4;
+  }
+
   const CRITERIOS_BASE_A15 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
     { key:'seleccion', nombre:'2. Selección de los 2 programas', descripcion:'Elige 2 programas distintos para comparar en la tabla.' },
-    { key:'programa1', nombre:'3. Completitud — Programa 1', descripcion:'Responde todas las preguntas de la tabla para el primer programa.' },
-    { key:'programa2', nombre:'4. Completitud — Programa 2', descripcion:'Responde todas las preguntas de la tabla para el segundo programa.' },
+    { key:'programa1', nombre:'3. Respuestas correctas — Programa 1', descripcion:'Responde con información correcta las preguntas de la tabla para el primer programa.' },
+    { key:'programa2', nombre:'4. Respuestas correctas — Programa 2', descripcion:'Responde con información correcta las preguntas de la tabla para el segundo programa.' },
     { key:'diferencia', nombre:'5. Identifica la diferencia entre ambos', descripcion:'Explica con claridad en qué se diferencian los dos programas investigados.' },
     { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
     { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
@@ -1923,11 +1980,11 @@
     clearInterval(timerIntervalA15);
 
     const minutosTranscurridos = (Date.now() - inicioTiempoA15) / 60000;
-    const respuestasP1Completas = PREGUNTAS_TABLA_A15.filter((_, i) => ((respuestasTablaA15[i] && respuestasTablaA15[i].p1) || '').trim().length >= 3).length;
-    const respuestasP2Completas = PREGUNTAS_TABLA_A15.filter((_, i) => ((respuestasTablaA15[i] && respuestasTablaA15[i].p2) || '').trim().length >= 3).length;
+    const respuestasP1Correctas = PREGUNTAS_TABLA_A15.filter((_, i) => evaluarRespuestaA15((respuestasTablaA15[i] && respuestasTablaA15[i].p1), programa1A15, i)).length;
+    const respuestasP2Correctas = PREGUNTAS_TABLA_A15.filter((_, i) => evaluarRespuestaA15((respuestasTablaA15[i] && respuestasTablaA15[i].p2), programa2A15, i)).length;
     const indiceDiferencia = PREGUNTAS_TABLA_A15.length - 1;
-    const diferenciaCompleta = ((respuestasTablaA15[indiceDiferencia] && respuestasTablaA15[indiceDiferencia].p1) || '').trim().length >= 15 &&
-      ((respuestasTablaA15[indiceDiferencia] && respuestasTablaA15[indiceDiferencia].p2) || '').trim().length >= 15;
+    const diferenciaCompleta = evaluarRespuestaA15((respuestasTablaA15[indiceDiferencia] && respuestasTablaA15[indiceDiferencia].p1), programa1A15, indiceDiferencia) &&
+      evaluarRespuestaA15((respuestasTablaA15[indiceDiferencia] && respuestasTablaA15[indiceDiferencia].p2), programa2A15, indiceDiferencia);
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A15[0].nombre, descripcion: CRITERIOS_BASE_A15[0].descripcion, nivel: 'cumple' });
@@ -1939,12 +1996,12 @@
 
     criterios.push({
       nombre: CRITERIOS_BASE_A15[2].nombre, descripcion: CRITERIOS_BASE_A15[2].descripcion,
-      nivel: respuestasP1Completas >= PREGUNTAS_TABLA_A15.length ? 'cumple' : 'no_cumple'
+      nivel: respuestasP1Correctas >= PREGUNTAS_TABLA_A15.length - 1 ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A15[3].nombre, descripcion: CRITERIOS_BASE_A15[3].descripcion,
-      nivel: respuestasP2Completas >= PREGUNTAS_TABLA_A15.length ? 'cumple' : 'no_cumple'
+      nivel: respuestasP2Correctas >= PREGUNTAS_TABLA_A15.length - 1 ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
@@ -1980,7 +2037,7 @@
         items: PREGUNTAS_TABLA_A15.map((pregunta, i) => ({
           pregunta,
           tuRespuesta: (respuestasTablaA15[i] && respuestasTablaA15[i].p1) || 'Sin responder',
-          correcta: ((respuestasTablaA15[i] && respuestasTablaA15[i].p1) || '').trim().length >= 3
+          correcta: evaluarRespuestaA15((respuestasTablaA15[i] && respuestasTablaA15[i].p1), programa1A15, i)
         }))
       },
       {
@@ -1988,7 +2045,7 @@
         items: PREGUNTAS_TABLA_A15.map((pregunta, i) => ({
           pregunta,
           tuRespuesta: (respuestasTablaA15[i] && respuestasTablaA15[i].p2) || 'Sin responder',
-          correcta: ((respuestasTablaA15[i] && respuestasTablaA15[i].p2) || '').trim().length >= 3
+          correcta: evaluarRespuestaA15((respuestasTablaA15[i] && respuestasTablaA15[i].p2), programa2A15, i)
         }))
       }
     ];
