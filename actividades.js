@@ -4110,3 +4110,235 @@
   });
 
   registrarActividadInteractiva('A.1.10', abrirActividadA110);
+
+// ============================================================================
+// RA2 — RESULTADO DE APRENDIZAJE 2
+// ============================================================================
+
+// ============================================================================
+// A.2.1 — IDENTIFICA LAS SECCIONES INICIALES DE UN REPORTE
+// ============================================================================
+  // Mismo mockup visual de TECNOVENTAS RD que en A.1.2, pero con una mecánica distinta:
+  // en vez de arrastrar etiquetas, el estudiante hace clic directamente sobre la zona
+  // del reporte que corresponde a la consigna — más parecido a "señalar en la pantalla".
+  const ZONAS_A21_BASE = [
+    {
+      id:1, nombre:'Encabezado de reporte',
+      html:`<div style="font-weight:800; font-size:16px;">TECNOVENTAS RD, S.R.L.</div>
+            <div style="font-size:14px; opacity:.85;">Reporte de Ventas Mensuales — Enero 2026</div>`
+    },
+    {
+      id:2, nombre:'Encabezado de página',
+      html:`<div style="font-size:12.5px; opacity:.8; margin-bottom:6px;">Página 1 &nbsp;·&nbsp; Generado: 31/01/2026 &nbsp;·&nbsp; Vendedor: Todos</div>
+            <div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:6px;">
+              <span style="flex:2;">Producto</span><span style="flex:1;">Cant.</span><span style="flex:1;">Precio Unit.</span><span style="flex:1;">Total</span>
+            </div>`
+    },
+    {
+      id:3, nombre:'Línea de detalle',
+      html:`<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Laptop HP 15</span><span style="flex:1;">3</span><span style="flex:1;">RD$28,500.00</span><span style="flex:1;">RD$85,500.00</span></div>
+            <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">Mouse inalámbrico</span><span style="flex:1;">12</span><span style="flex:1;">RD$650.00</span><span style="flex:1;">RD$7,800.00</span></div>`
+    }
+  ];
+
+  const CRITERIOS_BASE_A21 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'encabezadoReporte', nombre:'2. Identifica el encabezado de reporte', descripcion:'Identifica correctamente el encabezado de reporte en pocos intentos.' },
+    { key:'encabezadoPagina', nombre:'3. Identifica el encabezado de página', descripcion:'Identifica correctamente el encabezado de página en pocos intentos.' },
+    { key:'lineaDetalle', nombre:'4. Identifica la línea de detalle', descripcion:'Identifica correctamente la línea de detalle en pocos intentos.' },
+    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let ordenPreguntasA21 = [];
+  let pasoA21 = 0;
+  let intentosPorZonaA21 = {};
+  let ultimoResultadoA21 = null;
+  let puntajeMaxA21 = 0;
+  let tiempoEstimadoA21 = 10;
+  let inicioTiempoA21 = null;
+  let timerIntervalA21 = null;
+
+  async function abrirActividadA21(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA21 = puntajeMaximo;
+    tiempoEstimadoA21 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA21').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA21').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.1') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA21').classList.add('hidden');
+        document.getElementById('vistaEjercicioA21').classList.add('hidden');
+        document.getElementById('vistaResultadoA21').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA21', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA21', previa.detalle);
+        ultimoResultadoA21 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA21').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA21').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA21').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA21').classList.add('hidden');
+    document.getElementById('vistaResultadoA21').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA21').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA21} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.2.1', 'recursosEstudianteA21');
+
+    const criteriosPrevios = CRITERIOS_BASE_A21.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA21', criteriosPrevios, puntajeMaxA21, null);
+  }
+
+  document.getElementById('btnBackFromActividadA21').addEventListener('click', () => {
+    clearInterval(timerIntervalA21);
+    document.getElementById('panelActividadA21').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA21').addEventListener('click', () => {
+    ordenPreguntasA21 = barajar(ZONAS_A21_BASE);
+    pasoA21 = 0;
+    intentosPorZonaA21 = {};
+    document.getElementById('seccionFinalA21').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA21').classList.add('hidden');
+    document.getElementById('vistaEjercicioA21').classList.remove('hidden');
+
+    pintarMockupA21();
+
+    inicioTiempoA21 = Date.now();
+    clearInterval(timerIntervalA21);
+    timerIntervalA21 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA21) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA21').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA21} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  function pintarMockupA21(){
+    actualizarBarraProgreso('progresoA21', pasoA21, ZONAS_A21_BASE.length);
+
+    if(pasoA21 >= ordenPreguntasA21.length){
+      document.getElementById('consignaA21').innerHTML = '<i class="fa-solid fa-circle-check"></i> ¡Identificaste las 3 secciones! Ya puedes finalizar.';
+      document.getElementById('seccionFinalA21').classList.remove('hidden');
+    } else {
+      const objetivo = ordenPreguntasA21[pasoA21];
+      document.getElementById('consignaA21').innerHTML = `<i class="fa-solid fa-hand-pointer"></i> Haz clic en el <b>${objetivo.nombre.toUpperCase()}</b> del reporte.`;
+    }
+
+    const yaResueltas = ordenPreguntasA21.slice(0, pasoA21).map(z => z.id);
+    const cont = document.getElementById('mockupReporteA21');
+    cont.innerHTML = ZONAS_A21_BASE.map(z => `
+      <div class="esquema-zona ${yaResueltas.includes(z.id) ? 'correcto' : 'esquema-zona-vacia'}" data-zona="${z.id}">
+        <div style="flex:1;">${z.html}</div>
+        ${yaResueltas.includes(z.id) ? '<i class="fa-solid fa-check" style="color:var(--dark-green-accent);"></i>' : ''}
+      </div>
+    `).join('');
+
+    cont.querySelectorAll('.esquema-zona').forEach(el => {
+      if(yaResueltas.includes(Number(el.dataset.zona))) return; // ya resuelta, no reacciona a más clics
+      el.addEventListener('click', () => manejarClicZonaA21(Number(el.dataset.zona), el));
+    });
+  }
+
+  function manejarClicZonaA21(zonaId, el){
+    if(pasoA21 >= ordenPreguntasA21.length) return;
+    const objetivo = ordenPreguntasA21[pasoA21];
+    intentosPorZonaA21[objetivo.id] = (intentosPorZonaA21[objetivo.id] || 0) + 1;
+
+    if(zonaId === objetivo.id){
+      pasoA21++;
+      pintarMockupA21();
+    } else {
+      el.classList.add('incorrecto');
+      sacudir(el);
+      setTimeout(() => { el.classList.remove('incorrecto', 'anim-sacudir'); }, 500);
+    }
+  }
+
+  document.getElementById('btnFinalizarA21').addEventListener('click', async () => {
+    clearInterval(timerIntervalA21);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA21) / 60000;
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A21[0].nombre, descripcion: CRITERIOS_BASE_A21[0].descripcion, nivel: 'logrado' });
+
+    // Un criterio por cada zona (índices 1,2,3 en CRITERIOS_BASE_A21 = ids 1,2,3 de ZONAS_A21_BASE)
+    ZONAS_A21_BASE.forEach((zona, i) => {
+      const intentos = intentosPorZonaA21[zona.id] || 1;
+      criterios.push({
+        nombre: CRITERIOS_BASE_A21[i + 1].nombre, descripcion: CRITERIOS_BASE_A21[i + 1].descripcion,
+        nivel: intentos <= 1 ? 'logrado' : (intentos <= 2 ? 'proceso' : 'no_logrado')
+      });
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A21[4].nombre, descripcion: CRITERIOS_BASE_A21[4].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA21 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA21 * 2 ? 'proceso' : 'no_logrado')
+    });
+
+    criterios.push({ nombre: CRITERIOS_BASE_A21[5].nombre, descripcion: CRITERIOS_BASE_A21[5].descripcion, nivel: 'logrado' });
+
+    const pesoUnidad = puntajeMaxA21 / criterios.length;
+    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA21').classList.add('hidden');
+    document.getElementById('vistaResultadoA21').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA21').classList.add('hidden');
+    renderRubrica('rubricaResultadoA21', criterios, puntajeMaxA21, notaCalculada);
+    ultimoResultadoA21 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA21 };
+
+    const proporcionFinalA21 = puntajeMaxA21 > 0 ? notaCalculada / puntajeMaxA21 : 0;
+    mostrarLogro(proporcionFinalA21 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA21 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA21 >= 0.8) dispararConfeti();
+
+    const detalleA21 = [{
+      titulo: 'Identificación de secciones iniciales',
+      items: ZONAS_A21_BASE.map(z => ({
+        pregunta: `¿Dónde está el ${z.nombre}?`,
+        tuRespuesta: `Identificado en ${intentosPorZonaA21[z.id] || 1} intento(s)`,
+        correcta: (intentosPorZonaA21[z.id] || 1) <= 1
+      }))
+    }];
+    ultimoResultadoA21.detalle = detalleA21;
+    renderDesgloseColoreado('resultadoDesgloseA21', detalleA21);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.2.1',
+        ra:'RA2',
+        ec:'EC6.2.1',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA21,
+        criterios: criterios,
+        detalle: detalleA21
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA21').addEventListener('click', () => {
+    if(!ultimoResultadoA21) return;
+    generarPdfResultado('A.2.1', ultimoResultadoA21.criterios, ultimoResultadoA21.nota, ultimoResultadoA21.puntajeMaximo, 'EC6.2.1', 'RA2', ultimoResultadoA21.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA21').addEventListener('click', () => {
+    document.getElementById('panelActividadA21').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.1', abrirActividadA21);
