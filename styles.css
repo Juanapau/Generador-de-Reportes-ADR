@@ -1551,3 +1551,31 @@
      tema de la app — por eso el texto de las opciones necesita color oscuro explícito
      en TODOS los <select> del sistema, no solo en uno en particular. */
   select option{ color:#1a1a1a; background:#ffffff; }
+
+  /* ============ CUADRO COMPARATIVO - A.1.5 ============ */
+  .tabla-comparativa-scroll{
+    overflow-x:auto; border:1px solid var(--dark-border); border-radius: var(--radius); margin-top:16px;
+  }
+  body.light .tabla-comparativa-scroll{ border:1px solid #dde5f6; }
+  table.tabla-comparativa-a15{ width:100%; border-collapse:collapse; min-width:640px; }
+  table.tabla-comparativa-a15 th, table.tabla-comparativa-a15 td{
+    padding:12px 14px; border-bottom:1px solid var(--dark-border); vertical-align:top;
+  }
+  body.light table.tabla-comparativa-a15 th, body.light table.tabla-comparativa-a15 td{ border-bottom:1px solid #e2e8f0; }
+  table.tabla-comparativa-a15 thead th{
+    background: var(--dark-card-hover); text-align:left; width:33.33%;
+  }
+  body.light table.tabla-comparativa-a15 thead th{ background:#eef2fb; }
+  table.tabla-comparativa-a15 thead th:first-child{ color: var(--dark-gold-accent); font-weight:800; font-size:14.5px; }
+  body.light table.tabla-comparativa-a15 thead th:first-child{ color:#b8790f; }
+  table.tabla-comparativa-a15 tbody td:first-child{
+    font-weight:700; font-size:13.5px; color: var(--dark-text-dim); background: rgba(255,255,255,0.02); width:33.33%;
+  }
+  body.light table.tabla-comparativa-a15 tbody td:first-child{ color: var(--light-text-dim); background: rgba(0,0,0,0.015); }
+  .celda-respuesta-a15{
+    width:100%; min-height:56px; padding:9px 11px; border-radius:8px; resize:vertical;
+    background: rgba(255,255,255,0.05); border:1px solid var(--dark-border); color: var(--dark-text);
+    font-size:14px; font-family:inherit;
+  }
+  body.light .celda-respuesta-a15{ background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text); }
+  .celda-respuesta-a15:focus{ outline:2px solid var(--dark-blue-accent); outline-offset:1px; }
