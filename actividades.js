@@ -3361,7 +3361,8 @@
     { codigo:'DB_Empleados', nombre:'Empleados', desc:'Información de personal, departamento y salario' },
     { codigo:'DB_Clientes', nombre:'Clientes', desc:'Base de datos de clientes registrados' },
     { codigo:'DB_Inventario', nombre:'Inventario', desc:'Existencias, proveedores y niveles mínimos' },
-    { codigo:'DB_Gastos', nombre:'Gastos', desc:'Registro de gastos operativos por departamento' }
+    { codigo:'DB_Gastos', nombre:'Gastos', desc:'Registro de gastos operativos por departamento' },
+    { codigo:'DB_Asistencia', nombre:'Asistencia', desc:'Registro diario de entrada, salida y estado del personal' }
   ];
 
   const CRITERIOS_BASE_A19 = [
