@@ -1,5 +1,5 @@
 // ================= MIS ACTIVIDADES (vista estudiante) =================
-  const RAS_DISPONIBLES_ESTUDIANTE = ['RA1']; // RA2-RA5 se habilitan cuando se construyan sus actividades
+  const RAS_DISPONIBLES_ESTUDIANTE = ['RA1', 'RA2']; // RA3-RA5 se habilitan cuando se construyan sus actividades
   let raActualEstudiante = 'RA1';
 
   document.getElementById('cardMisActividades').addEventListener('click', () => {
