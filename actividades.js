@@ -4687,3 +4687,536 @@
   });
 
   registrarActividadInteractiva('A.2.1', abrirActividadA21);
+
+// ============================================================================
+// A.2.2 — COMPARA DOS REPORTES DISTINTOS (Inventario y Asistencia)
+// ============================================================================
+  // Reutiliza el mismo Diseñador de Reportes de A.2.1 (lienzo editable + 3
+  // vistas), pero esta vez el estudiante lo recorre 2 veces con reportes
+  // distintos, y después compara las 3 secciones entre ambos. El enunciado
+  // pide que "expliquen oralmente" las diferencias — esa discusión ocurre en
+  // el aula, en pares; aquí se recoge una síntesis escrita individual para
+  // poder calificar.
+
+  const REPORTES_A22 = [
+    {
+      id: 'inventario', nombre: 'Reporte de Inventario', tablaCorrecta: 'DB_Inventario',
+      camposCorrectos: ['Producto', 'CantidadDisponible', 'PrecioUnitario'], tituloClave: 'inventario'
+    },
+    {
+      id: 'asistencia', nombre: 'Reporte de Asistencia', tablaCorrecta: 'DB_Asistencia',
+      camposCorrectos: ['Empleado', 'HoraEntrada', 'Estado'], tituloClave: 'asistencia'
+    }
+  ];
+
+  const SECCIONES_COMPARAR_A22 = [
+    { id:'encReporte', nombre:'Encabezado de reporte' },
+    { id:'encPagina', nombre:'Encabezado de página' },
+    { id:'detalle', nombre:'Línea de detalle' }
+  ];
+
+  const CRITERIOS_BASE_A22 = [
+    { nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { nombre:'2. Diseño correcto — Reporte de Inventario', descripcion:'Construye correctamente las 3 secciones del reporte de inventario.' },
+    { nombre:'3. Diseño correcto — Reporte de Asistencia', descripcion:'Construye correctamente las 3 secciones del reporte de asistencia.' },
+    { nombre:'4. Recorrido de las vistas de ambos reportes', descripcion:'Recorre las vistas de Diseño, Previsualización y Ejecución en los 2 reportes.' },
+    { nombre:'5. Explica las diferencias entre ambos reportes', descripcion:'Explica con claridad, en sus propias palabras, en qué se diferencian las 3 secciones entre los 2 reportes.' },
+    { nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  function estadoReporteVacioA22(){
+    return {
+      nombreEmpresa: '', titulo: '', tabla: '', datosTabla: null, camposDetalle: [], numPagina: false,
+      encReporteCorrecto: false, detalleCorrecto: false, encPaginaCorrecto: false,
+      vistasVisitadas: new Set(), vistaActual: 'diseno',
+      intentos: { encReporte:0, detalle:0, encPagina:0 }
+    };
+  }
+
+  let indiceReporteActualA22 = 0;
+  let estadoReportesA22 = [estadoReporteVacioA22(), estadoReporteVacioA22()];
+  let campoSeleccionadoA22 = null;
+  let respuestasComparacionA22 = {};
+  let intentosComparacionA22 = 0;
+  let ultimoResultadoA22 = null;
+  let puntajeMaxA22 = 0;
+  let tiempoEstimadoA22 = 10;
+  let inicioTiempoA22 = null;
+  let timerIntervalA22 = null;
+
+  async function abrirActividadA22(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA22 = puntajeMaximo;
+    tiempoEstimadoA22 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA22').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA22').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.2') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA22').classList.add('hidden');
+        document.getElementById('vistaEjercicioA22').classList.add('hidden');
+        document.getElementById('vistaResultadoA22').classList.remove('hidden');
+        renderListaCotejo('rubricaResultadoA22', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA22', previa.detalle);
+        ultimoResultadoA22 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA22').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA22').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA22').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA22').classList.add('hidden');
+    document.getElementById('vistaResultadoA22').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA22').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA22} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.2.2', 'recursosEstudianteA22');
+
+    const criteriosPrevios = CRITERIOS_BASE_A22.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderListaCotejo('instrumentoPrevioA22', criteriosPrevios, puntajeMaxA22, null);
+  }
+
+  document.getElementById('btnBackFromActividadA22').addEventListener('click', () => {
+    clearInterval(timerIntervalA22);
+    document.getElementById('panelActividadA22').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA22').addEventListener('click', () => {
+    indiceReporteActualA22 = 0;
+    estadoReportesA22 = [estadoReporteVacioA22(), estadoReporteVacioA22()];
+    campoSeleccionadoA22 = null;
+    respuestasComparacionA22 = {};
+    intentosComparacionA22 = 0;
+    document.getElementById('comparacionSeccionesA22').classList.add('hidden');
+    document.getElementById('seccionFinalA22').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA22').classList.add('hidden');
+    document.getElementById('vistaEjercicioA22').classList.remove('hidden');
+    document.getElementById('disenadorReporteA22').classList.remove('hidden');
+
+    pintarSeccionDisenoYVistasA22();
+
+    inicioTiempoA22 = Date.now();
+    clearInterval(timerIntervalA22);
+    timerIntervalA22 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA22) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA22').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA22} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Diseño + 3 vistas del reporte actual (índice indiceReporteActualA22) ----------
+  function pintarSeccionDisenoYVistasA22(){
+    const spec = REPORTES_A22[indiceReporteActualA22];
+    document.getElementById('consignaGeneralA22').innerHTML =
+      `<i class="fa-solid fa-hand-pointer"></i> Reporte ${indiceReporteActualA22 + 1} de 2 — Diseña el <b>${spec.nombre}</b> en la pestaña "Vista de Diseño". Puedes volver a esa pestaña en cualquier momento para hacer cambios.`;
+
+    const cont = document.getElementById('disenadorReporteA22');
+    cont.innerHTML = `
+      <div class="vistas-tabs" id="vistasTabsA22"></div>
+      <div id="vistaContenidoA22"></div>`;
+    pintarTabsVistasA22();
+    const estado = estadoReportesA22[indiceReporteActualA22];
+    cambiarVistaA22(estado.vistaActual || 'diseno');
+  }
+
+  function pintarTabsVistasA22(){
+    const estado = estadoReportesA22[indiceReporteActualA22];
+    const cont = document.getElementById('vistasTabsA22');
+    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
+      const info = COLOR_VISTA_A14[v];
+      const visitada = estado.vistasVisitadas.has(v);
+      const activa = estado.vistaActual === v;
+      return `
+        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
+        </button>`;
+    }).join('');
+    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => cambiarVistaA22(btn.dataset.vista));
+    });
+  }
+
+  function cambiarVistaA22(vista){
+    const estado = estadoReportesA22[indiceReporteActualA22];
+    estado.vistaActual = vista;
+    estado.vistasVisitadas.add(vista);
+    pintarTabsVistasA22();
+    pintarContenidoVistaA22(vista);
+  }
+
+  function actualizarEstadoVisualA22(){
+    const estado = estadoReportesA22[indiceReporteActualA22];
+    const spec = REPORTES_A22[indiceReporteActualA22];
+
+    const empresaOk = normalizarTextoA15_(estado.nombreEmpresa).includes('tecnoventas');
+    const tituloOk = normalizarTextoA15_(estado.titulo).includes(spec.tituloClave);
+    estado.encReporteCorrecto = empresaOk && tituloOk;
+
+    const seleccion = [...estado.camposDetalle].sort();
+    const esperado = [...spec.camposCorrectos].sort();
+    const tablaOk = estado.tabla === spec.tablaCorrecta;
+    estado.detalleCorrecto = tablaOk && seleccion.length === esperado.length && seleccion.every((c, i) => c === esperado[i]);
+
+    estado.encPaginaCorrecto = estado.camposDetalle.length > 0 && estado.numPagina;
+  }
+
+  function pintarContenidoVistaA22(vista){
+    const estado = estadoReportesA22[indiceReporteActualA22];
+    const spec = REPORTES_A22[indiceReporteActualA22];
+    const cont = document.getElementById('vistaContenidoA22');
+    const info = COLOR_VISTA_A14[vista];
+    const nombreEmpresa = estado.nombreEmpresa || 'TECNOVENTAS RD, S.R.L.';
+    const titulo = estado.titulo || spec.nombre;
+
+    // ---- Pestaña "Vista de Diseño" ----
+    if(vista === 'diseno'){
+      actualizarEstadoVisualA22();
+      const campos = (estado.datosTabla && estado.datosTabla.campos) || [];
+      const camposDisponibles = campos.filter(c => !estado.camposDetalle.includes(c));
+
+      cont.innerHTML = `
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+
+        <div class="lienzo-diseno-a21">
+          <div class="caja-diseno-a21 ${estado.encReporteCorrecto ? 'correcta' : ''}" id="cajaEncReporteA22">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-heading"></i> Encabezado de reporte</div>
+            <input type="text" id="inputNombreEmpresaA22" class="input-generico" placeholder="Nombre de la empresa..." value="${estado.nombreEmpresa.replace(/"/g,'&quot;')}">
+            <input type="text" id="inputTituloReporteA22" class="input-generico" placeholder="Título del reporte..." style="margin-top:8px;" value="${estado.titulo.replace(/"/g,'&quot;')}">
+            <p class="descripcion-seccion-a21">Debe contener el nombre de la empresa y el título del reporte (para este reporte, que mencione "${spec.tituloClave}"). Aparece una sola vez, al principio.</p>
+          </div>
+
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div class="caja-diseno-a21 ${estado.detalleCorrecto ? 'correcta' : ''}" id="cajaDetalleA22" style="flex:1.3; min-width:260px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
+              <div class="zona-arrastre-a21" id="zonaDetalleA22">
+                ${estado.camposDetalle.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada registro' :
+                  estado.camposDetalle.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+              </div>
+              <p class="descripcion-seccion-a21">Debes arrastrar exactamente 3 campos: <b>${spec.camposCorrectos.join('</b>, <b>')}</b>. Se repite una vez por cada registro.</p>
+            </div>
+
+            <div class="caja-diseno-a21" id="cajaCamposDisponiblesA22" style="flex:1; min-width:220px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-database"></i> Campos disponibles</div>
+              <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
+              <select id="selectTablaDetalleA22" class="input-generico">
+                <option value="" ${estado.tabla ? '' : 'selected disabled'}>Selecciona una tabla...</option>
+                ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${estado.tabla === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
+              </select>
+              ${camposDisponibles.length > 0 ? `
+                <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
+                <div class="pool-campos-a21" id="poolCamposA22">
+                  ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA22 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${c}</span>`).join('')}
+                </div>` : ''}
+            </div>
+          </div>
+
+          <div class="caja-diseno-a21 ${estado.encPaginaCorrecto ? 'correcta' : ''}" id="cajaEncPaginaA22">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-file-lines"></i> Encabezado de página</div>
+            <div class="columnas-generadas-a21" id="columnasGeneradasA22">${estado.camposDetalle.length ? estado.camposDetalle.join(' | ') : 'Los títulos de columna aparecerán aquí según los campos que arrastres en la línea de detalle...'}</div>
+            <div class="instalador-checkbox" id="checkboxNumPaginaA22" style="margin-top:10px; justify-content:flex-start; cursor:pointer;">
+              <span class="caja ${estado.numPagina ? 'marcada' : ''}"></span> Incluir número de página
+            </div>
+            <p class="descripcion-seccion-a21">Se repite en la parte superior de cada página, con los títulos de columna y el número de página.</p>
+          </div>
+        </div>`;
+
+      document.getElementById('inputNombreEmpresaA22').addEventListener('input', (e) => {
+        estado.nombreEmpresa = e.target.value;
+        actualizarEstadoVisualA22();
+        document.getElementById('cajaEncReporteA22').classList.toggle('correcta', estado.encReporteCorrecto);
+      });
+      document.getElementById('inputTituloReporteA22').addEventListener('input', (e) => {
+        estado.titulo = e.target.value;
+        actualizarEstadoVisualA22();
+        document.getElementById('cajaEncReporteA22').classList.toggle('correcta', estado.encReporteCorrecto);
+      });
+
+      document.getElementById('selectTablaDetalleA22').addEventListener('change', async (e) => {
+        estado.tabla = e.target.value;
+        estado.camposDetalle = [];
+        campoSeleccionadoA22 = null;
+        cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando campos de la tabla...</div>';
+        estado.datosTabla = estado.tabla ? await cargarTablaDatos(estado.tabla) : null;
+        pintarContenidoVistaA22('diseno');
+      });
+
+      document.querySelectorAll('#poolCamposA22 .campo-chip-a21').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const campo = chip.dataset.id;
+          campoSeleccionadoA22 = campoSeleccionadoA22 === campo ? null : campo;
+          pintarContenidoVistaA22('diseno');
+        });
+      });
+
+      document.querySelectorAll('#zonaDetalleA22 .campo-chip-a21.colocado').forEach(chip => {
+        chip.addEventListener('click', () => {
+          estado.camposDetalle = estado.camposDetalle.filter(c => c !== chip.dataset.id);
+          pintarContenidoVistaA22('diseno');
+        });
+      });
+
+      const zonaDetalle = document.getElementById('zonaDetalleA22');
+      zonaDetalle.addEventListener('click', () => {
+        if(campoSeleccionadoA22 && !estado.camposDetalle.includes(campoSeleccionadoA22)){
+          estado.camposDetalle.push(campoSeleccionadoA22);
+          campoSeleccionadoA22 = null;
+          pintarContenidoVistaA22('diseno');
+        }
+      });
+      const chipsArrastrables = document.querySelectorAll('#poolCamposA22 .campo-chip-a21[draggable="true"]');
+      habilitarArrastre(chipsArrastrables, [zonaDetalle], (campoArrastrado) => {
+        if(!estado.camposDetalle.includes(campoArrastrado)){
+          estado.camposDetalle.push(campoArrastrado);
+          campoSeleccionadoA22 = null;
+          pintarContenidoVistaA22('diseno');
+        }
+      });
+
+      document.getElementById('checkboxNumPaginaA22').addEventListener('click', () => {
+        estado.numPagina = !estado.numPagina;
+        pintarContenidoVistaA22('diseno');
+      });
+
+      return;
+    }
+
+    // ---- Pestañas de Previsualización y Ejecución ----
+    if(estado.camposDetalle.length === 0){
+      cont.innerHTML = `
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+        <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-circle-info"></i> Todavía no has agregado campos a la línea de detalle en la Vista de Diseño. Vuelve a esa pestaña para completarlo.</div>`;
+      return;
+    }
+
+    let filasHtml = '';
+    if(vista === 'previsualizacion'){
+      filasHtml = [1, 2].map(() => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.6;">${estado.camposDetalle.map(() => `<span style="flex:1;">[muestra]</span>`).join('')}</div>`).join('');
+    } else if(vista === 'ejecucion'){
+      const filas = (estado.datosTabla && estado.datosTabla.datos) ? estado.datosTabla.datos.slice(0, 3) : [];
+      filasHtml = filas.map(f => `
+        <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;">
+          ${estado.camposDetalle.map(c => {
+            let valor = f[c];
+            if(c === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
+            return `<span style="flex:1;">${valor !== undefined ? valor : ''}</span>`;
+          }).join('')}
+        </div>`).join('');
+    }
+
+    cont.innerHTML = `
+      <div class="simulador-pantalla">
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+        <div style="font-weight:800; font-size:15px; margin-top:10px;">${nombreEmpresa}</div>
+        <div style="font-size:13px; opacity:.85; margin-bottom:10px;">${titulo}</div>
+        <div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+          ${estado.camposDetalle.map(c => `<span style="flex:1;">${c}</span>`).join('')}
+        </div>
+        ${filasHtml}
+      </div>
+      ${vista === 'ejecucion' ? `
+        <div id="feedbackEjecucionA22"></div>
+        <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA22" style="width:auto; padding:12px 28px; margin-top:16px;">
+          <i class="fa-solid fa-arrow-right"></i> ${indiceReporteActualA22 === 0 ? 'Siguiente reporte' : 'Siguiente'}
+        </button>` : ''}`;
+
+    if(vista === 'ejecucion'){
+      document.getElementById('btnSiguienteEjecucionA22').addEventListener('click', intentarAvanzarDesdeEjecucionA22);
+    }
+  }
+
+  function intentarAvanzarDesdeEjecucionA22(){
+    actualizarEstadoVisualA22();
+    const estado = estadoReportesA22[indiceReporteActualA22];
+    const spec = REPORTES_A22[indiceReporteActualA22];
+    const mensajes = [];
+
+    if(!estado.encReporteCorrecto){
+      estado.intentos.encReporte++;
+      mensajes.push(`El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione "${spec.tituloClave}". Vuelve a la Vista de Diseño para completarlo.`);
+    }
+    if(!estado.detalleCorrecto){
+      estado.intentos.detalle++;
+      mensajes.push(`La <b>línea de detalle</b> no tiene exactamente los campos correctos (${spec.camposCorrectos.join(', ')}) de la tabla ${spec.nombre.replace('Reporte de ', '')}.`);
+    }
+    if(!estado.encPaginaCorrecto){
+      estado.intentos.encPagina++;
+      mensajes.push('El <b>encabezado de página</b> necesita el número de página marcado. Vuelve a la Vista de Diseño para completarlo.');
+    }
+
+    if(mensajes.length > 0){
+      document.getElementById('feedbackEjecucionA22').innerHTML = mensajes.map(m =>
+        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
+      ).join('');
+      return;
+    }
+
+    if(indiceReporteActualA22 === 0){
+      indiceReporteActualA22 = 1;
+      pintarSeccionDisenoYVistasA22();
+    } else {
+      document.getElementById('disenadorReporteA22').classList.add('hidden');
+      document.getElementById('consignaGeneralA22').classList.add('hidden');
+      pintarComparacionA22();
+    }
+  }
+
+  // ---------- Parte 2: comparación de las 3 secciones entre ambos reportes ----------
+  function pintarComparacionA22(){
+    document.getElementById('comparacionSeccionesA22').classList.remove('hidden');
+    const [inv, asi] = estadoReportesA22;
+    const specInv = REPORTES_A22[0], specAsi = REPORTES_A22[1];
+
+    const contenidoPorSeccion = {
+      encReporte: {
+        a: `<div style="font-weight:800;">${inv.nombreEmpresa}</div><div style="opacity:.85;">${inv.titulo}</div>`,
+        b: `<div style="font-weight:800;">${asi.nombreEmpresa}</div><div style="opacity:.85;">${asi.titulo}</div>`
+      },
+      encPagina: {
+        a: `<div style="font-weight:800; font-size:13px;">${inv.camposDetalle.join(' | ')}</div>`,
+        b: `<div style="font-weight:800; font-size:13px;">${asi.camposDetalle.join(' | ')}</div>`
+      },
+      detalle: {
+        a: `<div style="font-size:13px;">${(inv.datosTabla && inv.datosTabla.datos[0]) ? inv.camposDetalle.map(c => inv.datosTabla.datos[0][c]).join(' | ') : inv.camposDetalle.join(' — ')}</div>`,
+        b: `<div style="font-size:13px;">${(asi.datosTabla && asi.datosTabla.datos[0]) ? asi.camposDetalle.map(c => asi.datosTabla.datos[0][c]).join(' | ') : asi.camposDetalle.join(' — ')}</div>`
+      }
+    };
+
+    const cont = document.getElementById('comparacionSeccionesA22');
+    cont.innerHTML = `
+      <div class="section-heading" style="font-size:18px;">Compara los 2 reportes</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-comments"></i> Coméntalo con tu pareja de trabajo, y luego escribe en tus propias palabras en qué se diferencia cada sección entre el ${specInv.nombre} y el ${specAsi.nombre}.</div>
+
+      ${SECCIONES_COMPARAR_A22.map(s => `
+        <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+          <div class="caso-a110-escenario" style="margin-bottom:8px;">${s.nombre}</div>
+          <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
+            <div class="libro-ejemplo-box" style="flex:1; min-width:220px;"><b style="font-size:11px; opacity:.7;">${specInv.nombre.toUpperCase()}</b><br>${contenidoPorSeccion[s.id].a}</div>
+            <div class="libro-ejemplo-box" style="flex:1; min-width:220px;"><b style="font-size:11px; opacity:.7;">${specAsi.nombre.toUpperCase()}</b><br>${contenidoPorSeccion[s.id].b}</div>
+          </div>
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿En qué se diferencia esta sección entre ambos reportes?</label>
+          <textarea class="celda-respuesta-a15 textarea-comparar-a22" data-seccion="${s.id}" rows="2" placeholder="Escribe tu explicación..."></textarea>
+        </div>
+      `).join('')}
+
+      <div id="feedbackComparacionA22"></div>
+      <button type="button" class="btn btn-primary" id="btnConfirmarComparacionA22" style="width:auto; padding:12px 28px;">
+        <i class="fa-solid fa-check"></i> Confirmar
+      </button>`;
+
+    document.querySelectorAll('.textarea-comparar-a22').forEach(ta => {
+      ta.addEventListener('input', () => { respuestasComparacionA22[ta.dataset.seccion] = ta.value; });
+    });
+
+    document.getElementById('btnConfirmarComparacionA22').addEventListener('click', verificarComparacionA22);
+  }
+
+  function verificarComparacionA22(){
+    intentosComparacionA22++;
+    let todoCorrecto = true;
+    SECCIONES_COMPARAR_A22.forEach(s => {
+      if(contarPalabrasRealesA15_(respuestasComparacionA22[s.id] || '') < 4) todoCorrecto = false;
+    });
+
+    if(!todoCorrecto){
+      document.getElementById('feedbackComparacionA22').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Todavía falta alguna explicación, o es muy corta. Escribe con tus propias palabras la diferencia de cada sección.</div></div>`;
+      return;
+    }
+
+    document.getElementById('comparacionSeccionesA22').innerHTML = '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la comparación de los 2 reportes!</div>';
+    document.getElementById('seccionFinalA22').classList.remove('hidden');
+  }
+
+  document.getElementById('btnFinalizarA22').addEventListener('click', async () => {
+    clearInterval(timerIntervalA22);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA22) / 60000;
+    const [inv, asi] = estadoReportesA22;
+
+    const totalIntentos = (e) => e.intentos.encReporte + e.intentos.detalle + e.intentos.encPagina;
+    const disenoInvOk = totalIntentos(inv) <= 5;
+    const disenoAsiOk = totalIntentos(asi) <= 5;
+    const vistasOk = inv.vistasVisitadas.size >= 3 && asi.vistasVisitadas.size >= 3;
+    const comparacionOk = intentosComparacionA22 <= 2;
+
+    const criterios = [
+      { nombre: CRITERIOS_BASE_A22[0].nombre, descripcion: CRITERIOS_BASE_A22[0].descripcion, nivel:'cumple' },
+      { nombre: CRITERIOS_BASE_A22[1].nombre, descripcion: CRITERIOS_BASE_A22[1].descripcion, nivel: disenoInvOk ? 'cumple' : 'no_cumple' },
+      { nombre: CRITERIOS_BASE_A22[2].nombre, descripcion: CRITERIOS_BASE_A22[2].descripcion, nivel: disenoAsiOk ? 'cumple' : 'no_cumple' },
+      { nombre: CRITERIOS_BASE_A22[3].nombre, descripcion: CRITERIOS_BASE_A22[3].descripcion, nivel: vistasOk ? 'cumple' : 'no_cumple' },
+      { nombre: CRITERIOS_BASE_A22[4].nombre, descripcion: CRITERIOS_BASE_A22[4].descripcion, nivel: comparacionOk ? 'cumple' : 'no_cumple' },
+      { nombre: CRITERIOS_BASE_A22[5].nombre, descripcion: CRITERIOS_BASE_A22[5].descripcion, nivel: minutosTranscurridos <= tiempoEstimadoA22 * 1.5 ? 'cumple' : 'no_cumple' },
+      { nombre: CRITERIOS_BASE_A22[6].nombre, descripcion: CRITERIOS_BASE_A22[6].descripcion, nivel:'cumple' }
+    ];
+
+    const pesoUnidad = puntajeMaxA22 / criterios.length;
+    let notaCalculada = 0;
+    criterios.forEach(c => { if(c.nivel === 'cumple') notaCalculada += pesoUnidad; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA22').classList.add('hidden');
+    document.getElementById('vistaResultadoA22').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA22').classList.add('hidden');
+    renderListaCotejo('rubricaResultadoA22', criterios, puntajeMaxA22, notaCalculada);
+    ultimoResultadoA22 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA22 };
+
+    const proporcionFinalA22 = puntajeMaxA22 > 0 ? notaCalculada / puntajeMaxA22 : 0;
+    mostrarLogro(proporcionFinalA22 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA22 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA22 >= 0.8) dispararConfeti();
+
+    const detalleA22 = [
+      {
+        titulo: 'Reportes diseñados',
+        items: [
+          { pregunta:'Reporte de Inventario', tuRespuesta: `${inv.nombreEmpresa} — ${inv.titulo} (campos: ${inv.camposDetalle.join(', ')})`, correcta: disenoInvOk },
+          { pregunta:'Reporte de Asistencia', tuRespuesta: `${asi.nombreEmpresa} — ${asi.titulo} (campos: ${asi.camposDetalle.join(', ')})`, correcta: disenoAsiOk }
+        ]
+      },
+      {
+        titulo: 'Comparación de secciones',
+        items: SECCIONES_COMPARAR_A22.map(s => ({
+          pregunta: `Diferencia en "${s.nombre}"`,
+          tuRespuesta: respuestasComparacionA22[s.id] || 'Sin responder',
+          correcta: contarPalabrasRealesA15_(respuestasComparacionA22[s.id] || '') >= 4
+        }))
+      }
+    ];
+    ultimoResultadoA22.detalle = detalleA22;
+    renderDesgloseColoreado('resultadoDesgloseA22', detalleA22);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.2.2',
+        ra:'RA2',
+        ec:'EC6.2.1',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA22,
+        criterios: criterios,
+        detalle: detalleA22
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA22').addEventListener('click', () => {
+    if(!ultimoResultadoA22) return;
+    generarPdfResultado('A.2.2', ultimoResultadoA22.criterios, ultimoResultadoA22.nota, ultimoResultadoA22.puntajeMaximo, 'EC6.2.1', 'RA2', ultimoResultadoA22.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA22').addEventListener('click', () => {
+    document.getElementById('panelActividadA22').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.2', abrirActividadA22);
