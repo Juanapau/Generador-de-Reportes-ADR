@@ -1616,7 +1616,7 @@
      ventana simulada de fondo SIEMPRE claro (instalador-cuerpo), sin importar el tema
      de la app — así que su texto necesita color oscuro explícito, igual que ya hicimos
      con los <select>. Si no, en modo oscuro el texto sale blanco sobre blanco. */
-  .caja-diseno-a21 input.input-generico{ background:#fff; border:1px solid #cbd5e1; color:#1a1a1a; }
+  .caja-diseno-a21 input.input-generico, .caja-diseno-a21 select.input-generico{ background:#fff; border:1px solid #cbd5e1; color:#1a1a1a; }
   .caja-diseno-a21 input.input-generico::placeholder{ color:#94a3b8; }
 
   /* El diseñador de A.2.1 necesita más espacio que un instalador normal, para poder
