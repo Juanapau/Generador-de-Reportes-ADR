@@ -953,31 +953,29 @@
       <!-- Vista 2: el ejercicio en sí -->
       <div id="vistaEjercicioA15" class="hidden">
         <div class="timer-badge" id="timerA15"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
-        <div id="progresoA15"></div>
 
-        <div class="section-heading" style="font-size:18.5px;">Encuentra las parejas</div>
+        <div class="section-heading" style="font-size:18.5px;">Cuadro comparativo</div>
         <div class="empty-note" style="margin-top:0;">
           <i class="fa-solid fa-hand-pointer"></i>
-          Haz clic en una tarjeta para voltearla, y luego en otra para intentar emparejarla. Empareja cada <b>programa</b> con su <b>característica</b> correcta. Si no coinciden, se voltean de nuevo.
+          Elige los 2 programas que investigaste en el WebQuest y completa la tabla con base en lo que encontraste en tus fuentes.
         </div>
 
-        <div class="memoria-grid" id="memoriaGridA15"></div>
-
-        <div id="seccionFinalA15" class="hidden">
-          <div class="justificacion-box">
-            <label for="justificacionA15"><i class="fa-solid fa-pen"></i> Elige 2 de las parejas que formaste y explica por qué esa característica corresponde a ese programa (criterio 3)</label>
-            <textarea id="justificacionA15" placeholder="Ejemplo: Elegí Power BI porque..."></textarea>
-          </div>
-
-          <div class="justificacion-box">
-            <label for="aplicacionA15"><i class="fa-solid fa-lightbulb"></i> Si una pequeña empresa dominicana te pide recomendar uno de estos 4 programas, ¿cuál elegirías y por qué? (criterio 4)</label>
-            <textarea id="aplicacionA15" placeholder="Explica tu recomendación considerando el costo, la facilidad de uso y las necesidades de una empresa pequeña..."></textarea>
-          </div>
-
-          <button type="button" class="btn btn-primary" id="btnFinalizarA15" style="width:auto; padding:12px 28px;" disabled>
-            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
-          </button>
+        <div class="tabla-comparativa-scroll">
+          <table class="tabla-comparativa-a15">
+            <thead>
+              <tr>
+                <th>Programa</th>
+                <th><select id="selectPrograma1A15" class="input-generico"></select></th>
+                <th><select id="selectPrograma2A15" class="input-generico"></select></th>
+              </tr>
+            </thead>
+            <tbody id="tablaComparativaBodyA15"></tbody>
+          </table>
         </div>
+
+        <button type="button" class="btn btn-primary" id="btnFinalizarA15" style="width:auto; padding:12px 28px; margin-top:20px;" disabled>
+          <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+        </button>
       </div>
 
       <!-- Vista 3: resultado -->
