@@ -4131,11 +4131,12 @@
   const CRITERIOS_BASE_A21 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
     { key:'encReporte', nombre:'2. Encabezado de reporte', descripcion:'Escribe correctamente el nombre de la empresa y el título del reporte.' },
-    { key:'detalle', nombre:'3. Línea de detalle', descripcion:'Arrastra exactamente los campos correctos hacia la línea de detalle.' },
+    { key:'detalle', nombre:'3. Línea de detalle', descripcion:'Selecciona la tabla correcta y arrastra exactamente los campos correctos hacia la línea de detalle.' },
     { key:'encPagina', nombre:'4. Encabezado de página', descripcion:'Incluye el número de página además de los títulos de columna.' },
-    { key:'tabla', nombre:'5. Uso de datos reales', descripcion:'Trabaja con los datos reales de la tabla de ventas durante todo el diseño.' },
-    { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+    { key:'vistas', nombre:'5. Recorrido de las 3 vistas', descripcion:'Recorre las vistas de Diseño, Previsualización y Ejecución del reporte ya construido.' },
+    { key:'identificar', nombre:'6. Identifica y define las secciones', descripcion:'Identifica correctamente cada sección del reporte y explica en sus propias palabras la función que cumple.' },
+    { key:'tiempo', nombre:'7. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'8. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
   ];
 
   let tablaSeleccionadaDetalleA21 = '';
@@ -4150,6 +4151,18 @@
   let encPaginaCorrectoA21 = false;
   let intentosPorSeccionA21 = { encReporte:0, detalle:0, encPagina:0 };
   let mostrandoVistaPreviaA21 = false;
+  let vistaActualA21 = 'diseno';
+  let vistasVisitadasA21 = new Set();
+  let ordenSeccionesIdentificarA21 = [];
+  let respuestasIdentificarA21 = {};
+  let intentosIdentificarGeneralA21 = 0;
+  let identificarSeccionesCompletoA21 = false;
+
+  const SECCIONES_IDENTIFICAR_A21_BASE = [
+    { id:'encReporte', nombre:'Encabezado de reporte' },
+    { id:'encPagina', nombre:'Encabezado de página' },
+    { id:'detalle', nombre:'Línea de detalle' }
+  ];
   let ultimoResultadoA21 = null;
   let puntajeMaxA21 = 0;
   let tiempoEstimadoA21 = 10;
@@ -4211,7 +4224,14 @@
     encPaginaCorrectoA21 = false;
     intentosPorSeccionA21 = { encReporte:0, detalle:0, encPagina:0 };
     mostrandoVistaPreviaA21 = false;
-    document.getElementById('vistaPreviaFinalA21').classList.add('hidden');
+    vistaActualA21 = 'diseno';
+    vistasVisitadasA21 = new Set();
+    ordenSeccionesIdentificarA21 = [];
+    respuestasIdentificarA21 = {};
+    intentosIdentificarGeneralA21 = 0;
+    identificarSeccionesCompletoA21 = false;
+    document.getElementById('identificarSeccionesA21').classList.add('hidden');
+    document.getElementById('disenadorReporteA21').classList.remove('hidden');
     document.getElementById('seccionFinalA21').classList.add('hidden');
     document.getElementById('vistaInstrumentoA21').classList.add('hidden');
     document.getElementById('vistaEjercicioA21').classList.remove('hidden');
@@ -4396,32 +4416,170 @@
     }
 
     if(encReporteCorrectoA21 && detalleCorrectoA21 && encPaginaCorrectoA21){
-      pintarVistaPreviaFinalA21();
+      pintarNavegadorVistasA21();
     } else {
       pintarLienzoDisenoA21();
     }
   }
 
-  function pintarVistaPreviaFinalA21(){
-    mostrandoVistaPreviaA21 = true;
-    document.getElementById('disenadorReporteA21').innerHTML = '';
-    const filasDetalle = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos ? datosTablaSeleccionadaA21.datos.slice(0, 3) : [])
-      .map(f => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">${f.Producto}</span><span style="flex:1;">${f.Cantidad}</span><span style="flex:1;">RD$${Number(f.PrecioUnitario).toLocaleString('es-DO',{minimumFractionDigits:2})}</span></div>`)
-      .join('');
+  // ---------- Recorrido de las 3 vistas del reporte ya diseñado ----------
+  function pintarNavegadorVistasA21(){
+    const cont = document.getElementById('disenadorReporteA21');
+    cont.innerHTML = `
+      <div class="section-heading" style="font-size:17px;">Recorre las 3 vistas de tu reporte</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Visita las 3 pestañas para ver cómo se ve tu reporte en cada etapa.</div>
+      <div class="vistas-tabs" id="vistasTabsA21"></div>
+      <div id="vistaContenidoA21"></div>
+      <div id="continuarVistasWrapA21"></div>`;
+    pintarTabsVistasA21();
+    cambiarVistaA21(vistaActualA21 || 'diseno');
+  }
 
+  function pintarTabsVistasA21(){
+    const cont = document.getElementById('vistasTabsA21');
+    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
+      const info = COLOR_VISTA_A14[v];
+      const visitada = vistasVisitadasA21.has(v);
+      const activa = vistaActualA21 === v;
+      return `
+        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
+        </button>`;
+    }).join('');
+    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => cambiarVistaA21(btn.dataset.vista));
+    });
+  }
+
+  function cambiarVistaA21(vista){
+    vistaActualA21 = vista;
+    vistasVisitadasA21.add(vista);
+    pintarTabsVistasA21();
+    pintarContenidoVistaA21(vista);
+    if(vistasVisitadasA21.size >= 3) mostrarBotonContinuarVistasA21();
+  }
+
+  function pintarContenidoVistaA21(vista){
+    const cont = document.getElementById('vistaContenidoA21');
+    const info = COLOR_VISTA_A14[vista];
     const nombreEmpresa = nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.';
     const tituloReporte = tituloReporteValorA21 || 'Reporte de Ventas';
 
-    const cont = document.getElementById('vistaPreviaFinalA21');
-    cont.classList.remove('hidden');
-    cont.innerHTML = `
-      <div class="section-heading" style="font-size:17px;">Así quedó tu reporte</div>
-      <div class="esquema-reporte">
-        <div class="esquema-zona correcto"><div style="flex:1;"><div style="font-weight:800; font-size:16px;">${nombreEmpresa}</div><div style="font-size:14px; opacity:.85;">${tituloReporte}</div></div></div>
-        <div class="esquema-zona correcto"><div style="flex:1;"><div style="font-size:12.5px; opacity:.8; margin-bottom:6px;">Página 1</div><div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:6px;">${camposColocadosDetalleA21.map(c => `<span style="flex:1;">${c}</span>`).join('')}</div></div></div>
-        <div class="esquema-zona correcto"><div style="flex:1;">${filasDetalle}</div></div>
-      </div>`;
+    let filasHtml = '';
+    if(vista === 'diseno'){
+      filasHtml = `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.5;">${camposColocadosDetalleA21.map(() => `<span style="flex:1;">—</span>`).join('')}</div>`;
+    } else if(vista === 'previsualizacion'){
+      filasHtml = [1, 2].map(() => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.6;">${camposColocadosDetalleA21.map(() => `<span style="flex:1;">[muestra]</span>`).join('')}</div>`).join('');
+    } else if(vista === 'ejecucion'){
+      const filas = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) ? datosTablaSeleccionadaA21.datos.slice(0, 3) : [];
+      filasHtml = filas.map(f => `
+        <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;">
+          ${camposColocadosDetalleA21.map(c => {
+            let valor = f[c];
+            if(c === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
+            return `<span style="flex:1;">${valor !== undefined ? valor : ''}</span>`;
+          }).join('')}
+        </div>`).join('');
+    }
 
+    cont.innerHTML = `
+      <div class="simulador-pantalla">
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+        <div style="font-weight:800; font-size:15px; margin-top:10px;">${nombreEmpresa}</div>
+        <div style="font-size:13px; opacity:.85; margin-bottom:10px;">${tituloReporte}</div>
+        <div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+          ${camposColocadosDetalleA21.map(c => `<span style="flex:1;">${c}</span>`).join('')}
+        </div>
+        ${filasHtml}
+      </div>`;
+  }
+
+  function mostrarBotonContinuarVistasA21(){
+    document.getElementById('continuarVistasWrapA21').innerHTML = `
+      <button type="button" class="btn btn-primary" id="btnContinuarVistasA21" style="width:auto; padding:12px 28px; margin-top:16px;">
+        <i class="fa-solid fa-arrow-right"></i> Continuar
+      </button>`;
+    document.getElementById('btnContinuarVistasA21').addEventListener('click', () => {
+      document.getElementById('disenadorReporteA21').classList.add('hidden');
+      pintarIdentificarSeccionesA21();
+    });
+  }
+
+  // ---------- Identifica y define las secciones del reporte ya construido ----------
+  function pintarIdentificarSeccionesA21(){
+    document.getElementById('identificarSeccionesA21').classList.remove('hidden');
+    ordenSeccionesIdentificarA21 = barajar(SECCIONES_IDENTIFICAR_A21_BASE);
+
+    const nombreEmpresa = nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.';
+    const tituloReporte = tituloReporteValorA21 || 'Reporte de Ventas';
+    const filaEjemplo = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos && datosTablaSeleccionadaA21.datos[0]) ? datosTablaSeleccionadaA21.datos[0] : null;
+
+    const contenidoPorSeccion = {
+      encReporte: `<div style="font-weight:800;">${nombreEmpresa}</div><div style="opacity:.85;">${tituloReporte}</div>`,
+      encPagina: `<div style="font-weight:800; font-size:13px;">${camposColocadosDetalleA21.join(' | ')}</div>`,
+      detalle: `<div style="font-size:13px;">${filaEjemplo ? camposColocadosDetalleA21.map(c => filaEjemplo[c]).join(' | ') : camposColocadosDetalleA21.join(' — ')}</div>`
+    };
+
+    const cont = document.getElementById('identificarSeccionesA21');
+    cont.innerHTML = `
+      <div class="section-heading" style="font-size:18px;">Identifica y define las secciones de tu reporte</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Para cada recuadro, identifica qué sección del reporte es y explica en tus propias palabras qué función cumple.</div>
+
+      ${ordenSeccionesIdentificarA21.map(s => `
+        <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+          <div class="libro-ejemplo-box" style="margin-bottom:12px;">${contenidoPorSeccion[s.id]}</div>
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿Qué sección del reporte es esta?</label>
+          <select class="input-generico select-identificar-a21" data-seccion="${s.id}" style="margin-bottom:12px;">
+            <option value="">Selecciona...</option>
+            ${barajar(SECCIONES_IDENTIFICAR_A21_BASE).map(op => `<option value="${op.id}">${op.nombre}</option>`).join('')}
+          </select>
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">En tus palabras, ¿qué función cumple esta sección?</label>
+          <textarea class="celda-respuesta-a15 textarea-definir-a21" data-seccion="${s.id}" rows="2" placeholder="Escribe tu definición..."></textarea>
+        </div>
+      `).join('')}
+
+      <div id="feedbackIdentificarA21"></div>
+      <button type="button" class="btn btn-primary" id="btnConfirmarIdentificarA21" style="width:auto; padding:12px 28px;">
+        <i class="fa-solid fa-check"></i> Confirmar
+      </button>`;
+
+    document.querySelectorAll('.select-identificar-a21').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const s = sel.dataset.seccion;
+        if(!respuestasIdentificarA21[s]) respuestasIdentificarA21[s] = {};
+        respuestasIdentificarA21[s].identificacion = sel.value;
+      });
+    });
+    document.querySelectorAll('.textarea-definir-a21').forEach(ta => {
+      ta.addEventListener('input', () => {
+        const s = ta.dataset.seccion;
+        if(!respuestasIdentificarA21[s]) respuestasIdentificarA21[s] = {};
+        respuestasIdentificarA21[s].definicion = ta.value;
+      });
+    });
+
+    document.getElementById('btnConfirmarIdentificarA21').addEventListener('click', verificarIdentificarSeccionesA21);
+  }
+
+  function verificarIdentificarSeccionesA21(){
+    intentosIdentificarGeneralA21++;
+    let todoCorrecto = true;
+
+    SECCIONES_IDENTIFICAR_A21_BASE.forEach(s => {
+      const resp = respuestasIdentificarA21[s.id] || {};
+      const identOk = resp.identificacion === s.id;
+      const defOk = contarPalabrasRealesA15_(resp.definicion || '') >= 4;
+      if(!identOk || !defOk) todoCorrecto = false;
+    });
+
+    if(!todoCorrecto){
+      document.getElementById('feedbackIdentificarA21').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Revisa: alguna identificación o definición todavía no está completa. La definición debe tener varias palabras propias, no solo repetir el nombre de la sección.</div></div>`;
+      return;
+    }
+
+    identificarSeccionesCompletoA21 = true;
+    document.getElementById('identificarSeccionesA21').innerHTML = '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la identificación de las 3 secciones!</div>';
     document.getElementById('seccionFinalA21').classList.remove('hidden');
   }
 
@@ -4437,11 +4595,12 @@
     criterios.push({ nombre: CRITERIOS_BASE_A21[2].nombre, descripcion: CRITERIOS_BASE_A21[2].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA21.detalle || 1) });
     criterios.push({ nombre: CRITERIOS_BASE_A21[3].nombre, descripcion: CRITERIOS_BASE_A21[3].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA21.encPagina || 1) });
     criterios.push({ nombre: CRITERIOS_BASE_A21[4].nombre, descripcion: CRITERIOS_BASE_A21[4].descripcion, nivel: 'logrado' });
+    criterios.push({ nombre: CRITERIOS_BASE_A21[5].nombre, descripcion: CRITERIOS_BASE_A21[5].descripcion, nivel: nivelPorIntentos(intentosIdentificarGeneralA21 || 1) });
     criterios.push({
-      nombre: CRITERIOS_BASE_A21[5].nombre, descripcion: CRITERIOS_BASE_A21[5].descripcion,
+      nombre: CRITERIOS_BASE_A21[6].nombre, descripcion: CRITERIOS_BASE_A21[6].descripcion,
       nivel: minutosTranscurridos <= tiempoEstimadoA21 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA21 * 2 ? 'proceso' : 'no_logrado')
     });
-    criterios.push({ nombre: CRITERIOS_BASE_A21[6].nombre, descripcion: CRITERIOS_BASE_A21[6].descripcion, nivel: 'logrado' });
+    criterios.push({ nombre: CRITERIOS_BASE_A21[7].nombre, descripcion: CRITERIOS_BASE_A21[7].descripcion, nivel: 'logrado' });
 
     const pesoUnidad = puntajeMaxA21 / criterios.length;
     const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
@@ -4459,14 +4618,31 @@
     mostrarLogro(proporcionFinalA21 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA21 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
     if(proporcionFinalA21 >= 0.8) dispararConfeti();
 
-    const detalleA21 = [{
-      titulo: 'Diseño del reporte — secciones iniciales',
-      items: [
-        { pregunta:'Encabezado de reporte', tuRespuesta: `Completado en ${intentosPorSeccionA21.encReporte || 1} intento(s)`, correcta: (intentosPorSeccionA21.encReporte || 1) <= 1 },
-        { pregunta:'Línea de detalle', tuRespuesta: camposColocadosDetalleA21.join(', '), correcta: (intentosPorSeccionA21.detalle || 1) <= 1 },
-        { pregunta:'Encabezado de página', tuRespuesta: `Completado en ${intentosPorSeccionA21.encPagina || 1} intento(s)`, correcta: (intentosPorSeccionA21.encPagina || 1) <= 1 }
-      ]
-    }];
+    const detalleA21 = [
+      {
+        titulo: 'Diseño del reporte — secciones iniciales',
+        items: [
+          { pregunta:'Encabezado de reporte', tuRespuesta: `Completado en ${intentosPorSeccionA21.encReporte || 1} intento(s)`, correcta: (intentosPorSeccionA21.encReporte || 1) <= 1 },
+          { pregunta:'Línea de detalle', tuRespuesta: camposColocadosDetalleA21.join(', '), correcta: (intentosPorSeccionA21.detalle || 1) <= 1 },
+          { pregunta:'Encabezado de página', tuRespuesta: `Completado en ${intentosPorSeccionA21.encPagina || 1} intento(s)`, correcta: (intentosPorSeccionA21.encPagina || 1) <= 1 }
+        ]
+      },
+      {
+        titulo: 'Recorrido de vistas e identificación de secciones',
+        items: [
+          { pregunta:'¿Recorrió las 3 vistas (Diseño, Previsualización, Ejecución)?', tuRespuesta: `${vistasVisitadasA21.size} de 3`, correcta: vistasVisitadasA21.size >= 3 },
+          ...SECCIONES_IDENTIFICAR_A21_BASE.map(s => {
+            const resp = respuestasIdentificarA21[s.id] || {};
+            const nombreIdentificado = (SECCIONES_IDENTIFICAR_A21_BASE.find(x => x.id === resp.identificacion) || {}).nombre || 'Sin responder';
+            return {
+              pregunta: `¿Qué es "${s.nombre}" y qué función cumple?`,
+              tuRespuesta: `Identificó: ${nombreIdentificado}. Definición: ${resp.definicion || 'Sin responder'}`,
+              correcta: resp.identificacion === s.id && contarPalabrasRealesA15_(resp.definicion || '') >= 4
+            };
+          })
+        ]
+      }
+    ];
     ultimoResultadoA21.detalle = detalleA21;
     renderDesgloseColoreado('resultadoDesgloseA21', detalleA21);
 
