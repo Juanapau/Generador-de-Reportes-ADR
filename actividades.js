@@ -1782,36 +1782,37 @@
   registrarActividadInteractiva('A.1.4', abrirActividadA14);
 
 // ============================================================================
-// A.1.5 — ROMPECABEZAS DE PROGRAMAS GENERADORES (emparejar, estilo memoria)
+// A.1.5 — CUADRO COMPARATIVO DE PROGRAMAS GENERADORES
 // ============================================================================
   // Contenido anclado a lo investigado en el WebQuest en pares (4 programas
-  // generadores reales). El estudiante empareja cada programa con la
-  // característica que le corresponde, en un juego de memoria de 8 tarjetas.
-  const PARES_A15_BASE = [
-    { id:1, programa:'Microsoft Power BI', caracteristica:'Se integra profundamente con Excel, Azure y el ecosistema Microsoft 365.' },
-    { id:2, programa:'Google Looker Studio', caracteristica:'Es gratuito en su versión base y se conecta de forma nativa con Google Analytics, Ads y Sheets.' },
-    { id:3, programa:'SAP Crystal Reports', caracteristica:'Es ideal para generar facturas e informes financieros con formato muy detallado y preciso.' },
-    { id:4, programa:'JasperReports', caracteristica:'Es una biblioteca de código abierto pensada para integrarse en aplicaciones Java hechas por programadores.' }
-  ];
+  // generadores reales). El estudiante elige los 2 programas que le tocó
+  // investigar y completa una tabla comparativa con las preguntas guía del
+  // recurso de apoyo.
+  const PROGRAMAS_DISPONIBLES_A15 = ['Microsoft Power BI', 'Google Looker Studio', 'SAP Crystal Reports', 'JasperReports'];
 
-  // Un color distinto por cada pareja ya formada, para identificarlas fácilmente de un vistazo
-  const COLORES_PAREJA_A15 = ['#4fa3ff', '#f2a93d', '#a855f7', '#ec4899'];
+  const PREGUNTAS_TABLA_A15 = [
+    '¿Quién desarrolla el programa?',
+    '¿Es gratuito, de pago, o tiene ambas versiones?',
+    '¿A qué tipo de fuentes de datos se puede conectar?',
+    '¿Qué tipo de empresa se beneficiaría más de este programa? (pequeña, mediana, grande)',
+    'Menciona 2 características que destaquen según la fuente consultada',
+    '¿En qué se diferencia del otro programa que investigaron?'
+  ];
 
   const CRITERIOS_BASE_A15 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'identificacion', nombre:'2. Identificación de características', descripcion:'Empareja correctamente cada programa con su característica dentro de un número razonable de intentos.' },
-    { key:'justificacion', nombre:'3. Justificación de las coincidencias', descripcion:'Explica por qué la característica elegida corresponde al programa seleccionado.' },
-    { key:'aplicacion', nombre:'4. Aplicación práctica', descripcion:'Recomienda un programa para una situación real, justificando su elección.' },
-    { key:'tiempo', nombre:'5. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'prolijidad', nombre:'6. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+    { key:'seleccion', nombre:'2. Selección de los 2 programas', descripcion:'Elige 2 programas distintos para comparar en la tabla.' },
+    { key:'programa1', nombre:'3. Completitud — Programa 1', descripcion:'Responde todas las preguntas de la tabla para el primer programa.' },
+    { key:'programa2', nombre:'4. Completitud — Programa 2', descripcion:'Responde todas las preguntas de la tabla para el segundo programa.' },
+    { key:'diferencia', nombre:'5. Identifica la diferencia entre ambos', descripcion:'Explica con claridad en qué se diferencian los dos programas investigados.' },
+    { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
   ];
 
-  let cartasA15 = [];
+  let programa1A15 = '';
+  let programa2A15 = '';
+  let respuestasTablaA15 = {}; // { [indicePregunta]: { p1: texto, p2: texto } }
   let ultimoResultadoA15 = null;
-  let cartaSeleccionadaA15 = null;
-  let paresEncontradosA15 = 0;
-  let intentosA15 = 0;
-  let bloqueadoA15 = false;
   let puntajeMaxA15 = 0;
   let tiempoEstimadoA15 = 10;
   let inicioTiempoA15 = null;
@@ -1860,24 +1861,14 @@
   });
 
   document.getElementById('btnComenzarA15').addEventListener('click', () => {
-    paresEncontradosA15 = 0;
-    intentosA15 = 0;
-    cartaSeleccionadaA15 = null;
-    bloqueadoA15 = false;
-    document.getElementById('justificacionA15').value = '';
-    document.getElementById('aplicacionA15').value = '';
-    document.getElementById('seccionFinalA15').classList.add('hidden');
+    programa1A15 = '';
+    programa2A15 = '';
+    respuestasTablaA15 = {};
+    document.getElementById('btnFinalizarA15').disabled = true;
     document.getElementById('vistaInstrumentoA15').classList.add('hidden');
     document.getElementById('vistaEjercicioA15').classList.remove('hidden');
 
-    // Se arma el mazo: una tarjeta "programa" y una "característica" por cada par, mezcladas
-    const mazoSinMezclar = [];
-    PARES_A15_BASE.forEach(p => {
-      mazoSinMezclar.push({ parId:p.id, tipo:'programa', texto:p.programa });
-      mazoSinMezclar.push({ parId:p.id, tipo:'caracteristica', texto:p.caracteristica });
-    });
-    cartasA15 = barajar(mazoSinMezclar).map((c, i) => ({ ...c, cartaId:i, resuelta:false }));
-    pintarMemoriaA15();
+    pintarTablaComparativaA15();
 
     inicioTiempoA15 = Date.now();
     clearInterval(timerIntervalA15);
@@ -1889,109 +1880,84 @@
     }, 1000);
   });
 
-  function pintarMemoriaA15(){
-    const cont = document.getElementById('memoriaGridA15');
-    cont.innerHTML = cartasA15.map(c => `
-      <div class="memoria-carta tipo-${c.tipo} ${c.resuelta ? 'resuelta' : ''}" data-carta-id="${c.cartaId}">
-        <div class="memoria-carta-interior">
-          <div class="memoria-cara memoria-dorso"><i class="fa-solid fa-question"></i></div>
-          <div class="memoria-cara memoria-frente">${c.texto}</div>
-        </div>
-      </div>
+  function pintarTablaComparativaA15(){
+    const selectP1 = document.getElementById('selectPrograma1A15');
+    const selectP2 = document.getElementById('selectPrograma2A15');
+    const opcionesHtml = '<option value="">Selecciona el programa...</option>' +
+      PROGRAMAS_DISPONIBLES_A15.map(p => `<option value="${p}">${p}</option>`).join('');
+    selectP1.innerHTML = opcionesHtml;
+    selectP2.innerHTML = opcionesHtml;
+
+    selectP1.addEventListener('change', () => { programa1A15 = selectP1.value; actualizarEstadoFinalizarA15(); });
+    selectP2.addEventListener('change', () => { programa2A15 = selectP2.value; actualizarEstadoFinalizarA15(); });
+
+    const tbody = document.getElementById('tablaComparativaBodyA15');
+    tbody.innerHTML = PREGUNTAS_TABLA_A15.map((pregunta, i) => `
+      <tr>
+        <td>${pregunta}</td>
+        <td><textarea class="celda-respuesta-a15" data-pregunta="${i}" data-programa="1" rows="2"></textarea></td>
+        <td><textarea class="celda-respuesta-a15" data-pregunta="${i}" data-programa="2" rows="2"></textarea></td>
+      </tr>
     `).join('');
 
-    actualizarBarraProgreso('progresoA15', paresEncontradosA15, PARES_A15_BASE.length);
-
-    cont.querySelectorAll('.memoria-carta').forEach(el => {
-      el.addEventListener('click', () => manejarClicCartaA15(Number(el.dataset.cartaId), el));
+    tbody.querySelectorAll('.celda-respuesta-a15').forEach(campo => {
+      campo.addEventListener('input', () => {
+        const i = Number(campo.dataset.pregunta);
+        const prog = campo.dataset.programa;
+        if(!respuestasTablaA15[i]) respuestasTablaA15[i] = { p1:'', p2:'' };
+        respuestasTablaA15[i][prog === '1' ? 'p1' : 'p2'] = campo.value;
+        actualizarEstadoFinalizarA15();
+      });
     });
   }
 
-  function manejarClicCartaA15(cartaId, el){
-    if(bloqueadoA15) return;
-    const carta = cartasA15.find(c => c.cartaId === cartaId);
-    if(!carta || carta.resuelta) return;
-    if(cartaSeleccionadaA15 && cartaSeleccionadaA15.cartaId === cartaId) return;
-
-    el.classList.add('volteada');
-
-    if(!cartaSeleccionadaA15){
-      cartaSeleccionadaA15 = { ...carta, el };
-      return;
-    }
-
-    intentosA15++;
-    const primeraCarta = cartaSeleccionadaA15;
-    const segundaCarta = { ...carta, el };
-    bloqueadoA15 = true;
-
-    const esPar = primeraCarta.parId === segundaCarta.parId && primeraCarta.tipo !== segundaCarta.tipo;
-
-    if(esPar){
-      cartasA15.find(c => c.cartaId === primeraCarta.cartaId).resuelta = true;
-      cartasA15.find(c => c.cartaId === segundaCarta.cartaId).resuelta = true;
-      paresEncontradosA15++;
-      actualizarBarraProgreso('progresoA15', paresEncontradosA15, PARES_A15_BASE.length);
-
-      const colorPareja = COLORES_PAREJA_A15[(primeraCarta.parId - 1) % COLORES_PAREJA_A15.length];
-      [primeraCarta.el, segundaCarta.el].forEach(el => {
-        el.classList.add('resuelta');
-        const frente = el.querySelector('.memoria-frente');
-        frente.style.borderColor = colorPareja;
-        frente.style.background = colorPareja + '26'; // transparencia suave
-        frente.style.color = colorPareja;
-      });
-
-      cartaSeleccionadaA15 = null;
-      bloqueadoA15 = false;
-
-      if(paresEncontradosA15 >= PARES_A15_BASE.length){
-        document.getElementById('seccionFinalA15').classList.remove('hidden');
-        document.getElementById('btnFinalizarA15').disabled = false;
-      }
-    } else {
-      primeraCarta.el.classList.add('error');
-      segundaCarta.el.classList.add('error');
-      setTimeout(() => {
-        primeraCarta.el.classList.remove('volteada', 'error');
-        segundaCarta.el.classList.remove('volteada', 'error');
-        cartaSeleccionadaA15 = null;
-        bloqueadoA15 = false;
-      }, 900);
-    }
+  function actualizarEstadoFinalizarA15(){
+    const programasValidos = programa1A15 && programa2A15 && programa1A15 !== programa2A15;
+    const todasLasCeldasLlenas = PREGUNTAS_TABLA_A15.every((_, i) =>
+      (respuestasTablaA15[i] && respuestasTablaA15[i].p1 || '').trim().length > 0 && (respuestasTablaA15[i] && respuestasTablaA15[i].p2 || '').trim().length > 0
+    );
+    document.getElementById('btnFinalizarA15').disabled = !(programasValidos && todasLasCeldasLlenas);
   }
 
   document.getElementById('btnFinalizarA15').addEventListener('click', async () => {
     clearInterval(timerIntervalA15);
 
     const minutosTranscurridos = (Date.now() - inicioTiempoA15) / 60000;
-    const justificacion = document.getElementById('justificacionA15').value.trim();
-    const aplicacion = document.getElementById('aplicacionA15').value.trim();
+    const respuestasP1Completas = PREGUNTAS_TABLA_A15.filter((_, i) => ((respuestasTablaA15[i] && respuestasTablaA15[i].p1) || '').trim().length >= 3).length;
+    const respuestasP2Completas = PREGUNTAS_TABLA_A15.filter((_, i) => ((respuestasTablaA15[i] && respuestasTablaA15[i].p2) || '').trim().length >= 3).length;
+    const indiceDiferencia = PREGUNTAS_TABLA_A15.length - 1;
+    const diferenciaCompleta = ((respuestasTablaA15[indiceDiferencia] && respuestasTablaA15[indiceDiferencia].p1) || '').trim().length >= 15 &&
+      ((respuestasTablaA15[indiceDiferencia] && respuestasTablaA15[indiceDiferencia].p2) || '').trim().length >= 15;
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A15[0].nombre, descripcion: CRITERIOS_BASE_A15[0].descripcion, nivel: 'cumple' });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A15[1].nombre, descripcion: CRITERIOS_BASE_A15[1].descripcion,
-      nivel: intentosA15 <= 10 ? 'cumple' : 'no_cumple'
+      nivel: (programa1A15 && programa2A15 && programa1A15 !== programa2A15) ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A15[2].nombre, descripcion: CRITERIOS_BASE_A15[2].descripcion,
-      nivel: justificacion.length >= 20 ? 'cumple' : 'no_cumple'
+      nivel: respuestasP1Completas >= PREGUNTAS_TABLA_A15.length ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A15[3].nombre, descripcion: CRITERIOS_BASE_A15[3].descripcion,
-      nivel: aplicacion.length >= 20 ? 'cumple' : 'no_cumple'
+      nivel: respuestasP2Completas >= PREGUNTAS_TABLA_A15.length ? 'cumple' : 'no_cumple'
     });
 
     criterios.push({
       nombre: CRITERIOS_BASE_A15[4].nombre, descripcion: CRITERIOS_BASE_A15[4].descripcion,
+      nivel: diferenciaCompleta ? 'cumple' : 'no_cumple'
+    });
+
+    criterios.push({
+      nombre: CRITERIOS_BASE_A15[5].nombre, descripcion: CRITERIOS_BASE_A15[5].descripcion,
       nivel: minutosTranscurridos <= tiempoEstimadoA15 * 1.5 ? 'cumple' : 'no_cumple'
     });
 
-    criterios.push({ nombre: CRITERIOS_BASE_A15[5].nombre, descripcion: CRITERIOS_BASE_A15[5].descripcion, nivel: 'cumple' });
+    criterios.push({ nombre: CRITERIOS_BASE_A15[6].nombre, descripcion: CRITERIOS_BASE_A15[6].descripcion, nivel: 'cumple' });
 
     const pesoUnidad = puntajeMaxA15 / criterios.length;
     let notaCalculada = 0;
@@ -2010,19 +1976,20 @@
 
     const detalleA15 = [
       {
-        titulo: `Sección 1 — Parejas encontradas (en ${intentosA15} intentos)`,
-        items: PARES_A15_BASE.map(p => ({
-          pregunta: p.programa,
-          tuRespuesta: p.caracteristica,
-          correcta: true
+        titulo: `Programa 1 — ${programa1A15}`,
+        items: PREGUNTAS_TABLA_A15.map((pregunta, i) => ({
+          pregunta,
+          tuRespuesta: (respuestasTablaA15[i] && respuestasTablaA15[i].p1) || 'Sin responder',
+          correcta: ((respuestasTablaA15[i] && respuestasTablaA15[i].p1) || '').trim().length >= 3
         }))
       },
       {
-        titulo: 'Sección 2 — Reflexión',
-        items: [
-          { pregunta: 'Justificación de las coincidencias elegidas', tuRespuesta: justificacion || 'Sin responder', correcta: justificacion.length >= 20 },
-          { pregunta: 'Recomendación para una pequeña empresa dominicana', tuRespuesta: aplicacion || 'Sin responder', correcta: aplicacion.length >= 20 }
-        ]
+        titulo: `Programa 2 — ${programa2A15}`,
+        items: PREGUNTAS_TABLA_A15.map((pregunta, i) => ({
+          pregunta,
+          tuRespuesta: (respuestasTablaA15[i] && respuestasTablaA15[i].p2) || 'Sin responder',
+          correcta: ((respuestasTablaA15[i] && respuestasTablaA15[i].p2) || '').trim().length >= 3
+        }))
       }
     ];
     ultimoResultadoA15.detalle = detalleA15;
