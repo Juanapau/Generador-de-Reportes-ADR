@@ -4236,7 +4236,7 @@
     document.getElementById('vistaInstrumentoA21').classList.add('hidden');
     document.getElementById('vistaEjercicioA21').classList.remove('hidden');
 
-    pintarLienzoDisenoA21();
+    pintarSeccionDisenoYVistasA21();
 
     inicioTiempoA21 = Date.now();
     clearInterval(timerIntervalA21);
@@ -4248,186 +4248,17 @@
     }, 1000);
   });
 
-  function pintarLienzoDisenoA21(){
-    actualizarBarraProgreso('progresoA21', [encReporteCorrectoA21, detalleCorrectoA21, encPaginaCorrectoA21].filter(Boolean).length, 3);
+  // ---------- Sección de diseño + 3 vistas, todo en una sola pantalla con pestañas ----------
+  const DESCRIPCIONES_SECCION_A21 = {
+    encReporte: 'Debe contener el nombre de la empresa y el título del reporte. Aparece una sola vez, al principio de todo el documento.',
+    detalle: 'Se repite una vez por cada registro de datos — es el cuerpo del reporte, donde va la información detallada de cada venta.',
+    encPagina: 'Se repite en la parte superior de cada página, con los títulos de columna y el número de página.'
+  };
 
-    const campos = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.campos) || [];
-    const camposDisponibles = campos.filter(c => !camposColocadosDetalleA21.includes(c));
-
-    pintarVentanaInstaladorSimulado('disenadorReporteA21', 'NexaReport — Vista de Diseño: Reporte de Ventas', `
-      <p>Estás en la <b>Vista de Diseño</b> de tu reporte de ventas para TECNOVENTAS RD. Completa cada sección y haz clic en "Verificar diseño".</p>
-
-      <div class="lienzo-diseno-a21">
-        <div class="caja-diseno-a21 ${encReporteCorrectoA21 ? 'correcta' : ''}" id="cajaEncReporteA21">
-          <div class="caja-diseno-titulo"><i class="fa-solid fa-heading"></i> Encabezado de reporte</div>
-          <input type="text" id="inputNombreEmpresaA21" class="input-generico" placeholder="Nombre de la empresa..." ${encReporteCorrectoA21 ? 'disabled' : ''} value="${nombreEmpresaValorA21.replace(/"/g,'&quot;')}">
-          <input type="text" id="inputTituloReporteA21" class="input-generico" placeholder="Título del reporte..." style="margin-top:8px;" ${encReporteCorrectoA21 ? 'disabled' : ''} value="${tituloReporteValorA21.replace(/"/g,'&quot;')}">
-        </div>
-
-        <div style="display:flex; gap:16px; flex-wrap:wrap;">
-          <div class="caja-diseno-a21 ${detalleCorrectoA21 ? 'correcta' : ''}" id="cajaDetalleA21" style="flex:1.3; min-width:260px;">
-            <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
-            <div class="zona-arrastre-a21" id="zonaDetalleA21">
-              ${camposColocadosDetalleA21.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
-                camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
-            </div>
-          </div>
-
-          <div class="caja-diseno-a21" id="cajaCamposDisponiblesA21" style="flex:1; min-width:220px;">
-            <div class="caja-diseno-titulo"><i class="fa-solid fa-database"></i> Campos disponibles</div>
-            <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
-            <select id="selectTablaDetalleA21" class="input-generico" ${detalleCorrectoA21 ? 'disabled' : ''}>
-              <option value="" ${tablaSeleccionadaDetalleA21 ? '' : 'selected disabled'}>Selecciona una tabla...</option>
-              ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${tablaSeleccionadaDetalleA21 === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
-            </select>
-            ${camposDisponibles.length > 0 ? `
-              <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
-              <div class="pool-campos-a21" id="poolCamposA21">
-                ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA21 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${c}</span>`).join('')}
-              </div>` : ''}
-          </div>
-        </div>
-
-        <div class="caja-diseno-a21 ${encPaginaCorrectoA21 ? 'correcta' : ''}" id="cajaEncPaginaA21">
-          <div class="caja-diseno-titulo"><i class="fa-solid fa-file-lines"></i> Encabezado de página</div>
-          <div class="columnas-generadas-a21" id="columnasGeneradasA21">${camposColocadosDetalleA21.length ? camposColocadosDetalleA21.join(' | ') : 'Los títulos de columna aparecerán aquí según los campos que arrastres en la línea de detalle...'}</div>
-          <div class="instalador-checkbox" id="checkboxNumPaginaA21" style="margin-top:10px; justify-content:flex-start; cursor:pointer;">
-            <span class="caja ${numPaginaMarcadoA21 ? 'marcada' : ''}"></span> Incluir número de página
-          </div>
-        </div>
-      </div>
-
-      <div id="feedbackDisenoA21"></div>
-      <div class="instalador-botones">
-        <button type="button" class="instalador-btn primario" id="btnVerificarDisenoA21">
-          <i class="fa-solid fa-check"></i> Verificar diseño
-        </button>
-      </div>`);
-
-    // Encabezado de reporte: guarda lo que va escribiendo (para que no se pierda al repintar)
-    if(!encReporteCorrectoA21){
-      document.getElementById('inputNombreEmpresaA21').addEventListener('input', (e) => { nombreEmpresaValorA21 = e.target.value; });
-      document.getElementById('inputTituloReporteA21').addEventListener('input', (e) => { tituloReporteValorA21 = e.target.value; });
-    }
-
-    // Selector de tabla: al cambiar, carga sus campos reales y reinicia lo ya colocado
-    if(!detalleCorrectoA21){
-      document.getElementById('selectTablaDetalleA21').addEventListener('change', async (e) => {
-        tablaSeleccionadaDetalleA21 = e.target.value;
-        camposColocadosDetalleA21 = [];
-        campoSeleccionadoA21 = null;
-        document.getElementById('disenadorReporteA21').innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando campos de la tabla...</div>';
-        datosTablaSeleccionadaA21 = tablaSeleccionadaDetalleA21 ? await cargarTablaDatos(tablaSeleccionadaDetalleA21) : null;
-        pintarLienzoDisenoA21();
-      });
-    }
-
-    // Campos del pool: clic para seleccionar (accesible en táctil)
-    document.querySelectorAll('#poolCamposA21 .campo-chip-a21').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const campo = chip.dataset.id;
-        campoSeleccionadoA21 = campoSeleccionadoA21 === campo ? null : campo;
-        pintarLienzoDisenoA21();
-      });
-    });
-
-    // Campos ya colocados: clic para quitar
-    document.querySelectorAll('#zonaDetalleA21 .campo-chip-a21.colocado').forEach(chip => {
-      chip.addEventListener('click', () => {
-        if(detalleCorrectoA21) return;
-        camposColocadosDetalleA21 = camposColocadosDetalleA21.filter(c => c !== chip.dataset.id);
-        pintarLienzoDisenoA21();
-      });
-    });
-
-    // Zona de detalle: clic para colocar el campo seleccionado, o soltar (drag) directamente
-    const zonaDetalle = document.getElementById('zonaDetalleA21');
-    if(!detalleCorrectoA21){
-      zonaDetalle.addEventListener('click', () => {
-        if(campoSeleccionadoA21 && !camposColocadosDetalleA21.includes(campoSeleccionadoA21)){
-          camposColocadosDetalleA21.push(campoSeleccionadoA21);
-          campoSeleccionadoA21 = null;
-          pintarLienzoDisenoA21();
-        }
-      });
-      const chipsArrastrables = document.querySelectorAll('#poolCamposA21 .campo-chip-a21[draggable="true"]');
-      habilitarArrastre(chipsArrastrables, [zonaDetalle], (campoArrastrado) => {
-        if(!camposColocadosDetalleA21.includes(campoArrastrado)){
-          camposColocadosDetalleA21.push(campoArrastrado);
-          campoSeleccionadoA21 = null;
-          pintarLienzoDisenoA21();
-        }
-      });
-    }
-
-    // Checkbox de número de página
-    if(!encPaginaCorrectoA21){
-      document.getElementById('checkboxNumPaginaA21').addEventListener('click', () => {
-        numPaginaMarcadoA21 = !numPaginaMarcadoA21;
-        pintarLienzoDisenoA21();
-      });
-    }
-
-    document.getElementById('btnVerificarDisenoA21').addEventListener('click', verificarDisenoA21);
-  }
-
-  function verificarDisenoA21(){
-    const mensajes = [];
-
-    if(!encReporteCorrectoA21){
-      intentosPorSeccionA21.encReporte++;
-      const empresaOk = normalizarTextoA15_(nombreEmpresaValorA21).includes('tecnoventas');
-      const tituloOk = normalizarTextoA15_(tituloReporteValorA21).includes('venta');
-      if(empresaOk && tituloOk){
-        encReporteCorrectoA21 = true;
-      } else {
-        mensajes.push('El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione que es un reporte de ventas.');
-      }
-    }
-
-    if(!detalleCorrectoA21){
-      intentosPorSeccionA21.detalle++;
-      const seleccion = [...camposColocadosDetalleA21].sort();
-      const correcta = [...CAMPOS_CORRECTOS_DETALLE_A21].sort();
-      const camposOk = seleccion.length === correcta.length && seleccion.every((c, i) => c === correcta[i]);
-      const tablaOk = tablaSeleccionadaDetalleA21 === 'DB_Ventas';
-      if(camposOk && tablaOk){
-        detalleCorrectoA21 = true;
-      } else if(!tablaOk){
-        mensajes.push('La <b>línea de detalle</b> debe construirse con la tabla de <b>Ventas</b> — recuerda que este reporte es de ventas.');
-      } else {
-        mensajes.push('La <b>línea de detalle</b> no tiene los campos correctos todavía (ni de más, ni de menos).');
-      }
-    }
-
-    if(!encPaginaCorrectoA21){
-      intentosPorSeccionA21.encPagina++;
-      if(detalleCorrectoA21 && numPaginaMarcadoA21){
-        encPaginaCorrectoA21 = true;
-      } else {
-        mensajes.push('El <b>encabezado de página</b> necesita los títulos de columna (completa primero la línea de detalle) y el número de página marcado.');
-      }
-    }
-
-    if(mensajes.length > 0){
-      document.getElementById('feedbackDisenoA21').innerHTML = mensajes.map(m =>
-        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
-      ).join('');
-    }
-
-    if(encReporteCorrectoA21 && detalleCorrectoA21 && encPaginaCorrectoA21){
-      pintarNavegadorVistasA21();
-    } else {
-      pintarLienzoDisenoA21();
-    }
-  }
-
-  // ---------- Recorrido de las 3 vistas del reporte ya diseñado ----------
-  function pintarNavegadorVistasA21(){
+  function pintarSeccionDisenoYVistasA21(){
     const cont = document.getElementById('disenadorReporteA21');
     cont.innerHTML = `
-      <div class="section-heading" style="font-size:17px;">Recorre las 3 vistas de tu reporte</div>
-      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Visita las 3 pestañas para ver cómo se ve tu reporte en cada etapa.</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Diseña tu reporte en la pestaña "Vista de Diseño" y verifica cuando estés listo. Puedes volver a esa pestaña en cualquier momento para hacer cambios.</div>
       <div class="vistas-tabs" id="vistasTabsA21"></div>
       <div id="vistaContenidoA21"></div>
       <div id="continuarVistasWrapA21"></div>`;
@@ -4457,7 +4288,18 @@
     vistasVisitadasA21.add(vista);
     pintarTabsVistasA21();
     pintarContenidoVistaA21(vista);
-    if(vistasVisitadasA21.size >= 3) mostrarBotonContinuarVistasA21();
+    actualizarContinuarA21();
+  }
+
+  function actualizarContinuarA21(){
+    const disenoListo = encReporteCorrectoA21 && detalleCorrectoA21 && encPaginaCorrectoA21;
+    const wrap = document.getElementById('continuarVistasWrapA21');
+    if(!wrap) return;
+    if(disenoListo && vistasVisitadasA21.size >= 3){
+      mostrarBotonContinuarVistasA21();
+    } else {
+      wrap.innerHTML = '';
+    }
   }
 
   function pintarContenidoVistaA21(vista){
@@ -4466,32 +4308,131 @@
     const nombreEmpresa = nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.';
     const tituloReporte = tituloReporteValorA21 || 'Reporte de Ventas';
 
-    // La pestaña de Diseño debe verse como la ventana de diseño real (donde construyó
-    // el reporte), no como un mockup de reporte impreso — eso es lo que la distingue
-    // de las otras 2 vistas.
+    // ---- Pestaña "Vista de Diseño": el lienzo editable de verdad (siempre se puede volver aquí) ----
     if(vista === 'diseno'){
+      const campos = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.campos) || [];
+      const camposDisponibles = campos.filter(c => !camposColocadosDetalleA21.includes(c));
+
       cont.innerHTML = `
         <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+
         <div class="lienzo-diseno-a21">
-          <div class="caja-diseno-a21 correcta">
+          <div class="caja-diseno-a21 ${encReporteCorrectoA21 ? 'correcta' : ''}" id="cajaEncReporteA21">
             <div class="caja-diseno-titulo"><i class="fa-solid fa-heading"></i> Encabezado de reporte</div>
-            <input type="text" class="input-generico" disabled value="${nombreEmpresa.replace(/"/g,'&quot;')}">
-            <input type="text" class="input-generico" disabled value="${tituloReporte.replace(/"/g,'&quot;')}" style="margin-top:8px;">
+            <input type="text" id="inputNombreEmpresaA21" class="input-generico" placeholder="Nombre de la empresa..." value="${nombreEmpresaValorA21.replace(/"/g,'&quot;')}">
+            <input type="text" id="inputTituloReporteA21" class="input-generico" placeholder="Título del reporte..." style="margin-top:8px;" value="${tituloReporteValorA21.replace(/"/g,'&quot;')}">
+            <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A21.encReporte}</p>
           </div>
-          <div class="caja-diseno-a21 correcta">
-            <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
-            <div class="zona-arrastre-a21">
-              ${camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado">${c}</span>`).join('')}
+
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div class="caja-diseno-a21 ${detalleCorrectoA21 ? 'correcta' : ''}" id="cajaDetalleA21" style="flex:1.3; min-width:260px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
+              <div class="zona-arrastre-a21" id="zonaDetalleA21">
+                ${camposColocadosDetalleA21.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
+                  camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+              </div>
+              <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A21.detalle}</p>
+            </div>
+
+            <div class="caja-diseno-a21" id="cajaCamposDisponiblesA21" style="flex:1; min-width:220px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-database"></i> Campos disponibles</div>
+              <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
+              <select id="selectTablaDetalleA21" class="input-generico">
+                <option value="" ${tablaSeleccionadaDetalleA21 ? '' : 'selected disabled'}>Selecciona una tabla...</option>
+                ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${tablaSeleccionadaDetalleA21 === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
+              </select>
+              ${camposDisponibles.length > 0 ? `
+                <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
+                <div class="pool-campos-a21" id="poolCamposA21">
+                  ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA21 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${c}</span>`).join('')}
+                </div>` : ''}
             </div>
           </div>
-          <div class="caja-diseno-a21 correcta">
+
+          <div class="caja-diseno-a21 ${encPaginaCorrectoA21 ? 'correcta' : ''}" id="cajaEncPaginaA21">
             <div class="caja-diseno-titulo"><i class="fa-solid fa-file-lines"></i> Encabezado de página</div>
-            <div class="columnas-generadas-a21">${camposColocadosDetalleA21.join(' | ')}</div>
-            <div class="instalador-checkbox" style="margin-top:10px; justify-content:flex-start;">
-              <span class="caja marcada"></span> Incluir número de página
+            <div class="columnas-generadas-a21" id="columnasGeneradasA21">${camposColocadosDetalleA21.length ? camposColocadosDetalleA21.join(' | ') : 'Los títulos de columna aparecerán aquí según los campos que arrastres en la línea de detalle...'}</div>
+            <div class="instalador-checkbox" id="checkboxNumPaginaA21" style="margin-top:10px; justify-content:flex-start; cursor:pointer;">
+              <span class="caja ${numPaginaMarcadoA21 ? 'marcada' : ''}"></span> Incluir número de página
             </div>
+            <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A21.encPagina}</p>
           </div>
+        </div>
+
+        <div id="feedbackDisenoA21"></div>
+        <div class="instalador-botones">
+          <button type="button" class="instalador-btn primario" id="btnVerificarDisenoA21">
+            <i class="fa-solid fa-check"></i> Verificar diseño
+          </button>
         </div>`;
+
+      // Encabezado de reporte: guarda lo que va escribiendo (para que no se pierda al repintar)
+      document.getElementById('inputNombreEmpresaA21').addEventListener('input', (e) => { nombreEmpresaValorA21 = e.target.value; });
+      document.getElementById('inputTituloReporteA21').addEventListener('input', (e) => { tituloReporteValorA21 = e.target.value; });
+
+      // Selector de tabla: al cambiar, carga sus campos reales y reinicia lo ya colocado
+      document.getElementById('selectTablaDetalleA21').addEventListener('change', async (e) => {
+        tablaSeleccionadaDetalleA21 = e.target.value;
+        camposColocadosDetalleA21 = [];
+        campoSeleccionadoA21 = null;
+        detalleCorrectoA21 = false;
+        encPaginaCorrectoA21 = false;
+        cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando campos de la tabla...</div>';
+        datosTablaSeleccionadaA21 = tablaSeleccionadaDetalleA21 ? await cargarTablaDatos(tablaSeleccionadaDetalleA21) : null;
+        pintarContenidoVistaA21('diseno');
+        actualizarContinuarA21();
+      });
+
+      // Campos del pool: clic para seleccionar (accesible en táctil)
+      document.querySelectorAll('#poolCamposA21 .campo-chip-a21').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const campo = chip.dataset.id;
+          campoSeleccionadoA21 = campoSeleccionadoA21 === campo ? null : campo;
+          pintarContenidoVistaA21('diseno');
+        });
+      });
+
+      // Campos ya colocados: clic para quitar
+      document.querySelectorAll('#zonaDetalleA21 .campo-chip-a21.colocado').forEach(chip => {
+        chip.addEventListener('click', () => {
+          camposColocadosDetalleA21 = camposColocadosDetalleA21.filter(c => c !== chip.dataset.id);
+          pintarContenidoVistaA21('diseno');
+        });
+      });
+
+      // Zona de detalle: clic para colocar el campo seleccionado, o soltar (drag) directamente
+      const zonaDetalle = document.getElementById('zonaDetalleA21');
+      zonaDetalle.addEventListener('click', () => {
+        if(campoSeleccionadoA21 && !camposColocadosDetalleA21.includes(campoSeleccionadoA21)){
+          camposColocadosDetalleA21.push(campoSeleccionadoA21);
+          campoSeleccionadoA21 = null;
+          pintarContenidoVistaA21('diseno');
+        }
+      });
+      const chipsArrastrables = document.querySelectorAll('#poolCamposA21 .campo-chip-a21[draggable="true"]');
+      habilitarArrastre(chipsArrastrables, [zonaDetalle], (campoArrastrado) => {
+        if(!camposColocadosDetalleA21.includes(campoArrastrado)){
+          camposColocadosDetalleA21.push(campoArrastrado);
+          campoSeleccionadoA21 = null;
+          pintarContenidoVistaA21('diseno');
+        }
+      });
+
+      // Checkbox de número de página
+      document.getElementById('checkboxNumPaginaA21').addEventListener('click', () => {
+        numPaginaMarcadoA21 = !numPaginaMarcadoA21;
+        pintarContenidoVistaA21('diseno');
+      });
+
+      document.getElementById('btnVerificarDisenoA21').addEventListener('click', verificarDisenoA21);
+      return;
+    }
+
+    // ---- Pestañas de Previsualización y Ejecución ----
+    if(camposColocadosDetalleA21.length === 0){
+      cont.innerHTML = `
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+        <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-circle-info"></i> Todavía no has agregado campos a la línea de detalle en la Vista de Diseño. Vuelve a esa pestaña para completarlo.</div>`;
       return;
     }
 
@@ -4520,6 +4461,52 @@
         </div>
         ${filasHtml}
       </div>`;
+  }
+
+  function verificarDisenoA21(){
+    const mensajes = [];
+
+    const empresaOk = normalizarTextoA15_(nombreEmpresaValorA21).includes('tecnoventas');
+    const tituloOk = normalizarTextoA15_(tituloReporteValorA21).includes('venta');
+    if(empresaOk && tituloOk){
+      encReporteCorrectoA21 = true;
+    } else {
+      if(!encReporteCorrectoA21) intentosPorSeccionA21.encReporte++;
+      encReporteCorrectoA21 = false;
+      mensajes.push('El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione que es un reporte de ventas.');
+    }
+
+    const seleccion = [...camposColocadosDetalleA21].sort();
+    const correcta = [...CAMPOS_CORRECTOS_DETALLE_A21].sort();
+    const camposOk = seleccion.length === correcta.length && seleccion.every((c, i) => c === correcta[i]);
+    const tablaOk = tablaSeleccionadaDetalleA21 === 'DB_Ventas';
+    if(camposOk && tablaOk){
+      detalleCorrectoA21 = true;
+    } else {
+      if(!detalleCorrectoA21) intentosPorSeccionA21.detalle++;
+      detalleCorrectoA21 = false;
+      mensajes.push(!tablaOk
+        ? 'La <b>línea de detalle</b> debe construirse con la tabla de <b>Ventas</b> — recuerda que este reporte es de ventas.'
+        : 'La <b>línea de detalle</b> no tiene los campos correctos todavía (ni de más, ni de menos).');
+    }
+
+    if(detalleCorrectoA21 && numPaginaMarcadoA21){
+      encPaginaCorrectoA21 = true;
+    } else {
+      if(!encPaginaCorrectoA21) intentosPorSeccionA21.encPagina++;
+      encPaginaCorrectoA21 = false;
+      mensajes.push('El <b>encabezado de página</b> necesita los títulos de columna (completa primero la línea de detalle) y el número de página marcado.');
+    }
+
+    pintarContenidoVistaA21('diseno');
+    if(mensajes.length > 0){
+      document.getElementById('feedbackDisenoA21').innerHTML = mensajes.map(m =>
+        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
+      ).join('');
+    } else {
+      document.getElementById('feedbackDisenoA21').innerHTML = `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ¡El diseño está completo y correcto! Recorre ahora las otras 2 vistas.</div>`;
+    }
+    actualizarContinuarA21();
   }
 
   function mostrarBotonContinuarVistasA21(){
