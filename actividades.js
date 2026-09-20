@@ -4138,7 +4138,8 @@
     { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
   ];
 
-  let datosVentasA21 = null;
+  let tablaSeleccionadaDetalleA21 = '';
+  let datosTablaSeleccionadaA21 = null;
   let nombreEmpresaValorA21 = '';
   let tituloReporteValorA21 = '';
   let camposColocadosDetalleA21 = [];
@@ -4200,6 +4201,8 @@
   document.getElementById('btnComenzarA21').addEventListener('click', async () => {
     nombreEmpresaValorA21 = '';
     tituloReporteValorA21 = '';
+    tablaSeleccionadaDetalleA21 = '';
+    datosTablaSeleccionadaA21 = null;
     camposColocadosDetalleA21 = [];
     campoSeleccionadoA21 = null;
     numPaginaMarcadoA21 = false;
@@ -4212,9 +4215,7 @@
     document.getElementById('seccionFinalA21').classList.add('hidden');
     document.getElementById('vistaInstrumentoA21').classList.add('hidden');
     document.getElementById('vistaEjercicioA21').classList.remove('hidden');
-    document.getElementById('disenadorReporteA21').innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando la tabla de ventas...</div>';
 
-    datosVentasA21 = await cargarTablaDatos('DB_Ventas');
     pintarLienzoDisenoA21();
 
     inicioTiempoA21 = Date.now();
@@ -4230,7 +4231,7 @@
   function pintarLienzoDisenoA21(){
     actualizarBarraProgreso('progresoA21', [encReporteCorrectoA21, detalleCorrectoA21, encPaginaCorrectoA21].filter(Boolean).length, 3);
 
-    const campos = (datosVentasA21 && datosVentasA21.campos) || ['Fecha','Producto','Categoria','Cantidad','PrecioUnitario','Vendedor'];
+    const campos = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.campos) || [];
     const camposDisponibles = campos.filter(c => !camposColocadosDetalleA21.includes(c));
 
     pintarVentanaInstaladorSimulado('disenadorReporteA21', 'NexaReport — Vista de Diseño: Reporte de Ventas', `
@@ -4245,26 +4246,36 @@
 
         <div class="caja-diseno-a21 ${detalleCorrectoA21 ? 'correcta' : ''}" id="cajaDetalleA21">
           <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
-          <div class="zona-arrastre-a21" id="zonaDetalleA21">
-            ${camposColocadosDetalleA21.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
-              camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado" data-campo="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div style="flex:2; min-width:220px;">
+              <div class="zona-arrastre-a21" id="zonaDetalleA21">
+                ${camposColocadosDetalleA21.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
+                  camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+              </div>
+            </div>
+            <div style="flex:1; min-width:200px;">
+              <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
+              <select id="selectTablaDetalleA21" class="input-generico" ${detalleCorrectoA21 ? 'disabled' : ''}>
+                <option value="" ${tablaSeleccionadaDetalleA21 ? '' : 'selected disabled'}>Selecciona una tabla...</option>
+                ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${tablaSeleccionadaDetalleA21 === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
+              </select>
+              ${camposDisponibles.length > 0 ? `
+                <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
+                <div class="pool-campos-a21" id="poolCamposA21">
+                  ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA21 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${c}</span>`).join('')}
+                </div>` : ''}
+            </div>
           </div>
         </div>
 
         <div class="caja-diseno-a21 ${encPaginaCorrectoA21 ? 'correcta' : ''}" id="cajaEncPaginaA21">
           <div class="caja-diseno-titulo"><i class="fa-solid fa-file-lines"></i> Encabezado de página</div>
-          <div class="columnas-generadas-a21" id="columnasGeneradasA21">${camposColocadosDetalleA21.length ? camposColocadosDetalleA21.join(' | ') : 'Los títulos de columna aparecerán aquí según los campos que arrastres abajo...'}</div>
+          <div class="columnas-generadas-a21" id="columnasGeneradasA21">${camposColocadosDetalleA21.length ? camposColocadosDetalleA21.join(' | ') : 'Los títulos de columna aparecerán aquí según los campos que arrastres en la línea de detalle...'}</div>
           <div class="instalador-checkbox" id="checkboxNumPaginaA21" style="margin-top:10px; justify-content:flex-start; cursor:pointer;">
             <span class="caja ${numPaginaMarcadoA21 ? 'marcada' : ''}"></span> Incluir número de página
           </div>
         </div>
       </div>
-
-      ${camposDisponibles.length > 0 ? `
-        <p style="margin-top:14px; font-size:12.5px; opacity:.75;">Campos disponibles de la tabla Ventas (arrastra, o toca uno y luego toca la línea de detalle):</p>
-        <div class="pool-campos-a21" id="poolCamposA21">
-          ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA21 === c ? 'seleccionado' : ''}" draggable="true" data-campo="${c}">${c}</span>`).join('')}
-        </div>` : ''}
 
       <div id="feedbackDisenoA21"></div>
       <div class="instalador-botones">
@@ -4279,10 +4290,22 @@
       document.getElementById('inputTituloReporteA21').addEventListener('input', (e) => { tituloReporteValorA21 = e.target.value; });
     }
 
+    // Selector de tabla: al cambiar, carga sus campos reales y reinicia lo ya colocado
+    if(!detalleCorrectoA21){
+      document.getElementById('selectTablaDetalleA21').addEventListener('change', async (e) => {
+        tablaSeleccionadaDetalleA21 = e.target.value;
+        camposColocadosDetalleA21 = [];
+        campoSeleccionadoA21 = null;
+        document.getElementById('disenadorReporteA21').innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando campos de la tabla...</div>';
+        datosTablaSeleccionadaA21 = tablaSeleccionadaDetalleA21 ? await cargarTablaDatos(tablaSeleccionadaDetalleA21) : null;
+        pintarLienzoDisenoA21();
+      });
+    }
+
     // Campos del pool: clic para seleccionar (accesible en táctil)
     document.querySelectorAll('#poolCamposA21 .campo-chip-a21').forEach(chip => {
       chip.addEventListener('click', () => {
-        const campo = chip.dataset.campo;
+        const campo = chip.dataset.id;
         campoSeleccionadoA21 = campoSeleccionadoA21 === campo ? null : campo;
         pintarLienzoDisenoA21();
       });
@@ -4292,7 +4315,7 @@
     document.querySelectorAll('#zonaDetalleA21 .campo-chip-a21.colocado').forEach(chip => {
       chip.addEventListener('click', () => {
         if(detalleCorrectoA21) return;
-        camposColocadosDetalleA21 = camposColocadosDetalleA21.filter(c => c !== chip.dataset.campo);
+        camposColocadosDetalleA21 = camposColocadosDetalleA21.filter(c => c !== chip.dataset.id);
         pintarLienzoDisenoA21();
       });
     });
@@ -4346,9 +4369,12 @@
       intentosPorSeccionA21.detalle++;
       const seleccion = [...camposColocadosDetalleA21].sort();
       const correcta = [...CAMPOS_CORRECTOS_DETALLE_A21].sort();
-      const esCorrecta = seleccion.length === correcta.length && seleccion.every((c, i) => c === correcta[i]);
-      if(esCorrecta){
+      const camposOk = seleccion.length === correcta.length && seleccion.every((c, i) => c === correcta[i]);
+      const tablaOk = tablaSeleccionadaDetalleA21 === 'DB_Ventas';
+      if(camposOk && tablaOk){
         detalleCorrectoA21 = true;
+      } else if(!tablaOk){
+        mensajes.push('La <b>línea de detalle</b> debe construirse con la tabla de <b>Ventas</b> — recuerda que este reporte es de ventas.');
       } else {
         mensajes.push('La <b>línea de detalle</b> no tiene los campos correctos todavía (ni de más, ni de menos).');
       }
@@ -4379,7 +4405,7 @@
   function pintarVistaPreviaFinalA21(){
     mostrandoVistaPreviaA21 = true;
     document.getElementById('disenadorReporteA21').innerHTML = '';
-    const filasDetalle = (datosVentasA21 && datosVentasA21.datos ? datosVentasA21.datos.slice(0, 3) : [])
+    const filasDetalle = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos ? datosTablaSeleccionadaA21.datos.slice(0, 3) : [])
       .map(f => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">${f.Producto}</span><span style="flex:1;">${f.Cantidad}</span><span style="flex:1;">RD$${Number(f.PrecioUnitario).toLocaleString('es-DO',{minimumFractionDigits:2})}</span></div>`)
       .join('');
 
