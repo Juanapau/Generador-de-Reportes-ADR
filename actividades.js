@@ -4466,10 +4466,37 @@
     const nombreEmpresa = nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.';
     const tituloReporte = tituloReporteValorA21 || 'Reporte de Ventas';
 
-    let filasHtml = '';
+    // La pestaña de Diseño debe verse como la ventana de diseño real (donde construyó
+    // el reporte), no como un mockup de reporte impreso — eso es lo que la distingue
+    // de las otras 2 vistas.
     if(vista === 'diseno'){
-      filasHtml = `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.5;">${camposColocadosDetalleA21.map(() => `<span style="flex:1;">—</span>`).join('')}</div>`;
-    } else if(vista === 'previsualizacion'){
+      cont.innerHTML = `
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+        <div class="lienzo-diseno-a21">
+          <div class="caja-diseno-a21 correcta">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-heading"></i> Encabezado de reporte</div>
+            <input type="text" class="input-generico" disabled value="${nombreEmpresa.replace(/"/g,'&quot;')}">
+            <input type="text" class="input-generico" disabled value="${tituloReporte.replace(/"/g,'&quot;')}" style="margin-top:8px;">
+          </div>
+          <div class="caja-diseno-a21 correcta">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
+            <div class="zona-arrastre-a21">
+              ${camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado">${c}</span>`).join('')}
+            </div>
+          </div>
+          <div class="caja-diseno-a21 correcta">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-file-lines"></i> Encabezado de página</div>
+            <div class="columnas-generadas-a21">${camposColocadosDetalleA21.join(' | ')}</div>
+            <div class="instalador-checkbox" style="margin-top:10px; justify-content:flex-start;">
+              <span class="caja marcada"></span> Incluir número de página
+            </div>
+          </div>
+        </div>`;
+      return;
+    }
+
+    let filasHtml = '';
+    if(vista === 'previsualizacion'){
       filasHtml = [1, 2].map(() => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.6;">${camposColocadosDetalleA21.map(() => `<span style="flex:1;">[muestra]</span>`).join('')}</div>`).join('');
     } else if(vista === 'ejecucion'){
       const filas = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) ? datosTablaSeleccionadaA21.datos.slice(0, 3) : [];
