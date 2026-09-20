@@ -4127,6 +4127,7 @@
   // filtros, gráficos...).
 
   const CAMPOS_CORRECTOS_DETALLE_A21 = ['Producto', 'Cantidad', 'PrecioUnitario'];
+  const CAMPOS_CORRECTOS_FINALES_A21 = ['Producto', 'Cantidad', 'PrecioUnitario', 'Vendedor'];
 
   const CRITERIOS_BASE_A21 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
@@ -4251,17 +4252,16 @@
   // ---------- Sección de diseño + 3 vistas, todo en una sola pantalla con pestañas ----------
   const DESCRIPCIONES_SECCION_A21 = {
     encReporte: 'Debe contener el nombre de la empresa y el título del reporte. Aparece una sola vez, al principio de todo el documento.',
-    detalle: 'Se repite una vez por cada registro de datos — es el cuerpo del reporte, donde va la información detallada de cada venta.',
+    detalle: 'Debes arrastrar exactamente estos 3 campos: <b>Producto</b>, <b>Cantidad</b> y <b>Precio Unitario</b>. Se repite una vez por cada venta.',
     encPagina: 'Se repite en la parte superior de cada página, con los títulos de columna y el número de página.'
   };
 
   function pintarSeccionDisenoYVistasA21(){
     const cont = document.getElementById('disenadorReporteA21');
     cont.innerHTML = `
-      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Diseña tu reporte en la pestaña "Vista de Diseño" y verifica cuando estés listo. Puedes volver a esa pestaña en cualquier momento para hacer cambios.</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Diseña tu reporte en la pestaña "Vista de Diseño". Puedes volver a esa pestaña en cualquier momento para hacer cambios.</div>
       <div class="vistas-tabs" id="vistasTabsA21"></div>
-      <div id="vistaContenidoA21"></div>
-      <div id="continuarVistasWrapA21"></div>`;
+      <div id="vistaContenidoA21"></div>`;
     pintarTabsVistasA21();
     cambiarVistaA21(vistaActualA21 || 'diseno');
   }
@@ -4288,18 +4288,6 @@
     vistasVisitadasA21.add(vista);
     pintarTabsVistasA21();
     pintarContenidoVistaA21(vista);
-    actualizarContinuarA21();
-  }
-
-  function actualizarContinuarA21(){
-    const disenoListo = encReporteCorrectoA21 && detalleCorrectoA21 && encPaginaCorrectoA21;
-    const wrap = document.getElementById('continuarVistasWrapA21');
-    if(!wrap) return;
-    if(disenoListo && vistasVisitadasA21.size >= 3){
-      mostrarBotonContinuarVistasA21();
-    } else {
-      wrap.innerHTML = '';
-    }
   }
 
   function pintarContenidoVistaA21(vista){
@@ -4310,6 +4298,7 @@
 
     // ---- Pestaña "Vista de Diseño": el lienzo editable de verdad (siempre se puede volver aquí) ----
     if(vista === 'diseno'){
+      actualizarEstadoVisualA21();
       const campos = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.campos) || [];
       const camposDisponibles = campos.filter(c => !camposColocadosDetalleA21.includes(c));
 
@@ -4357,30 +4346,28 @@
             </div>
             <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A21.encPagina}</p>
           </div>
-        </div>
-
-        <div id="feedbackDisenoA21"></div>
-        <div class="instalador-botones">
-          <button type="button" class="instalador-btn primario" id="btnVerificarDisenoA21">
-            <i class="fa-solid fa-check"></i> Verificar diseño
-          </button>
         </div>`;
 
-      // Encabezado de reporte: guarda lo que va escribiendo (para que no se pierda al repintar)
-      document.getElementById('inputNombreEmpresaA21').addEventListener('input', (e) => { nombreEmpresaValorA21 = e.target.value; });
-      document.getElementById('inputTituloReporteA21').addEventListener('input', (e) => { tituloReporteValorA21 = e.target.value; });
+      // Encabezado de reporte: guarda lo que va escribiendo, y actualiza el estado visual en vivo
+      document.getElementById('inputNombreEmpresaA21').addEventListener('input', (e) => {
+        nombreEmpresaValorA21 = e.target.value;
+        actualizarEstadoVisualA21();
+        document.getElementById('cajaEncReporteA21').classList.toggle('correcta', encReporteCorrectoA21);
+      });
+      document.getElementById('inputTituloReporteA21').addEventListener('input', (e) => {
+        tituloReporteValorA21 = e.target.value;
+        actualizarEstadoVisualA21();
+        document.getElementById('cajaEncReporteA21').classList.toggle('correcta', encReporteCorrectoA21);
+      });
 
       // Selector de tabla: al cambiar, carga sus campos reales y reinicia lo ya colocado
       document.getElementById('selectTablaDetalleA21').addEventListener('change', async (e) => {
         tablaSeleccionadaDetalleA21 = e.target.value;
         camposColocadosDetalleA21 = [];
         campoSeleccionadoA21 = null;
-        detalleCorrectoA21 = false;
-        encPaginaCorrectoA21 = false;
         cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando campos de la tabla...</div>';
         datosTablaSeleccionadaA21 = tablaSeleccionadaDetalleA21 ? await cargarTablaDatos(tablaSeleccionadaDetalleA21) : null;
         pintarContenidoVistaA21('diseno');
-        actualizarContinuarA21();
       });
 
       // Campos del pool: clic para seleccionar (accesible en táctil)
@@ -4424,7 +4411,6 @@
         pintarContenidoVistaA21('diseno');
       });
 
-      document.getElementById('btnVerificarDisenoA21').addEventListener('click', verificarDisenoA21);
       return;
     }
 
@@ -4436,8 +4422,17 @@
       return;
     }
 
+    const tieneVendedor = camposColocadosDetalleA21.includes('Vendedor');
+    let notaPrevisualizacionHtml = '';
     let filasHtml = '';
     if(vista === 'previsualizacion'){
+      if(!tieneVendedor){
+        notaPrevisualizacionHtml = `
+          <div class="empty-note" style="margin-top:0;">
+            <i class="fa-solid fa-circle-info"></i>
+            Antes de continuar: vuelve a la <b>Vista de Diseño</b> y agrega un cuarto campo a la línea de detalle — <b>Vendedor</b>. Luego regresa aquí, a la Previsualización, y después continúa a la <b>Vista de Ejecución</b>.
+          </div>`;
+      }
       filasHtml = [1, 2].map(() => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.6;">${camposColocadosDetalleA21.map(() => `<span style="flex:1;">[muestra]</span>`).join('')}</div>`).join('');
     } else if(vista === 'ejecucion'){
       const filas = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) ? datosTablaSeleccionadaA21.datos.slice(0, 3) : [];
@@ -4452,6 +4447,7 @@
     }
 
     cont.innerHTML = `
+      ${notaPrevisualizacionHtml}
       <div class="simulador-pantalla">
         <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
         <div style="font-weight:800; font-size:15px; margin-top:10px;">${nombreEmpresa}</div>
@@ -4460,64 +4456,65 @@
           ${camposColocadosDetalleA21.map(c => `<span style="flex:1;">${c}</span>`).join('')}
         </div>
         ${filasHtml}
-      </div>`;
+      </div>
+      ${vista === 'ejecucion' ? `
+        <div id="feedbackEjecucionA21"></div>
+        <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA21" style="width:auto; padding:12px 28px; margin-top:16px;">
+          <i class="fa-solid fa-arrow-right"></i> Siguiente
+        </button>` : ''}`;
+
+    if(vista === 'ejecucion'){
+      document.getElementById('btnSiguienteEjecucionA21').addEventListener('click', intentarAvanzarDesdeEjecucionA21);
+    }
   }
 
-  function verificarDisenoA21(){
-    const mensajes = [];
-
+  // Recalcula en vivo (sin contar intentos) si cada sección luce correcta, para el borde verde inmediato
+  function actualizarEstadoVisualA21(){
     const empresaOk = normalizarTextoA15_(nombreEmpresaValorA21).includes('tecnoventas');
     const tituloOk = normalizarTextoA15_(tituloReporteValorA21).includes('venta');
-    if(empresaOk && tituloOk){
-      encReporteCorrectoA21 = true;
-    } else {
-      if(!encReporteCorrectoA21) intentosPorSeccionA21.encReporte++;
-      encReporteCorrectoA21 = false;
-      mensajes.push('El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione que es un reporte de ventas.');
-    }
+    encReporteCorrectoA21 = empresaOk && tituloOk;
 
     const seleccion = [...camposColocadosDetalleA21].sort();
-    const correcta = [...CAMPOS_CORRECTOS_DETALLE_A21].sort();
-    const camposOk = seleccion.length === correcta.length && seleccion.every((c, i) => c === correcta[i]);
+    const finalEsperado = [...CAMPOS_CORRECTOS_FINALES_A21].sort();
     const tablaOk = tablaSeleccionadaDetalleA21 === 'DB_Ventas';
-    if(camposOk && tablaOk){
-      detalleCorrectoA21 = true;
-    } else {
-      if(!detalleCorrectoA21) intentosPorSeccionA21.detalle++;
-      detalleCorrectoA21 = false;
-      mensajes.push(!tablaOk
-        ? 'La <b>línea de detalle</b> debe construirse con la tabla de <b>Ventas</b> — recuerda que este reporte es de ventas.'
-        : 'La <b>línea de detalle</b> no tiene los campos correctos todavía (ni de más, ni de menos).');
-    }
+    detalleCorrectoA21 = tablaOk && seleccion.length === finalEsperado.length && seleccion.every((c, i) => c === finalEsperado[i]);
 
-    if(detalleCorrectoA21 && numPaginaMarcadoA21){
-      encPaginaCorrectoA21 = true;
-    } else {
-      if(!encPaginaCorrectoA21) intentosPorSeccionA21.encPagina++;
-      encPaginaCorrectoA21 = false;
-      mensajes.push('El <b>encabezado de página</b> necesita los títulos de columna (completa primero la línea de detalle) y el número de página marcado.');
-    }
-
-    pintarContenidoVistaA21('diseno');
-    if(mensajes.length > 0){
-      document.getElementById('feedbackDisenoA21').innerHTML = mensajes.map(m =>
-        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
-      ).join('');
-    } else {
-      document.getElementById('feedbackDisenoA21').innerHTML = `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ¡El diseño está completo y correcto! Recorre ahora las otras 2 vistas.</div>`;
-    }
-    actualizarContinuarA21();
+    encPaginaCorrectoA21 = camposColocadosDetalleA21.length > 0 && numPaginaMarcadoA21;
   }
 
-  function mostrarBotonContinuarVistasA21(){
-    document.getElementById('continuarVistasWrapA21').innerHTML = `
-      <button type="button" class="btn btn-primary" id="btnContinuarVistasA21" style="width:auto; padding:12px 28px; margin-top:16px;">
-        <i class="fa-solid fa-arrow-right"></i> Continuar
-      </button>`;
-    document.getElementById('btnContinuarVistasA21').addEventListener('click', () => {
-      document.getElementById('disenadorReporteA21').classList.add('hidden');
-      pintarIdentificarSeccionesA21();
-    });
+  // Se dispara desde el botón "Siguiente" de la pestaña de Ejecución — valida todo y, si está
+  // completo, avanza a la segunda parte de la actividad (identificar y definir secciones).
+  function intentarAvanzarDesdeEjecucionA21(){
+    actualizarEstadoVisualA21();
+    const mensajes = [];
+
+    if(!encReporteCorrectoA21){
+      intentosPorSeccionA21.encReporte++;
+      mensajes.push('El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione que es un reporte de ventas. Vuelve a la Vista de Diseño para completarlo.');
+    }
+
+    if(!detalleCorrectoA21){
+      intentosPorSeccionA21.detalle++;
+      const tieneVendedor = camposColocadosDetalleA21.includes('Vendedor');
+      mensajes.push(!tieneVendedor
+        ? 'La <b>línea de detalle</b> todavía no tiene el campo <b>Vendedor</b> — vuelve a la Vista de Diseño y agrégalo, tal como se indicó en la Previsualización.'
+        : 'La <b>línea de detalle</b> no tiene exactamente los campos correctos (Producto, Cantidad, Precio Unitario y Vendedor).');
+    }
+
+    if(!encPaginaCorrectoA21){
+      intentosPorSeccionA21.encPagina++;
+      mensajes.push('El <b>encabezado de página</b> necesita el número de página marcado. Vuelve a la Vista de Diseño para completarlo.');
+    }
+
+    if(mensajes.length > 0){
+      document.getElementById('feedbackEjecucionA21').innerHTML = mensajes.map(m =>
+        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
+      ).join('');
+      return;
+    }
+
+    document.getElementById('disenadorReporteA21').classList.add('hidden');
+    pintarIdentificarSeccionesA21();
   }
 
   // ---------- Identifica y define las secciones del reporte ya construido ----------
