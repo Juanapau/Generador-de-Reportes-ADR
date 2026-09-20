@@ -4116,51 +4116,39 @@
 // ============================================================================
 
 // ============================================================================
-// A.2.1 — DISEÑADOR DE REPORTES: CONSTRUYE LAS SECCIONES INICIALES
+// A.2.1 — DISEÑADOR DE REPORTES: VISTA DE DISEÑO REAL
 // ============================================================================
-  // Primera pieza del "Diseñador de Reportes" dentro de NexaReport: el estudiante
-  // construye un reporte real paso a paso, siguiendo instrucciones — con eso no
-  // solo diseña, sino que también aprende a identificar qué contenido corresponde
-  // a cada sección. Usa datos reales de DB_Ventas. Este diseñador seguirá
-  // creciendo en las próximas actividades de RA2 (pie de reporte, formatos,
-  // agrupación, filtros, gráficos...).
+  // Primera pieza del "Diseñador de Reportes" dentro de NexaReport: un lienzo de
+  // diseño real donde el estudiante ESCRIBE el encabezado de reporte y ARRASTRA
+  // los campos de la tabla hacia la línea de detalle — simulando de verdad lo que
+  // se hace en la Vista de Diseño de un programa generador, no solo eligiendo de
+  // una lista. Usa datos reales de DB_Ventas. Este lienzo seguirá creciendo en
+  // las próximas actividades de RA2 (pie de reporte, formatos, agrupación,
+  // filtros, gráficos...).
 
   const CAMPOS_CORRECTOS_DETALLE_A21 = ['Producto', 'Cantidad', 'PrecioUnitario'];
 
-  const PIEZAS_ENCABEZADO_REPORTE_A21 = [
-    { id:1, texto:'TECNOVENTAS RD, S.R.L.', correcta:true },
-    { id:2, texto:'Reporte de Ventas — Enero 2026', correcta:true },
-    { id:3, texto:'Página 1 de 3', correcta:false },
-    { id:4, texto:'Producto | Cantidad | Precio Unitario', correcta:false },
-    { id:5, texto:'TOTAL GENERAL: RD$198,450.00', correcta:false },
-    { id:6, texto:'Generado: 31/01/2026', correcta:false }
-  ];
-
-  const PIEZAS_ENCABEZADO_PAGINA_A21 = [
-    { id:1, texto:'Producto | Cantidad | Precio Unitario', correcta:true },
-    { id:2, texto:'Página 1', correcta:true },
-    { id:3, texto:'TECNOVENTAS RD, S.R.L.', correcta:false },
-    { id:4, texto:'Laptop HP 15 — 3 — RD$28,500.00', correcta:false },
-    { id:5, texto:'TOTAL GENERAL: RD$198,450.00', correcta:false }
-  ];
-
   const CRITERIOS_BASE_A21 = [
     { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'tabla', nombre:'2. Selección de la tabla de datos', descripcion:'Selecciona la tabla de datos correcta para el reporte de ventas.' },
-    { key:'detalle', nombre:'3. Campos de la línea de detalle', descripcion:'Selecciona exactamente los campos correctos para la línea de detalle.' },
-    { key:'encReporte', nombre:'4. Encabezado de reporte', descripcion:'Construye correctamente el encabezado de reporte con las piezas que corresponden.' },
-    { key:'encPagina', nombre:'5. Encabezado de página', descripcion:'Construye correctamente el encabezado de página con las piezas que corresponden.' },
+    { key:'encReporte', nombre:'2. Encabezado de reporte', descripcion:'Escribe correctamente el nombre de la empresa y el título del reporte.' },
+    { key:'detalle', nombre:'3. Línea de detalle', descripcion:'Arrastra exactamente los campos correctos hacia la línea de detalle.' },
+    { key:'encPagina', nombre:'4. Encabezado de página', descripcion:'Incluye el número de página además de los títulos de columna.' },
+    { key:'tabla', nombre:'5. Uso de datos reales', descripcion:'Trabaja con los datos reales de la tabla de ventas durante todo el diseño.' },
     { key:'tiempo', nombre:'6. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
     { key:'prolijidad', nombre:'7. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
   ];
 
-  let pasoA21 = 1;
-  let tablaSeleccionadaA21 = null;
   let datosVentasA21 = null;
-  let camposDetalleSeleccionadosA21 = new Set();
-  let piezasEncReporteSeleccionadasA21 = new Set();
-  let piezasEncPaginaSeleccionadasA21 = new Set();
-  let intentosPorPasoA21 = {};
+  let nombreEmpresaValorA21 = '';
+  let tituloReporteValorA21 = '';
+  let camposColocadosDetalleA21 = [];
+  let campoSeleccionadoA21 = null;
+  let numPaginaMarcadoA21 = false;
+  let encReporteCorrectoA21 = false;
+  let detalleCorrectoA21 = false;
+  let encPaginaCorrectoA21 = false;
+  let intentosPorSeccionA21 = { encReporte:0, detalle:0, encPagina:0 };
+  let mostrandoVistaPreviaA21 = false;
   let ultimoResultadoA21 = null;
   let puntajeMaxA21 = 0;
   let tiempoEstimadoA21 = 10;
@@ -4209,20 +4197,25 @@
     document.getElementById('panelMisActividades').classList.remove('hidden');
   });
 
-  document.getElementById('btnComenzarA21').addEventListener('click', () => {
-    pasoA21 = 1;
-    tablaSeleccionadaA21 = null;
-    datosVentasA21 = null;
-    camposDetalleSeleccionadosA21 = new Set();
-    piezasEncReporteSeleccionadasA21 = new Set();
-    piezasEncPaginaSeleccionadasA21 = new Set();
-    intentosPorPasoA21 = {};
+  document.getElementById('btnComenzarA21').addEventListener('click', async () => {
+    nombreEmpresaValorA21 = '';
+    tituloReporteValorA21 = '';
+    camposColocadosDetalleA21 = [];
+    campoSeleccionadoA21 = null;
+    numPaginaMarcadoA21 = false;
+    encReporteCorrectoA21 = false;
+    detalleCorrectoA21 = false;
+    encPaginaCorrectoA21 = false;
+    intentosPorSeccionA21 = { encReporte:0, detalle:0, encPagina:0 };
+    mostrandoVistaPreviaA21 = false;
     document.getElementById('vistaPreviaFinalA21').classList.add('hidden');
     document.getElementById('seccionFinalA21').classList.add('hidden');
     document.getElementById('vistaInstrumentoA21').classList.add('hidden');
     document.getElementById('vistaEjercicioA21').classList.remove('hidden');
+    document.getElementById('disenadorReporteA21').innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando la tabla de ventas...</div>';
 
-    pintarPasoA21();
+    datosVentasA21 = await cargarTablaDatos('DB_Ventas');
+    pintarLienzoDisenoA21();
 
     inicioTiempoA21 = Date.now();
     clearInterval(timerIntervalA21);
@@ -4234,198 +4227,172 @@
     }, 1000);
   });
 
-  function pintarPasoA21(){
-    actualizarBarraProgreso('progresoA21', pasoA21 - 1, 4);
+  function pintarLienzoDisenoA21(){
+    actualizarBarraProgreso('progresoA21', [encReporteCorrectoA21, detalleCorrectoA21, encPaginaCorrectoA21].filter(Boolean).length, 3);
 
-    if(pasoA21 === 1) pintarPasoTablaA21();
-    else if(pasoA21 === 2) pintarPasoDetalleA21();
-    else if(pasoA21 === 3) pintarPasoEncReporteA21();
-    else if(pasoA21 === 4) pintarPasoEncPaginaA21();
-    else if(pasoA21 === 5) pintarVistaPreviaFinalA21();
-  }
+    const campos = (datosVentasA21 && datosVentasA21.campos) || ['Fecha','Producto','Categoria','Cantidad','PrecioUnitario','Vendedor'];
+    const camposDisponibles = campos.filter(c => !camposColocadosDetalleA21.includes(c));
 
-  function pintarPasoTablaA21(){
-    pintarVentanaInstaladorSimulado('disenadorReporteA21', 'NexaReport — Nuevo proyecto: Reporte de Ventas', `
-      <p><strong>Paso 1 de 4 — Elige la tabla de datos</strong></p>
-      <p>Vas a crear un reporte de ventas para TECNOVENTAS RD. Selecciona la tabla de datos que debes usar.</p>
-      <div id="opcionesTablaA21" style="display:flex; flex-direction:column; gap:10px; margin:14px 0;">
-        ${TABLAS_DISPONIBLES_A19.map(t => `
-          <div class="instalador-checkbox tabla-opcion-a19" data-codigo="${t.codigo}" style="justify-content:flex-start; cursor:pointer;">
-            <span class="caja"></span>
-            <div style="text-align:left;"><b>${t.nombre}</b><br><span style="font-size:12px; opacity:.75;">${t.desc}</span></div>
-          </div>`).join('')}
+    pintarVentanaInstaladorSimulado('disenadorReporteA21', 'NexaReport — Vista de Diseño: Reporte de Ventas', `
+      <p>Estás en la <b>Vista de Diseño</b> de tu reporte de ventas para TECNOVENTAS RD. Completa cada sección y haz clic en "Verificar diseño".</p>
+
+      <div class="lienzo-diseno-a21">
+        <div class="caja-diseno-a21 ${encReporteCorrectoA21 ? 'correcta' : ''}" id="cajaEncReporteA21">
+          <div class="caja-diseno-titulo"><i class="fa-solid fa-heading"></i> Encabezado de reporte</div>
+          <input type="text" id="inputNombreEmpresaA21" class="input-generico" placeholder="Nombre de la empresa..." ${encReporteCorrectoA21 ? 'disabled' : ''} value="${nombreEmpresaValorA21.replace(/"/g,'&quot;')}">
+          <input type="text" id="inputTituloReporteA21" class="input-generico" placeholder="Título del reporte..." style="margin-top:8px;" ${encReporteCorrectoA21 ? 'disabled' : ''} value="${tituloReporteValorA21.replace(/"/g,'&quot;')}">
+        </div>
+
+        <div class="caja-diseno-a21 ${detalleCorrectoA21 ? 'correcta' : ''}" id="cajaDetalleA21">
+          <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
+          <div class="zona-arrastre-a21" id="zonaDetalleA21">
+            ${camposColocadosDetalleA21.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
+              camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado" data-campo="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+          </div>
+        </div>
+
+        <div class="caja-diseno-a21 ${encPaginaCorrectoA21 ? 'correcta' : ''}" id="cajaEncPaginaA21">
+          <div class="caja-diseno-titulo"><i class="fa-solid fa-file-lines"></i> Encabezado de página</div>
+          <div class="columnas-generadas-a21" id="columnasGeneradasA21">${camposColocadosDetalleA21.length ? camposColocadosDetalleA21.join(' | ') : 'Los títulos de columna aparecerán aquí según los campos que arrastres abajo...'}</div>
+          <div class="instalador-checkbox" id="checkboxNumPaginaA21" style="margin-top:10px; justify-content:flex-start; cursor:pointer;">
+            <span class="caja ${numPaginaMarcadoA21 ? 'marcada' : ''}"></span> Incluir número de página
+          </div>
+        </div>
       </div>
-      <div id="feedbackPasoA21"></div>
+
+      ${camposDisponibles.length > 0 ? `
+        <p style="margin-top:14px; font-size:12.5px; opacity:.75;">Campos disponibles de la tabla Ventas (arrastra, o toca uno y luego toca la línea de detalle):</p>
+        <div class="pool-campos-a21" id="poolCamposA21">
+          ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA21 === c ? 'seleccionado' : ''}" draggable="true" data-campo="${c}">${c}</span>`).join('')}
+        </div>` : ''}
+
+      <div id="feedbackDisenoA21"></div>
       <div class="instalador-botones">
-        <button type="button" class="instalador-btn primario" id="btnConfirmarPasoA21" disabled>Confirmar tabla</button>
+        <button type="button" class="instalador-btn primario" id="btnVerificarDisenoA21">
+          <i class="fa-solid fa-check"></i> Verificar diseño
+        </button>
       </div>`);
 
-    document.querySelectorAll('#opcionesTablaA21 .tabla-opcion-a19').forEach(el => {
-      el.addEventListener('click', () => {
-        document.querySelectorAll('#opcionesTablaA21 .caja').forEach(c => c.classList.remove('marcada'));
-        el.querySelector('.caja').classList.add('marcada');
-        tablaSeleccionadaA21 = el.dataset.codigo;
-        document.getElementById('btnConfirmarPasoA21').disabled = false;
+    // Encabezado de reporte: guarda lo que va escribiendo (para que no se pierda al repintar)
+    if(!encReporteCorrectoA21){
+      document.getElementById('inputNombreEmpresaA21').addEventListener('input', (e) => { nombreEmpresaValorA21 = e.target.value; });
+      document.getElementById('inputTituloReporteA21').addEventListener('input', (e) => { tituloReporteValorA21 = e.target.value; });
+    }
+
+    // Campos del pool: clic para seleccionar (accesible en táctil)
+    document.querySelectorAll('#poolCamposA21 .campo-chip-a21').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const campo = chip.dataset.campo;
+        campoSeleccionadoA21 = campoSeleccionadoA21 === campo ? null : campo;
+        pintarLienzoDisenoA21();
       });
     });
 
-    document.getElementById('btnConfirmarPasoA21').addEventListener('click', async () => {
-      intentosPorPasoA21[1] = (intentosPorPasoA21[1] || 0) + 1;
-      if(tablaSeleccionadaA21 === 'DB_Ventas'){
-        datosVentasA21 = await cargarTablaDatos('DB_Ventas');
-        pasoA21 = 2;
-        pintarPasoA21();
-      } else {
-        document.getElementById('feedbackPasoA21').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Esa tabla no corresponde a un reporte de <b>ventas</b>. Piénsalo de nuevo.</div></div>`;
-      }
+    // Campos ya colocados: clic para quitar
+    document.querySelectorAll('#zonaDetalleA21 .campo-chip-a21.colocado').forEach(chip => {
+      chip.addEventListener('click', () => {
+        if(detalleCorrectoA21) return;
+        camposColocadosDetalleA21 = camposColocadosDetalleA21.filter(c => c !== chip.dataset.campo);
+        pintarLienzoDisenoA21();
+      });
     });
-  }
 
-  function pintarPasoDetalleA21(){
-    const campos = (datosVentasA21 && datosVentasA21.campos) || ['Fecha','Producto','Categoria','Cantidad','PrecioUnitario','Vendedor'];
-    pintarVentanaInstaladorSimulado('disenadorReporteA21', 'NexaReport — Línea de detalle', `
-      <p><strong>Paso 2 de 4 — Campos de la línea de detalle</strong></p>
-      <p>La línea de detalle debe mostrar, por cada venta: <b>el producto, la cantidad y el precio unitario</b>. Marca únicamente esos campos.</p>
-      <div id="opcionesCamposA21" style="display:flex; flex-direction:column; gap:8px; margin:14px 0;">
-        ${campos.map(c => `
-          <div class="instalador-checkbox campo-opcion-a21" data-campo="${c}" style="justify-content:flex-start; cursor:pointer;">
-            <span class="caja"></span> ${c}
-          </div>`).join('')}
-      </div>
-      <div id="feedbackPasoA21"></div>
-      <div class="instalador-botones">
-        <button type="button" class="instalador-btn primario" id="btnConfirmarPasoA21">Confirmar campos</button>
-      </div>`);
-
-    document.querySelectorAll('#opcionesCamposA21 .campo-opcion-a21').forEach(el => {
-      el.addEventListener('click', () => {
-        const campo = el.dataset.campo;
-        if(camposDetalleSeleccionadosA21.has(campo)){
-          camposDetalleSeleccionadosA21.delete(campo);
-          el.querySelector('.caja').classList.remove('marcada');
-        } else {
-          camposDetalleSeleccionadosA21.add(campo);
-          el.querySelector('.caja').classList.add('marcada');
+    // Zona de detalle: clic para colocar el campo seleccionado, o soltar (drag) directamente
+    const zonaDetalle = document.getElementById('zonaDetalleA21');
+    if(!detalleCorrectoA21){
+      zonaDetalle.addEventListener('click', () => {
+        if(campoSeleccionadoA21 && !camposColocadosDetalleA21.includes(campoSeleccionadoA21)){
+          camposColocadosDetalleA21.push(campoSeleccionadoA21);
+          campoSeleccionadoA21 = null;
+          pintarLienzoDisenoA21();
         }
       });
-    });
+      const chipsArrastrables = document.querySelectorAll('#poolCamposA21 .campo-chip-a21[draggable="true"]');
+      habilitarArrastre(chipsArrastrables, [zonaDetalle], (campoArrastrado) => {
+        if(!camposColocadosDetalleA21.includes(campoArrastrado)){
+          camposColocadosDetalleA21.push(campoArrastrado);
+          campoSeleccionadoA21 = null;
+          pintarLienzoDisenoA21();
+        }
+      });
+    }
 
-    document.getElementById('btnConfirmarPasoA21').addEventListener('click', () => {
-      intentosPorPasoA21[2] = (intentosPorPasoA21[2] || 0) + 1;
-      const seleccion = [...camposDetalleSeleccionadosA21].sort();
+    // Checkbox de número de página
+    if(!encPaginaCorrectoA21){
+      document.getElementById('checkboxNumPaginaA21').addEventListener('click', () => {
+        numPaginaMarcadoA21 = !numPaginaMarcadoA21;
+        pintarLienzoDisenoA21();
+      });
+    }
+
+    document.getElementById('btnVerificarDisenoA21').addEventListener('click', verificarDisenoA21);
+  }
+
+  function verificarDisenoA21(){
+    const mensajes = [];
+
+    if(!encReporteCorrectoA21){
+      intentosPorSeccionA21.encReporte++;
+      const empresaOk = normalizarTextoA15_(nombreEmpresaValorA21).includes('tecnoventas');
+      const tituloOk = normalizarTextoA15_(tituloReporteValorA21).includes('venta');
+      if(empresaOk && tituloOk){
+        encReporteCorrectoA21 = true;
+      } else {
+        mensajes.push('El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione que es un reporte de ventas.');
+      }
+    }
+
+    if(!detalleCorrectoA21){
+      intentosPorSeccionA21.detalle++;
+      const seleccion = [...camposColocadosDetalleA21].sort();
       const correcta = [...CAMPOS_CORRECTOS_DETALLE_A21].sort();
       const esCorrecta = seleccion.length === correcta.length && seleccion.every((c, i) => c === correcta[i]);
-
       if(esCorrecta){
-        pasoA21 = 3;
-        pintarPasoA21();
+        detalleCorrectoA21 = true;
       } else {
-        document.getElementById('feedbackPasoA21').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Revisa de nuevo: no son los campos correctos (ni de más, ni de menos).</div></div>`;
+        mensajes.push('La <b>línea de detalle</b> no tiene los campos correctos todavía (ni de más, ni de menos).');
       }
-    });
-  }
+    }
 
-  function pintarPasoEncReporteA21(){
-    pintarVentanaInstaladorSimulado('disenadorReporteA21', 'NexaReport — Encabezado de reporte', `
-      <p><strong>Paso 3 de 4 — Encabezado de reporte</strong></p>
-      <p>El encabezado de reporte debe mostrar <b>el nombre de la empresa y el título del reporte</b>. Elige las 2 piezas correctas de la lista (las demás pertenecen a otras secciones).</p>
-      <div id="opcionesEncReporteA21" style="display:flex; flex-direction:column; gap:8px; margin:14px 0;">
-        ${barajar(PIEZAS_ENCABEZADO_REPORTE_A21).map(p => `
-          <div class="instalador-checkbox pieza-opcion-a21" data-id="${p.id}" style="justify-content:flex-start; cursor:pointer;">
-            <span class="caja"></span> ${p.texto}
-          </div>`).join('')}
-      </div>
-      <div id="feedbackPasoA21"></div>
-      <div class="instalador-botones">
-        <button type="button" class="instalador-btn primario" id="btnConfirmarPasoA21">Confirmar encabezado</button>
-      </div>`);
-
-    document.querySelectorAll('#opcionesEncReporteA21 .pieza-opcion-a21').forEach(el => {
-      el.addEventListener('click', () => {
-        const id = Number(el.dataset.id);
-        if(piezasEncReporteSeleccionadasA21.has(id)){
-          piezasEncReporteSeleccionadasA21.delete(id);
-          el.querySelector('.caja').classList.remove('marcada');
-        } else {
-          piezasEncReporteSeleccionadasA21.add(id);
-          el.querySelector('.caja').classList.add('marcada');
-        }
-      });
-    });
-
-    document.getElementById('btnConfirmarPasoA21').addEventListener('click', () => {
-      intentosPorPasoA21[3] = (intentosPorPasoA21[3] || 0) + 1;
-      const correctas = PIEZAS_ENCABEZADO_REPORTE_A21.filter(p => p.correcta).map(p => p.id).sort();
-      const seleccion = [...piezasEncReporteSeleccionadasA21].sort();
-      const esCorrecta = seleccion.length === correctas.length && seleccion.every((id, i) => id === correctas[i]);
-
-      if(esCorrecta){
-        pasoA21 = 4;
-        pintarPasoA21();
+    if(!encPaginaCorrectoA21){
+      intentosPorSeccionA21.encPagina++;
+      if(detalleCorrectoA21 && numPaginaMarcadoA21){
+        encPaginaCorrectoA21 = true;
       } else {
-        document.getElementById('feedbackPasoA21').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Esa combinación no es correcta. Recuerda: solo el nombre de la empresa y el título del reporte van aquí.</div></div>`;
-        piezasEncReporteSeleccionadasA21 = new Set();
+        mensajes.push('El <b>encabezado de página</b> necesita los títulos de columna (completa primero la línea de detalle) y el número de página marcado.');
       }
-    });
-  }
+    }
 
-  function pintarPasoEncPaginaA21(){
-    pintarVentanaInstaladorSimulado('disenadorReporteA21', 'NexaReport — Encabezado de página', `
-      <p><strong>Paso 4 de 4 — Encabezado de página</strong></p>
-      <p>El encabezado de página debe mostrar <b>los títulos de las columnas y el número de página</b>. Elige las 2 piezas correctas.</p>
-      <div id="opcionesEncPaginaA21" style="display:flex; flex-direction:column; gap:8px; margin:14px 0;">
-        ${barajar(PIEZAS_ENCABEZADO_PAGINA_A21).map(p => `
-          <div class="instalador-checkbox pieza-opcion-a21" data-id="${p.id}" style="justify-content:flex-start; cursor:pointer;">
-            <span class="caja"></span> ${p.texto}
-          </div>`).join('')}
-      </div>
-      <div id="feedbackPasoA21"></div>
-      <div class="instalador-botones">
-        <button type="button" class="instalador-btn primario" id="btnConfirmarPasoA21">Confirmar encabezado</button>
-      </div>`);
+    if(mensajes.length > 0){
+      document.getElementById('feedbackDisenoA21').innerHTML = mensajes.map(m =>
+        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
+      ).join('');
+    }
 
-    document.querySelectorAll('#opcionesEncPaginaA21 .pieza-opcion-a21').forEach(el => {
-      el.addEventListener('click', () => {
-        const id = Number(el.dataset.id);
-        if(piezasEncPaginaSeleccionadasA21.has(id)){
-          piezasEncPaginaSeleccionadasA21.delete(id);
-          el.querySelector('.caja').classList.remove('marcada');
-        } else {
-          piezasEncPaginaSeleccionadasA21.add(id);
-          el.querySelector('.caja').classList.add('marcada');
-        }
-      });
-    });
-
-    document.getElementById('btnConfirmarPasoA21').addEventListener('click', () => {
-      intentosPorPasoA21[4] = (intentosPorPasoA21[4] || 0) + 1;
-      const correctas = PIEZAS_ENCABEZADO_PAGINA_A21.filter(p => p.correcta).map(p => p.id).sort();
-      const seleccion = [...piezasEncPaginaSeleccionadasA21].sort();
-      const esCorrecta = seleccion.length === correctas.length && seleccion.every((id, i) => id === correctas[i]);
-
-      if(esCorrecta){
-        pasoA21 = 5;
-        pintarPasoA21();
-      } else {
-        document.getElementById('feedbackPasoA21').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Esa combinación no es correcta. Recuerda: los títulos de columnas y el número de página van aquí.</div></div>`;
-        piezasEncPaginaSeleccionadasA21 = new Set();
-      }
-    });
+    if(encReporteCorrectoA21 && detalleCorrectoA21 && encPaginaCorrectoA21){
+      pintarVistaPreviaFinalA21();
+    } else {
+      pintarLienzoDisenoA21();
+    }
   }
 
   function pintarVistaPreviaFinalA21(){
+    mostrandoVistaPreviaA21 = true;
     document.getElementById('disenadorReporteA21').innerHTML = '';
     const filasDetalle = (datosVentasA21 && datosVentasA21.datos ? datosVentasA21.datos.slice(0, 3) : [])
       .map(f => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;"><span style="flex:2;">${f.Producto}</span><span style="flex:1;">${f.Cantidad}</span><span style="flex:1;">RD$${Number(f.PrecioUnitario).toLocaleString('es-DO',{minimumFractionDigits:2})}</span></div>`)
       .join('');
+
+    const nombreEmpresa = nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.';
+    const tituloReporte = tituloReporteValorA21 || 'Reporte de Ventas';
 
     const cont = document.getElementById('vistaPreviaFinalA21');
     cont.classList.remove('hidden');
     cont.innerHTML = `
       <div class="section-heading" style="font-size:17px;">Así quedó tu reporte</div>
       <div class="esquema-reporte">
-        <div class="esquema-zona correcto"><div style="flex:1;"><div style="font-weight:800; font-size:16px;">TECNOVENTAS RD, S.R.L.</div><div style="font-size:14px; opacity:.85;">Reporte de Ventas — Enero 2026</div></div></div>
-        <div class="esquema-zona correcto"><div style="flex:1;"><div style="font-size:12.5px; opacity:.8; margin-bottom:6px;">Página 1</div><div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:6px;"><span style="flex:2;">Producto</span><span style="flex:1;">Cantidad</span><span style="flex:1;">Precio Unitario</span></div></div></div>
+        <div class="esquema-zona correcto"><div style="flex:1;"><div style="font-weight:800; font-size:16px;">${nombreEmpresa}</div><div style="font-size:14px; opacity:.85;">${tituloReporte}</div></div></div>
+        <div class="esquema-zona correcto"><div style="flex:1;"><div style="font-size:12.5px; opacity:.8; margin-bottom:6px;">Página 1</div><div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid rgba(255,255,255,.15); padding-bottom:6px;">${camposColocadosDetalleA21.map(c => `<span style="flex:1;">${c}</span>`).join('')}</div></div></div>
         <div class="esquema-zona correcto"><div style="flex:1;">${filasDetalle}</div></div>
       </div>`;
 
@@ -4440,10 +4407,10 @@
 
     const criterios = [];
     criterios.push({ nombre: CRITERIOS_BASE_A21[0].nombre, descripcion: CRITERIOS_BASE_A21[0].descripcion, nivel: 'logrado' });
-    criterios.push({ nombre: CRITERIOS_BASE_A21[1].nombre, descripcion: CRITERIOS_BASE_A21[1].descripcion, nivel: nivelPorIntentos(intentosPorPasoA21[1] || 1) });
-    criterios.push({ nombre: CRITERIOS_BASE_A21[2].nombre, descripcion: CRITERIOS_BASE_A21[2].descripcion, nivel: nivelPorIntentos(intentosPorPasoA21[2] || 1) });
-    criterios.push({ nombre: CRITERIOS_BASE_A21[3].nombre, descripcion: CRITERIOS_BASE_A21[3].descripcion, nivel: nivelPorIntentos(intentosPorPasoA21[3] || 1) });
-    criterios.push({ nombre: CRITERIOS_BASE_A21[4].nombre, descripcion: CRITERIOS_BASE_A21[4].descripcion, nivel: nivelPorIntentos(intentosPorPasoA21[4] || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A21[1].nombre, descripcion: CRITERIOS_BASE_A21[1].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA21.encReporte || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A21[2].nombre, descripcion: CRITERIOS_BASE_A21[2].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA21.detalle || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A21[3].nombre, descripcion: CRITERIOS_BASE_A21[3].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA21.encPagina || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A21[4].nombre, descripcion: CRITERIOS_BASE_A21[4].descripcion, nivel: 'logrado' });
     criterios.push({
       nombre: CRITERIOS_BASE_A21[5].nombre, descripcion: CRITERIOS_BASE_A21[5].descripcion,
       nivel: minutosTranscurridos <= tiempoEstimadoA21 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA21 * 2 ? 'proceso' : 'no_logrado')
@@ -4469,10 +4436,9 @@
     const detalleA21 = [{
       titulo: 'Diseño del reporte — secciones iniciales',
       items: [
-        { pregunta:'Tabla de datos seleccionada', tuRespuesta: tablaSeleccionadaA21 || 'Sin responder', correcta: tablaSeleccionadaA21 === 'DB_Ventas' },
-        { pregunta:'Campos de la línea de detalle', tuRespuesta: [...camposDetalleSeleccionadosA21].join(', ') || 'Sin responder', correcta: (intentosPorPasoA21[2] || 1) <= 1 },
-        { pregunta:'Construcción del encabezado de reporte', tuRespuesta: `Completado en ${intentosPorPasoA21[3] || 1} intento(s)`, correcta: (intentosPorPasoA21[3] || 1) <= 1 },
-        { pregunta:'Construcción del encabezado de página', tuRespuesta: `Completado en ${intentosPorPasoA21[4] || 1} intento(s)`, correcta: (intentosPorPasoA21[4] || 1) <= 1 }
+        { pregunta:'Encabezado de reporte', tuRespuesta: `Completado en ${intentosPorSeccionA21.encReporte || 1} intento(s)`, correcta: (intentosPorSeccionA21.encReporte || 1) <= 1 },
+        { pregunta:'Línea de detalle', tuRespuesta: camposColocadosDetalleA21.join(', '), correcta: (intentosPorSeccionA21.detalle || 1) <= 1 },
+        { pregunta:'Encabezado de página', tuRespuesta: `Completado en ${intentosPorSeccionA21.encPagina || 1} intento(s)`, correcta: (intentosPorSeccionA21.encPagina || 1) <= 1 }
       ]
     }];
     ultimoResultadoA21.detalle = detalleA21;
