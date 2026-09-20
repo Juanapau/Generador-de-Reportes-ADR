@@ -1,7 +1,7 @@
 // ================= ACTIVIDADES POR RA (panel docente) =================
   let actividadesCache = [];
   let raActual = 'RA1';
-  const RAS_DISPONIBLES = ['RA1']; // RA2-RA5 se habilitan cuando se construyan sus actividades
+  const RAS_DISPONIBLES = ['RA1', 'RA2']; // RA3-RA5 se habilitan cuando se construyan sus actividades
 
   // Paletas del editor de enunciados (colores estándar + los que la docente ha usado en la sesión)
   const COLORES_ESTANDAR_TEXTO = ['#1a1a1a','#ffffff','#ef4444','#f59e0b','#22c55e','#0ea5e9','#8b5cf6','#ec4899'];
