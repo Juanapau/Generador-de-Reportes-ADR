@@ -4244,27 +4244,27 @@
           <input type="text" id="inputTituloReporteA21" class="input-generico" placeholder="Título del reporte..." style="margin-top:8px;" ${encReporteCorrectoA21 ? 'disabled' : ''} value="${tituloReporteValorA21.replace(/"/g,'&quot;')}">
         </div>
 
-        <div class="caja-diseno-a21 ${detalleCorrectoA21 ? 'correcta' : ''}" id="cajaDetalleA21">
-          <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
-          <div style="display:flex; gap:16px; flex-wrap:wrap;">
-            <div style="flex:2; min-width:220px;">
-              <div class="zona-arrastre-a21" id="zonaDetalleA21">
-                ${camposColocadosDetalleA21.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
-                  camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
-              </div>
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <div class="caja-diseno-a21 ${detalleCorrectoA21 ? 'correcta' : ''}" id="cajaDetalleA21" style="flex:1.3; min-width:260px;">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
+            <div class="zona-arrastre-a21" id="zonaDetalleA21">
+              ${camposColocadosDetalleA21.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
+                camposColocadosDetalleA21.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
             </div>
-            <div style="flex:1; min-width:200px;">
-              <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
-              <select id="selectTablaDetalleA21" class="input-generico" ${detalleCorrectoA21 ? 'disabled' : ''}>
-                <option value="" ${tablaSeleccionadaDetalleA21 ? '' : 'selected disabled'}>Selecciona una tabla...</option>
-                ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${tablaSeleccionadaDetalleA21 === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
-              </select>
-              ${camposDisponibles.length > 0 ? `
-                <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
-                <div class="pool-campos-a21" id="poolCamposA21">
-                  ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA21 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${c}</span>`).join('')}
-                </div>` : ''}
-            </div>
+          </div>
+
+          <div class="caja-diseno-a21" id="cajaCamposDisponiblesA21" style="flex:1; min-width:220px;">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-database"></i> Campos disponibles</div>
+            <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
+            <select id="selectTablaDetalleA21" class="input-generico" ${detalleCorrectoA21 ? 'disabled' : ''}>
+              <option value="" ${tablaSeleccionadaDetalleA21 ? '' : 'selected disabled'}>Selecciona una tabla...</option>
+              ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${tablaSeleccionadaDetalleA21 === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
+            </select>
+            ${camposDisponibles.length > 0 ? `
+              <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
+              <div class="pool-campos-a21" id="poolCamposA21">
+                ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA21 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${c}</span>`).join('')}
+              </div>` : ''}
           </div>
         </div>
 
