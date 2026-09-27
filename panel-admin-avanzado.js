@@ -81,22 +81,28 @@
               <tr>
                 <th class="col-estudiante">Estudiante</th>
                 ${actividades.map(a => `<th>${a.codigo}</th>`).join('')}
+                <th>Total</th>
               </tr>
             </thead>
             <tbody>
-              ${estudiantes.map(est => `
+              ${estudiantes.map(est => {
+                let total = 0;
+                const celdas = actividades.map(a => {
+                  const c = notasPorClave[`${est.usuario}|${a.codigo}`];
+                  if(c) total += Number(c.nota) || 0;
+                  return `<td>${c ? c.nota : '—'}</td>`;
+                }).join('');
+                return `
                 <tr>
                   <td class="col-estudiante">
                     <span class="fila-calificaciones-nombre" data-usuario="${est.usuario}" data-nombre="${(est.nombre || est.usuario).replace(/"/g,'&quot;')}">
                       ${est.nombre || est.usuario}
                     </span>
                   </td>
-                  ${actividades.map(a => {
-                    const c = notasPorClave[`${est.usuario}|${a.codigo}`];
-                    return `<td>${c ? Math.round(Number(c.nota)) : '—'}</td>`;
-                  }).join('')}
+                  ${celdas}
+                  <td><strong>${Math.round(total)}</strong></td>
                 </tr>
-              `).join('')}
+              `;}).join('')}
             </tbody>
           </table>
         </div>`;
@@ -110,8 +116,8 @@
     }
   }
 
-  // Exporta a Excel (.csv con BOM) exactamente la tabla de Calificaciones y avances que se está viendo,
-  // con la calificación obtenida redondeada (sin decimales), igual que en pantalla.
+  // Exporta a Excel (.csv con BOM) exactamente la tabla de Calificaciones y avances que se está viendo:
+  // la calificación obtenida de cada actividad con decimales, y una columna Total redondeada.
   document.getElementById('btnExportarExcelCalifAvances').addEventListener('click', () => {
     const datos = ultimaTablaCalificacionesAvances;
     if(!datos || datos.actividades.length === 0){
@@ -120,13 +126,16 @@
     }
     const { ra, estudiantes, actividades, notasPorClave } = datos;
 
-    let csv = 'Estudiante,' + actividades.map(a => a.codigo).join(',') + '\n';
+    let csv = 'Estudiante,' + actividades.map(a => a.codigo).join(',') + ',Total\n';
     estudiantes.forEach(est => {
       const fila = [`"${(est.nombre || est.usuario).replace(/"/g, '""')}"`];
+      let total = 0;
       actividades.forEach(a => {
         const c = notasPorClave[`${est.usuario}|${a.codigo}`];
-        fila.push(c ? Math.round(Number(c.nota)) : '');
+        if(c) total += Number(c.nota) || 0;
+        fila.push(c ? c.nota : '');
       });
+      fila.push(Math.round(total));
       csv += fila.join(',') + '\n';
     });
 
