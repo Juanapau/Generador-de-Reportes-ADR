@@ -6,6 +6,7 @@
   const RAS_TODAS_ADMIN = ['RA1', 'RA2', 'RA3', 'RA4', 'RA5'];
   let raActualCalificaciones = 'RA1';
   let ultimoDetalleEstudianteData = null;
+  let ultimaTablaCalificacionesAvances = null; // { ra, estudiantes, actividades, notasPorClave } — para exportar a Excel
 
 // ============================================================================
 // CALIFICACIONES Y AVANCES — tabla general + detalle por estudiante
@@ -70,6 +71,9 @@
       const notasPorClave = {};
       if(dataCal.success) dataCal.calificaciones.forEach(c => { notasPorClave[`${c.usuario}|${c.codigo}`] = c; });
 
+      // Se guarda para poder exportar exactamente lo que se está mostrando.
+      ultimaTablaCalificacionesAvances = { ra, estudiantes, actividades, notasPorClave };
+
       wrap.innerHTML = `
         <div class="tabla-cumplimiento-scroll">
           <table class="tabla-cumplimiento">
@@ -89,7 +93,7 @@
                   </td>
                   ${actividades.map(a => {
                     const c = notasPorClave[`${est.usuario}|${a.codigo}`];
-                    return `<td>${c ? `${c.nota}/${c.puntajeMaximo}` : '—'}</td>`;
+                    return `<td>${c ? Math.round(Number(c.nota)) : '—'}</td>`;
                   }).join('')}
                 </tr>
               `).join('')}
@@ -101,9 +105,42 @@
         el.addEventListener('click', () => abrirDetalleEstudianteCalificaciones(el.dataset.usuario, el.dataset.nombre));
       });
     }catch(err){
+      ultimaTablaCalificacionesAvances = null;
       wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
     }
   }
+
+  // Exporta a Excel (.csv con BOM) exactamente la tabla de Calificaciones y avances que se está viendo,
+  // con la calificación obtenida redondeada (sin decimales), igual que en pantalla.
+  document.getElementById('btnExportarExcelCalifAvances').addEventListener('click', () => {
+    const datos = ultimaTablaCalificacionesAvances;
+    if(!datos || datos.actividades.length === 0){
+      mostrarNotificacion('No hay datos para exportar todavía.', 'error');
+      return;
+    }
+    const { ra, estudiantes, actividades, notasPorClave } = datos;
+
+    let csv = 'Estudiante,' + actividades.map(a => a.codigo).join(',') + '\n';
+    estudiantes.forEach(est => {
+      const fila = [`"${(est.nombre || est.usuario).replace(/"/g, '""')}"`];
+      actividades.forEach(a => {
+        const c = notasPorClave[`${est.usuario}|${a.codigo}`];
+        fila.push(c ? Math.round(Number(c.nota)) : '');
+      });
+      csv += fila.join(',') + '\n';
+    });
+
+    // El BOM (﻿) al inicio asegura que Excel muestre bien las tildes/ñ
+    const blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const enlace = document.createElement('a');
+    enlace.href = url;
+    enlace.download = `Calificaciones_y_avances_${ra}.csv`;
+    document.body.appendChild(enlace);
+    enlace.click();
+    document.body.removeChild(enlace);
+    URL.revokeObjectURL(url);
+  });
 
   // ---------- Detalle de un estudiante ----------
   document.getElementById('btnBackFromDetalleEstudianteCalificaciones').addEventListener('click', () => {
