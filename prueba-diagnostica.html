@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prueba Diagnóstica | Análisis y Diseño de Reportes | PNSA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<style>
+  :root{
+    --negro:#0A0A0A;
+    --negro-panel:#151515;
+    --negro-card:#1C1C1C;
+    --negro-card-alt:#242424;
+    --rojo:#C0152A;
+    --rojo-oscuro:#7E0E1C;
+    --rojo-brillo:#E31C36;
+    --dorado:#D4AF37;
+    --dorado-suave:#F0D976;
+    --ambar:#E08E1D;
+    --blanco:#F4F4F2;
+    --gris:#9A9A9A;
+    --gris-linea:#2E2E2E;
+    --font-display:'Bebas Neue', sans-serif;
+    --font-label:'Rajdhani', sans-serif;
+    --font-body:'Nunito', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:
+      radial-gradient(ellipse at top, rgba(192,21,42,0.10), transparent 55%),
+      radial-gradient(ellipse at bottom right, rgba(212,175,55,0.06), transparent 50%),
+      var(--negro);
+    color:var(--blanco);
+    font-family:var(--font-body);
+    font-size:17.5px;
+    min-height:100vh;
+    padding:28px 10px 60px;
+    line-height:1.55;
+  }
+  .contenedor{max-width:1180px; margin:0 auto;}
+
+  /* ---------- ENCABEZADO ---------- */
+  header.marca{
+    background:linear-gradient(135deg, var(--negro-panel) 0%, #100202 100%);
+    border:1px solid var(--gris-linea);
+    border-top:4px solid var(--rojo);
+    border-radius:10px;
+    padding:26px 28px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+    margin-bottom:22px;
+  }
+  header.marca::before{
+    content:"";
+    position:absolute; top:-40px; right:-40px;
+    width:160px; height:160px;
+    background:radial-gradient(circle, rgba(212,175,55,0.16), transparent 70%);
+  }
+  .escudo{
+    width:56px; height:56px;
+    border:2px solid var(--dorado);
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 12px;
+    background:var(--negro);
+    color:var(--dorado);
+    font-size:26px;
+  }
+  header.marca .institucion{
+    font-family:var(--font-display);
+    letter-spacing:1px;
+    font-size:clamp(28px,4.6vw,42px);
+    color:var(--blanco);
+    line-height:1.1;
+  }
+  header.marca .institucion span{color:var(--rojo-brillo);}
+  header.marca .titulo-prueba{
+    font-family:var(--font-label);
+    font-weight:600;
+    font-size:17px;
+    letter-spacing:.4px;
+    color:var(--dorado-suave);
+    margin-top:6px;
+  }
+  header.marca .etiqueta-modulo{
+    display:inline-block;
+    margin-top:12px;
+    font-family:var(--font-label);
+    font-size:14px;
+    letter-spacing:.5px;
+    color:var(--gris);
+    border:1px solid var(--gris-linea);
+    padding:4px 12px;
+    border-radius:20px;
+  }
+
+  /* ---------- TARJETAS ---------- */
+  .tarjeta{
+    background:var(--negro-card);
+    border:1px solid var(--gris-linea);
+    border-left:3px solid var(--rojo);
+    border-radius:8px;
+    padding:22px 24px;
+    margin-bottom:18px;
+  }
+  .tarjeta h2{
+    font-family:var(--font-label);
+    font-weight:700;
+    font-size:21px;
+    color:var(--blanco);
+    margin-bottom:16px;
+    display:flex; align-items:center; gap:9px;
+  }
+  .tarjeta h2 i{color:var(--rojo-brillo);}
+
+  /* ---------- FORMULARIO DATOS ---------- */
+  .fila-form{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+    margin-bottom:16px;
+  }
+  @media(max-width:600px){ .fila-form{grid-template-columns:1fr;} }
+  .campo{position:relative;}
+  .campo label{
+    display:block;
+    font-family:var(--font-label);
+    font-size:15px;
+    font-weight:600;
+    color:var(--gris);
+    margin-bottom:6px;
+    letter-spacing:.3px;
+  }
+  .campo input{
+    width:100%;
+    background:var(--negro-card-alt);
+    border:1px solid var(--gris-linea);
+    border-radius:6px;
+    padding:13px 15px;
+    color:var(--blanco);
+    font-family:var(--font-body);
+    font-size:17px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  .campo input:focus{border-color:var(--rojo);}
+  .campo input.valido{border-color:var(--dorado);}
+
+  .lista-autocompletar{
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0; right:0;
+    background:#151515;
+    border:1px solid var(--gris-linea);
+    border-radius:6px;
+    max-height:210px;
+    overflow-y:auto;
+    z-index:40;
+    display:none;
+    box-shadow:0 10px 24px rgba(0,0,0,.5);
+  }
+  .lista-autocompletar div{
+    padding:11px 14px;
+    font-size:16px;
+    cursor:pointer;
+    border-bottom:1px solid #201f1f;
+  }
+  .lista-autocompletar div:last-child{border-bottom:none;}
+  .lista-autocompletar div:hover, .lista-autocompletar div.activo{
+    background:var(--rojo-oscuro);
+    color:#fff;
+  }
+  .lista-autocompletar .sin-resultado{color:var(--gris); cursor:default;}
+  .lista-autocompletar .sin-resultado:hover{background:none;}
+
+  .aviso-duplicado{
+    display:flex; align-items:center; gap:9px;
+    margin-top:10px;
+    padding:11px 14px;
+    border:1px solid var(--rojo);
+    border-left:3px solid var(--rojo-brillo);
+    background:rgba(192,21,42,.14);
+    border-radius:6px;
+    font-size:14.5px;
+    color:#ffc2ca;
+  }
+  .aviso-duplicado i{color:var(--rojo-brillo); font-size:16px; flex-shrink:0;}
+
+  .acciones-docente{
+    display:flex; gap:10px; flex-wrap:wrap;
+    margin-top:6px;
+  }
+
+  /* ---------- BOTONES ---------- */
+  .btn{
+    font-family:var(--font-label);
+    font-weight:700;
+    font-size:16px;
+    letter-spacing:.3px;
+    border:none;
+    border-radius:6px;
+    padding:12px 20px;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .12s, filter .15s, box-shadow .15s;
+  }
+  .btn:active{transform:translateY(1px);}
+  .btn-primario{
+    background:linear-gradient(135deg, var(--rojo-brillo), var(--rojo-oscuro));
+    color:#fff;
+    box-shadow:0 4px 14px rgba(192,21,42,.35);
+  }
+  .btn-primario:hover{filter:brightness(1.08);}
+  .btn-primario:disabled{background:#3a3a3a; color:#777; box-shadow:none; cursor:not-allowed;}
+  .btn-dorado{
+    background:linear-gradient(135deg, var(--dorado-suave), var(--dorado));
+    color:#241a02;
+  }
+  .btn-dorado:hover{filter:brightness(1.06);}
+  .btn-secundario{
+    background:var(--negro-card-alt);
+    border:1px solid var(--gris-linea);
+    color:var(--blanco);
+  }
+  .btn-secundario:hover{border-color:var(--dorado);}
+  .btn-docente{
+    background:var(--negro-panel);
+    border:1px solid var(--dorado);
+    color:var(--dorado-suave);
+    font-size:14.5px;
+    padding:10px 16px;
+  }
+  .btn-docente:hover{background:rgba(212,175,55,.08);}
+  .btn-full{width:100%; justify-content:center; padding:14px;}
+
+  /* ---------- QUIZ ---------- */
+  .barra-progreso-wrap{
+    display:flex; align-items:center; gap:12px;
+    margin-bottom:20px;
+  }
+  .barra-progreso{
+    flex:1;
+    height:8px;
+    background:var(--negro-card-alt);
+    border-radius:20px;
+    overflow:hidden;
+    border:1px solid var(--gris-linea);
+  }
+  .barra-progreso-relleno{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg, var(--rojo), var(--dorado));
+    transition:width .25s ease;
+  }
+  .contador-preguntas{
+    font-family:var(--font-label);
+    font-weight:700;
+    font-size:16px;
+    color:var(--dorado-suave);
+    white-space:nowrap;
+  }
+  .pregunta-numero{
+    font-family:var(--font-label);
+    color:var(--rojo-brillo);
+    font-weight:700;
+    font-size:15.5px;
+    letter-spacing:1px;
+    margin-bottom:8px;
+  }
+  .pregunta-texto{
+    font-size:24px;
+    font-weight:700;
+    color:var(--blanco);
+    margin-bottom:20px;
+    line-height:1.4;
+  }
+  .opciones{display:flex; flex-direction:column; gap:11px;}
+  .opcion{
+    display:flex; align-items:center; gap:14px;
+    background:var(--negro-card-alt);
+    border:1.5px solid var(--gris-linea);
+    border-radius:7px;
+    padding:16px 18px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s;
+  }
+  .opcion:hover{border-color:var(--dorado);}
+  .opcion.seleccionada{
+    border-color:var(--rojo-brillo);
+    background:rgba(192,21,42,.14);
+  }
+  .opcion .marca{
+    width:20px; height:20px;
+    border-radius:50%;
+    border:2px solid var(--gris);
+    flex-shrink:0;
+    position:relative;
+  }
+  .opcion.seleccionada .marca{border-color:var(--rojo-brillo);}
+  .opcion.seleccionada .marca::after{
+    content:"";
+    position:absolute; inset:3px;
+    border-radius:50%;
+    background:var(--rojo-brillo);
+  }
+  .opcion .texto-opcion{font-size:17.5px; color:var(--blanco);}
+
+  .nav-quiz{
+    display:flex; justify-content:space-between;
+    margin-top:22px; gap:10px;
+  }
+
+  /* ---------- CONFIRMACIÓN ---------- */
+  .vista-confirmacion{text-align:center; padding:30px 10px;}
+  .icono-check{
+    width:78px; height:78px; border-radius:50%;
+    background:linear-gradient(135deg, var(--dorado-suave), var(--dorado));
+    display:flex; align-items:center; justify-content:center;
+    margin:0 auto 18px;
+    font-size:34px; color:#241a02;
+  }
+  .icono-check.icono-advertencia{
+    background:linear-gradient(135deg, var(--rojo-brillo), var(--rojo-oscuro));
+    color:#fff;
+  }
+  .vista-confirmacion h2{
+    font-family:var(--font-display);
+    font-size:36px;
+    letter-spacing:.5px;
+    margin-bottom:10px;
+  }
+  .vista-confirmacion p{color:var(--gris); font-size:17.5px; max-width:520px; margin:0 auto;}
+
+  /* ---------- OVERLAY / MODALES ---------- */
+  .overlay{
+    position:fixed; inset:0;
+    background:rgba(0,0,0,.72);
+    backdrop-filter:blur(2px);
+    display:none;
+    align-items:center; justify-content:center;
+    z-index:100;
+    padding:16px;
+  }
+  .overlay.activo{display:flex;}
+  .modal{
+    background:var(--negro-panel);
+    border:1px solid var(--gris-linea);
+    border-top:4px solid var(--dorado);
+    border-radius:10px;
+    padding:26px;
+    width:100%;
+    max-width:420px;
+    max-height:88vh;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    animation:aparecer .18s ease;
+  }
+  .modal.modal-ancho{max-width:640px;}
+  .modal::-webkit-scrollbar{width:8px;}
+  .modal::-webkit-scrollbar-thumb{background:var(--gris-linea); border-radius:20px;}
+  .modal::-webkit-scrollbar-thumb:hover{background:var(--rojo);}
+  @keyframes aparecer{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .modal h3{
+    font-family:var(--font-label);
+    font-size:21px; font-weight:700;
+    margin-bottom:14px;
+    display:flex; align-items:center; gap:9px;
+  }
+  .modal h3 i{color:var(--dorado);}
+  .modal .cerrar-modal{
+    float:right;
+    background:none; border:none; color:var(--gris);
+    font-size:18px; cursor:pointer;
+  }
+  .modal .cerrar-modal:hover{color:var(--rojo-brillo);}
+  .pin-inputs{
+    display:flex; gap:10px; justify-content:center;
+    margin:18px 0 8px;
+  }
+  .pin-inputs input{
+    width:46px; height:56px;
+    text-align:center;
+    font-size:24px;
+    font-family:var(--font-label);
+    background:var(--negro-card-alt);
+    border:1.5px solid var(--gris-linea);
+    border-radius:8px;
+    color:var(--blanco);
+    outline:none;
+  }
+  .pin-inputs input:focus{border-color:var(--rojo);}
+  .pin-error{
+    color:var(--rojo-brillo);
+    font-size:14.5px;
+    text-align:center;
+    min-height:18px;
+    font-weight:600;
+  }
+  .pin-error.mostrar{animation:shake .3s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);}
+    75%{transform:translateX(6px);}
+  }
+
+  .tabs-docente{display:flex; gap:8px; margin-bottom:18px; border-bottom:1px solid var(--gris-linea);}
+  .tab-btn{
+    background:none; border:none; color:var(--gris);
+    font-family:var(--font-label); font-weight:700; font-size:15.5px;
+    padding:10px 6px; cursor:pointer; border-bottom:3px solid transparent;
+  }
+  .tab-btn.activo{color:var(--dorado-suave); border-color:var(--dorado);}
+  .panel-tab{display:none;}
+  .panel-tab.activo{display:block;}
+
+  .resultado-busqueda{
+    background:var(--negro-card);
+    border:1px solid var(--gris-linea);
+    border-left:3px solid var(--dorado);
+    border-radius:7px;
+    padding:13px 15px;
+    margin-top:10px;
+    font-size:16px;
+  }
+  .resultado-busqueda .fila{display:flex; justify-content:space-between; padding:3px 0;}
+  .resultado-busqueda .fila span:first-child{color:var(--gris);}
+  .badge-estado{
+    padding:2px 9px; border-radius:20px; font-size:12px; font-weight:700;
+    font-family:var(--font-label);
+  }
+  .badge-realizada{background:rgba(212,175,55,.18); color:var(--dorado-suave);}
+  .badge-pendiente{background:rgba(154,154,154,.18); color:var(--gris);}
+
+  .resumen-nivel{
+    text-align:center;
+    padding:20px;
+    border-radius:8px;
+    margin-bottom:16px;
+  }
+  .resumen-nivel .nombre-nivel{
+    font-family:var(--font-display);
+    font-size:38px;
+    letter-spacing:1px;
+  }
+  .resumen-nivel .puntaje-grande{font-size:16.5px; font-family:var(--font-label); font-weight:700; margin-top:4px;}
+  .nivel-destacado{background:linear-gradient(135deg, rgba(212,175,55,.20), rgba(212,175,55,.06)); border:1px solid var(--dorado);}
+  .nivel-destacado .nombre-nivel{color:var(--dorado-suave);}
+  .nivel-notable{background:linear-gradient(135deg, rgba(224,142,29,.20), rgba(224,142,29,.06)); border:1px solid var(--ambar);}
+  .nivel-notable .nombre-nivel{color:var(--ambar);}
+  .nivel-amejorar{background:linear-gradient(135deg, rgba(192,21,42,.20), rgba(192,21,42,.06)); border:1px solid var(--rojo);}
+  .nivel-amejorar .nombre-nivel{color:var(--rojo-brillo);}
+
+  .tabla-detalle{width:100%; border-collapse:collapse; font-size:15px; margin-top:6px;}
+  .tabla-detalle th{
+    text-align:left; font-family:var(--font-label); font-weight:700;
+    color:var(--gris); padding:8px 6px; border-bottom:1px solid var(--gris-linea);
+    position:sticky; top:0; background:var(--negro-panel);
+  }
+  .tabla-detalle td{padding:8px 6px; border-bottom:1px solid #232323; vertical-align:top;}
+  .tabla-detalle .contenedor-scroll{max-height:320px; overflow-y:auto;}
+  .icono-ok{color:var(--dorado-suave);}
+  .icono-mal{color:var(--rojo-brillo);}
+
+  .campo-busqueda-docente{display:flex; gap:8px; margin-bottom:4px;}
+  .campo-busqueda-docente input{flex:1;}
+
+  .mensaje-estado{
+    font-size:15px; color:var(--gris); text-align:center; margin-top:10px;
+  }
+  .cargando{
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    color:var(--gris); font-size:14px; padding:14px;
+  }
+  .spin{animation:girar 1s linear infinite;}
+  @keyframes girar{to{transform:rotate(360deg);}}
+
+  footer.pie{
+    text-align:center;
+    color:var(--gris);
+    font-size:13.5px;
+    margin-top:26px;
+    letter-spacing:.3px;
+  }
+  .oculto{display:none !important;}
+
+  @media(max-width:480px){
+    body{font-size:16px; padding-left:8px; padding-right:8px;}
+    .tarjeta{padding:18px 15px;}
+    .pregunta-texto{font-size:19px;}
+    .opcion .texto-opcion{font-size:16px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="contenedor">
+
+  <header class="marca">
+    <div class="escudo"><i class="fa-solid fa-graduation-cap"></i></div>
+    <div class="institucion">POLITÉCNICO <span>NUESTRA SEÑORA</span> DE LA ALTAGRACIA</div>
+    <div class="titulo-prueba">Prueba diagnóstica del módulo formativo Análisis y Diseño de Reportes</div>
+    <div class="etiqueta-modulo"><i class="fa-solid fa-layer-group"></i>&nbsp; 5to de Secundaria &nbsp;·&nbsp; Bachillerato Técnico en Diseño y Desarrollo de Aplicaciones Informáticas</div>
+  </header>
+
+  <!-- ===================== VISTA 1: DATOS DEL ESTUDIANTE ===================== -->
+  <section id="vista-inicio" class="tarjeta">
+    <h2><i class="fa-solid fa-id-card"></i> Datos del estudiante</h2>
+
+    <div class="fila-form">
+      <div class="campo">
+        <label for="input-nombre">Nombre completo</label>
+        <input type="text" id="input-nombre" name="nombre-estudiante-prueba-adr" autocomplete="off" spellcheck="false" placeholder="Escribe tu nombre...">
+        <input type="text" style="position:absolute; opacity:0; height:0; width:0; pointer-events:none;" tabindex="-1" aria-hidden="true">
+        <div class="lista-autocompletar" id="lista-autocompletar"></div>
+        <div class="aviso-duplicado oculto" id="aviso-duplicado">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>Ya existe un envío registrado con este nombre. Solo se permite una presentación por estudiante.</span>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="input-fecha">Fecha</label>
+        <input type="date" id="input-fecha">
+      </div>
+    </div>
+
+    <button class="btn btn-primario btn-full" id="btn-iniciar" disabled>
+      <i class="fa-solid fa-pen-to-square"></i> Iniciar prueba diagnóstica
+    </button>
+
+    <div style="margin-top:22px; border-top:1px solid var(--gris-linea); padding-top:16px;">
+      <label style="display:block; font-family:var(--font-label); font-size:12.5px; color:var(--gris); margin-bottom:10px; letter-spacing:.4px;">
+        <i class="fa-solid fa-lock"></i> ZONA DOCENTE
+      </label>
+      <div class="acciones-docente">
+        <button class="btn btn-docente" id="btn-buscar-estudiante"><i class="fa-solid fa-magnifying-glass"></i> Buscar estudiante</button>
+        <button class="btn btn-docente" id="btn-generar-pdf"><i class="fa-solid fa-file-pdf"></i> Generar PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== VISTA 2: PRUEBA ===================== -->
+  <section id="vista-prueba" class="tarjeta oculto">
+    <div class="barra-progreso-wrap">
+      <div class="barra-progreso"><div class="barra-progreso-relleno" id="barra-relleno"></div></div>
+      <div class="contador-preguntas" id="contador-preguntas">1 / 20</div>
+    </div>
+
+    <div class="pregunta-numero" id="pregunta-numero-txt">PREGUNTA 1</div>
+    <div class="pregunta-texto" id="pregunta-texto"></div>
+    <div class="opciones" id="opciones-contenedor"></div>
+
+    <div class="nav-quiz">
+      <button class="btn btn-secundario" id="btn-anterior"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+      <button class="btn btn-primario" id="btn-siguiente">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+    </div>
+  </section>
+
+  <!-- ===================== VISTA 3: CONFIRMACIÓN ===================== -->
+  <section id="vista-confirmacion" class="tarjeta vista-confirmacion oculto">
+    <div class="icono-check" id="icono-confirmacion"><i class="fa-solid fa-check"></i></div>
+    <h2 id="titulo-confirmacion">¡Prueba enviada!</h2>
+    <p id="texto-confirmacion">Gracias por completar la prueba diagnóstica. Tus respuestas fueron registradas correctamente. Tu docente revisará los resultados.</p>
+  </section>
+
+  <footer class="pie">Politécnico Nuestra Señora de la Altagracia &middot; Módulo Análisis y Diseño de Reportes</footer>
+</div>
+
+<!-- ===================== MODAL: PIN ===================== -->
+<div class="overlay" id="overlay-pin">
+  <div class="modal">
+    <button class="cerrar-modal" data-cerrar="overlay-pin"><i class="fa-solid fa-xmark"></i></button>
+    <h3><i class="fa-solid fa-shield-halved"></i> Acceso docente</h3>
+    <p style="color:var(--gris); font-size:14px;">Introduce el PIN para continuar.</p>
+    <div class="pin-inputs">
+      <input type="password" maxlength="1" inputmode="numeric" class="pin-digito">
+      <input type="password" maxlength="1" inputmode="numeric" class="pin-digito">
+      <input type="password" maxlength="1" inputmode="numeric" class="pin-digito">
+      <input type="password" maxlength="1" inputmode="numeric" class="pin-digito">
+    </div>
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+</div>
+
+<!-- ===================== MODAL: PANEL DOCENTE ===================== -->
+<div class="overlay" id="overlay-docente">
+  <div class="modal modal-ancho">
+    <button class="cerrar-modal" data-cerrar="overlay-docente"><i class="fa-solid fa-xmark"></i></button>
+    <h3><i class="fa-solid fa-user-tie"></i> Panel docente</h3>
+
+    <div class="tabs-docente">
+      <button class="tab-btn" id="tab-buscar" data-tab="panel-buscar">Buscar estudiante</button>
+      <button class="tab-btn" id="tab-resultados" data-tab="panel-resultados">Ver resultados</button>
+    </div>
+
+    <!-- TAB: BUSCAR ESTUDIANTE -->
+    <div class="panel-tab" id="panel-buscar">
+      <div class="campo" style="margin-bottom:10px;">
+        <div class="campo-busqueda-docente">
+          <input type="text" id="input-buscar-docente" placeholder="Nombre del estudiante..." autocomplete="off">
+          <button class="btn btn-primario" id="btn-ejecutar-buscar"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+        <div class="lista-autocompletar" id="lista-autocompletar-docente"></div>
+      </div>
+      <div id="contenedor-resultado-busqueda"></div>
+    </div>
+
+    <!-- TAB: VER RESULTADOS -->
+    <div class="panel-tab" id="panel-resultados">
+      <div class="campo" style="margin-bottom:10px;">
+        <div class="campo-busqueda-docente">
+          <input type="text" id="input-resultado-docente" placeholder="Nombre del estudiante..." autocomplete="off">
+          <button class="btn btn-dorado" id="btn-ejecutar-resultado"><i class="fa-solid fa-chart-column"></i></button>
+        </div>
+        <div class="lista-autocompletar" id="lista-autocompletar-resultado"></div>
+      </div>
+      <div id="contenedor-detalle-resultado"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   CONFIGURACIÓN — reemplaza esta URL por la de tu implementación (Web App)
+   de Google Apps Script una vez publicada.
+   ========================================================================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbxnlraNajJe-Ye-L9QMymjTi4Q7V5uPnWDGVTl8IEIBViqETG48a_cul6s_GxRunJI6gQ/exec";
+const PIN_DOCENTE = "1070";
+
+/* =========================================================================
+   BANCO DE PREGUNTAS (20 ítems — diagnóstico de conocimientos previos)
+   ========================================================================= */
+const PREGUNTAS = [
+  { p:"¿Qué es, en términos generales, un reporte o informe?", o:["Un documento que presenta información organizada sobre un tema o proceso","Un programa para editar imágenes","Un tipo de red social","Un dispositivo de almacenamiento"], c:0 },
+  { p:"¿Cuál de las siguientes aplicaciones se usa comúnmente para crear hojas de cálculo?", o:["Microsoft Word","Microsoft Excel","Adobe Photoshop","Windows Media Player"], c:1 },
+  { p:"En una base de datos, ¿cómo se le llama a cada una de las columnas de una tabla que representa un dato específico (como \"Nombre\" o \"Fecha\")?", o:["Registro","Consulta","Campo","Reporte"], c:2 },
+  { p:"¿Qué nombre recibe cada fila completa de una tabla de base de datos, que agrupa todos los datos de un mismo elemento?", o:["Registro","Campo","Filtro","Formato"], c:0 },
+  { p:"Si necesitas mostrar solo los productos de una tienda con precio mayor a $500, ¿qué herramienta utilizarías en una hoja de cálculo?", o:["Un filtro","Un fondo de pantalla","Un corrector ortográfico","Una impresora"], c:0 },
+  { p:"¿Cuál de las siguientes opciones es un ejemplo correcto de formato de fecha?", o:["15/09/2026","Quince-Nueve","Fecha desconocida","2026$09"], c:0 },
+  { p:"¿Qué tipo de gráfico usarías para comparar las ventas de varios meses de forma visual?", o:["Gráfico de barras","Documento de texto","Archivo de audio","Presentación en blanco"], c:0 },
+  { p:"¿Qué significa \"ordenar datos\" en una hoja de cálculo o base de datos?", o:["Eliminar información duplicada","Organizar la información según un criterio, como alfabético o numérico","Cambiar el color de las celdas","Guardar el archivo en la nube"], c:1 },
+  { p:"¿Cuál es el propósito principal de instalar un programa en la computadora antes de usarlo?", o:["Descargar sus archivos al disco y prepararlos para que funcionen correctamente","Borrar todos los archivos anteriores del equipo","Conectar la computadora a internet automáticamente","Cambiar el idioma del sistema operativo"], c:0 },
+  { p:"¿Qué es la confidencialidad de la información?", o:["Compartir todos los datos con cualquier persona","Proteger los datos para que solo accedan las personas autorizadas","Guardar los archivos sin contraseña","Publicar los datos en redes sociales"], c:1 },
+  { p:"¿Qué significa \"publicar\" un documento o reporte en la web?", o:["Imprimirlo en papel","Ponerlo disponible para que otras personas lo vean a través de internet","Eliminarlo del computador","Convertirlo en una imagen"], c:1 },
+  { p:"Cuando una empresa quiere conocer el comportamiento de sus clientes a través de sus compras, ¿qué tipo de información está analizando?", o:["Datos","Sonidos","Colores","Idiomas"], c:0 },
+  { p:"¿Qué es el marketing, en términos generales?", o:["El proceso de fabricar productos","El conjunto de estrategias para promover y vender productos o servicios","Un sistema operativo","Un tipo de base de datos"], c:1 },
+  { p:"¿Qué parte de un documento o informe generalmente incluye el título, el logo y la fecha?", o:["El encabezado","El pie de página","Los anexos","La bibliografía"], c:0 },
+  { p:"¿Qué es un \"total\" en el contexto de una hoja de cálculo con varios datos numéricos?", o:["El resultado de sumar un conjunto de valores","Un tipo de letra","Un color de fondo","Un archivo adjunto"], c:0 },
+  { p:"¿Qué término se utiliza para describir grandes volúmenes de datos que son difíciles de procesar con herramientas tradicionales?", o:["Big Data","Software libre","Hardware","Firewall"], c:0 },
+  { p:"¿Qué es la Inteligencia Artificial (IA), en un sentido general?", o:["Sistemas que imitan capacidades humanas como aprender o reconocer patrones","Un tipo de impresora","Un lenguaje de programación exclusivo para videojuegos","Un dispositivo de almacenamiento externo"], c:0 },
+  { p:"En el tablero de un carro (velocímetro, nivel de gasolina, etc.) se muestra información resumida de forma visual e inmediata. ¿A qué concepto tecnológico se parece esta idea, aplicada a una empresa?", o:["Un tablero o dashboard de indicadores","Un correo electrónico","Un antivirus","Un navegador web"], c:0 },
+  { p:"¿Qué formato usarías para mostrar correctamente una cantidad de dinero, como 1500 pesos dominicanos?", o:["1500","RD$1,500.00","1500%","1500°"], c:1 },
+  { p:"¿Por qué es importante mantener actualizados y correctos los datos que se recopilan en una organización?", o:["Porque así ocupan menos espacio","Para garantizar información confiable que apoye la toma de decisiones","Porque es un requisito legal en todos los países","Para que el programa funcione más rápido"], c:1 }
+];
+
+/* =========================================================================
+   ESTADO
+   ========================================================================= */
+let listaEstudiantes = [];
+let nombreSeleccionado = "";
+let yaRealizado = false;
+let indiceActual = 0;
+let respuestasEstudiante = new Array(PREGUNTAS.length).fill(null);
+let callbackPin = null;
+
+const $ = (id) => document.getElementById(id);
+
+/* =========================================================================
+   INICIALIZACIÓN
+   ========================================================================= */
+document.addEventListener("DOMContentLoaded", () => {
+  // Limpia el campo de nombre por si el navegador restauró un valor anterior (autofill/bfcache)
+  $("input-nombre").value = "";
+  nombreSeleccionado = "";
+  yaRealizado = false;
+  $("input-nombre").classList.remove("valido");
+  $("aviso-duplicado").classList.add("oculto");
+
+  $("input-fecha").value = new Date().toISOString().split("T")[0];
+  cargarListaEstudiantes();
+  configurarAutocompletar($("input-nombre"), $("lista-autocompletar"), (nombre) => {
+    nombreSeleccionado = nombre;
+    $("input-nombre").value = nombre;
+    $("input-nombre").classList.add("valido");
+    verificarEnvioPrevio(nombre);
+    validarInicio();
+  });
+  configurarAutocompletar($("input-buscar-docente"), $("lista-autocompletar-docente"));
+  configurarAutocompletar($("input-resultado-docente"), $("lista-autocompletar-resultado"));
+
+  $("input-nombre").addEventListener("input", () => {
+    nombreSeleccionado = "";
+    yaRealizado = false;
+    $("aviso-duplicado").classList.add("oculto");
+    $("input-nombre").classList.remove("valido");
+    validarInicio();
+  });
+  $("input-fecha").addEventListener("input", validarInicio);
+
+  $("btn-iniciar").addEventListener("click", iniciarPrueba);
+  $("btn-anterior").addEventListener("click", () => cambiarPregunta(-1));
+  $("btn-siguiente").addEventListener("click", manejarSiguiente);
+
+  $("btn-buscar-estudiante").addEventListener("click", () => abrirFlujoDocente("panel-buscar"));
+  $("btn-generar-pdf").addEventListener("click", () => {
+    callbackPin = () => {
+      cerrarOverlay("overlay-pin");
+      generarPdfNiveles();
+    };
+    abrirOverlayPin();
+  });
+
+  document.querySelectorAll(".cerrar-modal").forEach(btn => {
+    btn.addEventListener("click", () => cerrarOverlay(btn.dataset.cerrar));
+  });
+
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => activarTab(btn.dataset.tab));
+  });
+
+  configurarPinInputs();
+
+  $("btn-ejecutar-buscar").addEventListener("click", ejecutarBusquedaEstudiante);
+  $("input-buscar-docente").addEventListener("keydown", (e) => { if(e.key==="Enter") ejecutarBusquedaEstudiante(); });
+
+  $("btn-ejecutar-resultado").addEventListener("click", ejecutarConsultaResultado);
+  $("input-resultado-docente").addEventListener("keydown", (e) => { if(e.key==="Enter") ejecutarConsultaResultado(); });
+});
+
+// Si el navegador restaura la página desde su caché (bfcache) al volver atrás, limpia el campo igualmente.
+window.addEventListener("pageshow", () => {
+  $("input-nombre").value = "";
+  nombreSeleccionado = "";
+  yaRealizado = false;
+  $("aviso-duplicado").classList.add("oculto");
+  $("input-nombre").classList.remove("valido");
+  validarInicio();
+});
+
+/* =========================================================================
+   CARGA DE ESTUDIANTES (para autocompletado) — GET ?action=estudiantes
+   ========================================================================= */
+async function cargarListaEstudiantes() {
+  if (!apiConfigurada()) return;
+  try {
+    const res = await fetch(`${API_URL}?action=estudiantes`);
+    const data = await res.json();
+    if (data.ok) listaEstudiantes = data.estudiantes || [];
+  } catch (err) {
+    console.warn("No se pudo cargar la lista de estudiantes:", err);
+  }
+}
+
+function apiConfigurada() {
+  return API_URL && !API_URL.includes("PEGA_AQUI");
+}
+
+/* =========================================================================
+   VERIFICAR SI EL ESTUDIANTE YA ENVIÓ LA PRUEBA — límite de un envío
+   ========================================================================= */
+async function verificarEnvioPrevio(nombre) {
+  $("aviso-duplicado").classList.add("oculto");
+  yaRealizado = false;
+  if (!apiConfigurada() || !nombre) { validarInicio(); return; }
+  try {
+    const res = await fetch(`${API_URL}?action=verificar&nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+    yaRealizado = !!(data.ok && data.yaRealizado);
+    $("aviso-duplicado").classList.toggle("oculto", !yaRealizado);
+  } catch (err) {
+    console.warn("No se pudo verificar envíos previos:", err);
+  } finally {
+    validarInicio();
+  }
+}
+
+/* =========================================================================
+   AUTOCOMPLETADO GENÉRICO
+   ========================================================================= */
+function configurarAutocompletar(input, contenedorLista, alSeleccionar) {
+  input.addEventListener("input", () => {
+    const valor = input.value.trim().toLowerCase();
+    contenedorLista.innerHTML = "";
+    if (!valor) { contenedorLista.style.display = "none"; return; }
+    const coincidencias = listaEstudiantes.filter(n => n.toLowerCase().includes(valor)).slice(0, 8);
+    if (coincidencias.length === 0) {
+      contenedorLista.innerHTML = `<div class="sin-resultado">Sin coincidencias</div>`;
+    } else {
+      coincidencias.forEach(nombre => {
+        const item = document.createElement("div");
+        item.textContent = nombre;
+        item.addEventListener("click", () => {
+          input.value = nombre;
+          contenedorLista.style.display = "none";
+          if (alSeleccionar) alSeleccionar(nombre);
+        });
+        contenedorLista.appendChild(item);
+      });
+    }
+    contenedorLista.style.display = "block";
+  });
+
+  document.addEventListener("click", (e) => {
+    if (e.target !== input) contenedorLista.style.display = "none";
+  });
+}
+
+/* =========================================================================
+   VALIDACIÓN INICIO
+   ========================================================================= */
+function validarInicio() {
+  const nombreOk = nombreSeleccionado.length > 0 && $("input-nombre").value.trim() === nombreSeleccionado;
+  const fechaOk = $("input-fecha").value.length > 0;
+  $("btn-iniciar").disabled = !(nombreOk && fechaOk) || yaRealizado;
+}
+
+/* =========================================================================
+   FLUJO DE LA PRUEBA
+   ========================================================================= */
+function iniciarPrueba() {
+  if (yaRealizado) return; // salvaguarda: el botón ya debería estar deshabilitado en este caso
+  indiceActual = 0;
+  respuestasEstudiante = new Array(PREGUNTAS.length).fill(null);
+  $("vista-inicio").classList.add("oculto");
+  $("vista-prueba").classList.remove("oculto");
+  renderPregunta();
+}
+
+function renderPregunta() {
+  const q = PREGUNTAS[indiceActual];
+  $("pregunta-numero-txt").textContent = `PREGUNTA ${indiceActual + 1}`;
+  $("pregunta-texto").textContent = q.p;
+  $("contador-preguntas").textContent = `${indiceActual + 1} / ${PREGUNTAS.length}`;
+  $("barra-relleno").style.width = `${((indiceActual) / PREGUNTAS.length) * 100}%`;
+
+  const cont = $("opciones-contenedor");
+  cont.innerHTML = "";
+  q.o.forEach((texto, idx) => {
+    const div = document.createElement("div");
+    div.className = "opcion" + (respuestasEstudiante[indiceActual] === idx ? " seleccionada" : "");
+    div.innerHTML = `<div class="marca"></div><div class="texto-opcion">${texto}</div>`;
+    div.addEventListener("click", () => {
+      respuestasEstudiante[indiceActual] = idx;
+      renderPregunta();
+    });
+    cont.appendChild(div);
+  });
+
+  $("btn-anterior").style.visibility = indiceActual === 0 ? "hidden" : "visible";
+  $("btn-siguiente").innerHTML = indiceActual === PREGUNTAS.length - 1
+    ? `Finalizar prueba <i class="fa-solid fa-check"></i>`
+    : `Siguiente <i class="fa-solid fa-arrow-right"></i>`;
+}
+
+function cambiarPregunta(delta) {
+  const nuevo = indiceActual + delta;
+  if (nuevo < 0 || nuevo >= PREGUNTAS.length) return;
+  indiceActual = nuevo;
+  renderPregunta();
+}
+
+function manejarSiguiente() {
+  if (respuestasEstudiante[indiceActual] === null) {
+    const cont = $("opciones-contenedor");
+    cont.style.animation = "shake .3s";
+    setTimeout(() => cont.style.animation = "", 300);
+    return;
+  }
+  if (indiceActual === PREGUNTAS.length - 1) {
+    finalizarPrueba();
+  } else {
+    indiceActual++;
+    renderPregunta();
+  }
+}
+
+async function finalizarPrueba() {
+  let correctas = 0;
+  const detalle = PREGUNTAS.map((q, i) => {
+    const seleccion = respuestasEstudiante[i];
+    const esCorrecta = seleccion === q.c;
+    if (esCorrecta) correctas++;
+    return {
+      numero: i + 1,
+      pregunta: q.p,
+      respuestaEstudiante: q.o[seleccion],
+      respuestaCorrecta: q.o[q.c],
+      esCorrecta
+    };
+  });
+  const incorrectas = PREGUNTAS.length - correctas;
+  const porcentaje = Math.round((correctas / PREGUNTAS.length) * 100);
+  const nivel = calcularNivel(correctas);
+
+  $("barra-relleno").style.width = "100%";
+
+  const payload = {
+    nombre: nombreSeleccionado,
+    fecha: $("input-fecha").value,
+    correctas,
+    incorrectas,
+    puntaje: `${correctas}/${PREGUNTAS.length}`,
+    porcentaje,
+    nivel,
+    detalle
+  };
+
+  await enviarResultado(payload);
+}
+
+function calcularNivel(correctas) {
+  if (correctas >= 16) return "Destacado";
+  if (correctas >= 11) return "Notable";
+  return "A mejorar";
+}
+
+async function enviarResultado(payload) {
+  $("vista-prueba").classList.add("oculto");
+  $("vista-confirmacion").classList.remove("oculto");
+
+  if (!apiConfigurada()) {
+    console.warn("API no configurada — resultado no enviado:", payload);
+    mostrarConfirmacion("normal", payload.nombre);
+    return;
+  }
+
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    if (data && data.ok === false && data.duplicado) {
+      mostrarConfirmacion("duplicado", payload.nombre);
+    } else if (data && data.ok === false) {
+      mostrarConfirmacion("error", payload.nombre, data.mensaje);
+    } else {
+      mostrarConfirmacion("normal", payload.nombre);
+    }
+  } catch (err) {
+    console.error("Error al enviar el resultado:", err);
+    mostrarConfirmacion("error", payload.nombre);
+  }
+}
+
+function mostrarConfirmacion(tipo, nombre, mensajeError) {
+  const icono = $("icono-confirmacion");
+  const titulo = $("titulo-confirmacion");
+  const texto = $("texto-confirmacion");
+  const primerNombre = (nombre || "").split(" ")[0] || "";
+
+  if (tipo === "duplicado") {
+    icono.className = "icono-check icono-advertencia";
+    icono.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+    titulo.textContent = "Envío no registrado";
+    texto.textContent = `${primerNombre}, ya existe un envío previo con tu nombre. Solo se permite una presentación por estudiante, por lo que estas respuestas no fueron guardadas. Si consideras que se trata de un error, comunícalo a tu docente.`;
+  } else if (tipo === "error") {
+    icono.className = "icono-check icono-advertencia";
+    icono.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i>`;
+    titulo.textContent = "No se pudo enviar";
+    texto.textContent = mensajeError || `Ocurrió un problema al registrar tus respuestas, ${primerNombre}. Por favor avisa a tu docente para verificar si tu prueba quedó guardada.`;
+  } else {
+    icono.className = "icono-check";
+    icono.innerHTML = `<i class="fa-solid fa-check"></i>`;
+    titulo.textContent = "¡Prueba enviada!";
+    texto.textContent = `Gracias, ${primerNombre}. Tus respuestas fueron registradas correctamente. Tu docente revisará los resultados de la prueba diagnóstica.`;
+  }
+}
+
+/* =========================================================================
+   ZONA DOCENTE — PIN
+   ========================================================================= */
+function configurarPinInputs() {
+  const digitos = document.querySelectorAll(".pin-digito");
+  digitos.forEach((input, idx) => {
+    input.addEventListener("input", () => {
+      input.value = input.value.replace(/[^0-9]/g, "");
+      if (input.value && idx < digitos.length - 1) digitos[idx + 1].focus();
+      if ([...digitos].every(d => d.value.length === 1)) verificarPin();
+    });
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Backspace" && !input.value && idx > 0) digitos[idx - 1].focus();
+    });
+  });
+}
+
+function abrirFlujoDocente(tabInicial) {
+  callbackPin = () => {
+    cerrarOverlay("overlay-pin");
+    $("overlay-docente").classList.add("activo");
+    activarTab(tabInicial);
+  };
+  abrirOverlayPin();
+}
+
+function abrirOverlayPin() {
+  $("pin-error").textContent = "";
+  document.querySelectorAll(".pin-digito").forEach(d => d.value = "");
+  $("overlay-pin").classList.add("activo");
+  setTimeout(() => document.querySelector(".pin-digito").focus(), 80);
+}
+
+function verificarPin() {
+  const digitos = [...document.querySelectorAll(".pin-digito")].map(d => d.value).join("");
+  if (digitos === PIN_DOCENTE) {
+    if (callbackPin) callbackPin();
+  } else {
+    const err = $("pin-error");
+    err.textContent = "PIN incorrecto. Inténtalo de nuevo.";
+    err.classList.add("mostrar");
+    setTimeout(() => { err.classList.remove("mostrar"); }, 300);
+    document.querySelectorAll(".pin-digito").forEach(d => d.value = "");
+    document.querySelector(".pin-digito").focus();
+  }
+}
+
+function cerrarOverlay(id) {
+  $(id).classList.remove("activo");
+}
+
+function activarTab(tabId) {
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("activo", b.dataset.tab === tabId));
+  document.querySelectorAll(".panel-tab").forEach(p => p.classList.toggle("activo", p.id === tabId));
+}
+
+/* =========================================================================
+   ZONA DOCENTE — BUSCAR ESTUDIANTE (estado: realizada / pendiente)
+   ========================================================================= */
+async function ejecutarBusquedaEstudiante() {
+  const nombre = $("input-buscar-docente").value.trim();
+  const cont = $("contenedor-resultado-busqueda");
+  if (!nombre) { cont.innerHTML = ""; return; }
+  cont.innerHTML = `<div class="cargando"><i class="fa-solid fa-spinner spin"></i> Buscando...</div>`;
+
+  if (!apiConfigurada()) {
+    cont.innerHTML = `<div class="mensaje-estado">Configura la URL del backend (Apps Script) para habilitar esta función.</div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}?action=buscar&nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+    if (!data.ok || !data.resultados || data.resultados.length === 0) {
+      cont.innerHTML = `
+        <div class="resultado-busqueda">
+          <div class="fila"><span>Estudiante</span><span>${nombre}</span></div>
+          <div class="fila"><span>Estado</span><span class="badge-estado badge-pendiente">Pendiente</span></div>
+        </div>`;
+      return;
+    }
+    cont.innerHTML = data.resultados.map(r => `
+      <div class="resultado-busqueda">
+        <div class="fila"><span>Estudiante</span><span>${r.nombre}</span></div>
+        <div class="fila"><span>Fecha</span><span>${r.fecha}</span></div>
+        <div class="fila"><span>Puntaje</span><span>${r.puntaje}</span></div>
+        <div class="fila"><span>Estado</span><span class="badge-estado badge-realizada">Realizada</span></div>
+      </div>
+    `).join("");
+  } catch (err) {
+    cont.innerHTML = `<div class="mensaje-estado">Ocurrió un error al consultar la información.</div>`;
+  }
+}
+
+/* =========================================================================
+   ZONA DOCENTE — VER RESULTADOS DETALLADOS
+   ========================================================================= */
+async function ejecutarConsultaResultado() {
+  const nombre = $("input-resultado-docente").value.trim();
+  const cont = $("contenedor-detalle-resultado");
+  if (!nombre) { cont.innerHTML = ""; return; }
+  cont.innerHTML = `<div class="cargando"><i class="fa-solid fa-spinner spin"></i> Consultando resultados...</div>`;
+
+  if (!apiConfigurada()) {
+    cont.innerHTML = `<div class="mensaje-estado">Configura la URL del backend (Apps Script) para habilitar esta función.</div>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}?action=resultado&nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+    if (!data.ok) {
+      cont.innerHTML = `<div class="mensaje-estado">${data.mensaje || "No se encontraron resultados para este estudiante."}</div>`;
+      return;
+    }
+    const claseNivel = data.nivel === "Destacado" ? "nivel-destacado" : (data.nivel === "Notable" ? "nivel-notable" : "nivel-amejorar");
+    const filasDetalle = (data.detalle || []).map(d => `
+      <tr>
+        <td>${d.numero}</td>
+        <td>${d.pregunta}</td>
+        <td>${d.respuestaEstudiante ?? "—"}</td>
+        <td>${d.esCorrecta ? '<i class="fa-solid fa-circle-check icono-ok"></i>' : '<i class="fa-solid fa-circle-xmark icono-mal"></i>'}</td>
+      </tr>
+    `).join("");
+
+    cont.innerHTML = `
+      <div class="resumen-nivel ${claseNivel}">
+        <div style="font-family:var(--font-label); font-size:14px; color:var(--gris);">${data.nombre} &middot; ${data.fecha}</div>
+        <div class="nombre-nivel">${data.nivel}</div>
+        <div class="puntaje-grande">${data.puntaje} correctas &nbsp;·&nbsp; ${data.porcentaje}%</div>
+      </div>
+      <div class="contenedor-scroll">
+        <table class="tabla-detalle">
+          <thead><tr><th>#</th><th>Pregunta</th><th>Respuesta</th><th>Resultado</th></tr></thead>
+          <tbody>${filasDetalle}</tbody>
+        </table>
+      </div>
+    `;
+  } catch (err) {
+    cont.innerHTML = `<div class="mensaje-estado">Ocurrió un error al consultar la información.</div>`;
+  }
+}
+
+/* =========================================================================
+   Comentario de retroalimentación según el nivel alcanzado en la prueba
+   ========================================================================= */
+function comentarioPorNivel(nivel) {
+  if (nivel === "Destacado") {
+    return "Domina con solidez los conocimientos previos evaluados. Está en una excelente posición para iniciar el módulo sin necesidad de refuerzo previo.";
+  }
+  if (nivel === "Notable") {
+    return "Muestra un buen manejo general de los conocimientos previos, aunque conviene repasar los temas donde tuvo más dificultad antes de iniciar el módulo.";
+  }
+  if (nivel === "A mejorar") {
+    return "Se identifican vacíos importantes en los conocimientos previos evaluados. Se recomienda reforzar estos temas antes de iniciar el módulo.";
+  }
+  return "—";
+}
+
+/* =========================================================================
+   ZONA DOCENTE — GENERAR PDF (lista de estudiantes, nivel y retroalimentación)
+   ========================================================================= */
+async function generarPdfNiveles() {
+  const boton = $("btn-generar-pdf");
+  const textoOriginal = boton.innerHTML;
+
+  if (!apiConfigurada()) {
+    alert("Configura la URL del backend (Apps Script) para habilitar esta función.");
+    return;
+  }
+  if (typeof window.jspdf === "undefined" || typeof window.jspdf.jsPDF === "undefined") {
+    alert("No se pudo cargar la librería para generar el PDF. Verifica tu conexión a internet e inténtalo de nuevo.");
+    return;
+  }
+
+  boton.disabled = true;
+  boton.innerHTML = `<i class="fa-solid fa-spinner spin"></i> Generando...`;
+
+  try {
+    const res = await fetch(`${API_URL}?action=buscar&nombre=`);
+    if (!res.ok) throw new Error(`El servidor respondió con estado ${res.status}`);
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.mensaje || "El servidor no pudo procesar la solicitud.");
+    if (!data.resultados || data.resultados.length === 0) {
+      alert("Todavía no hay resultados registrados para generar el reporte.");
+      return;
+    }
+
+    const resultados = [...data.resultados].sort((a, b) => String(a.nombre).localeCompare(String(b.nombre)));
+
+    const { jsPDF } = window.jspdf;
+    // Orientación horizontal: con la columna de retroalimentación agregada, el reporte necesita más ancho.
+    const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "a4" });
+
+    if (typeof doc.autoTable !== "function") {
+      throw new Error("No se pudo cargar el complemento de tablas para el PDF.");
+    }
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(192, 21, 42);
+    doc.text("Politécnico Nuestra Señora de la Altagracia", 40, 42);
+
+    doc.setFontSize(10.5);
+    doc.setTextColor(60, 60, 60);
+    doc.text("Prueba diagnóstica - Módulo Análisis y Diseño de Reportes", 40, 58);
+    doc.text("Niveles alcanzados y retroalimentación por estudiante - insumo para plan de mejora", 40, 72);
+
+    const hoy = new Date();
+    doc.setFontSize(9);
+    doc.setTextColor(130, 130, 130);
+    doc.text(`Generado el ${hoy.toLocaleDateString("es-DO")} a las ${hoy.toLocaleTimeString("es-DO")}`, 40, 86);
+
+    const filas = resultados.map(r => [
+      r.nombre, r.fecha || "-", r.puntaje || "-", r.nivel || "-", comentarioPorNivel(r.nivel)
+    ]);
+
+    doc.autoTable({
+      startY: 100,
+      head: [["Estudiante", "Fecha", "Puntaje", "Nivel", "Retroalimentación"]],
+      body: filas,
+      styles: { font: "helvetica", fontSize: 9.5, cellPadding: 6, valign: "top" },
+      headStyles: { fillColor: [10, 10, 10], textColor: [244, 244, 242], fontStyle: "bold" },
+      alternateRowStyles: { fillColor: [245, 245, 245] },
+      columnStyles: {
+        0: { cellWidth: 140 },
+        1: { cellWidth: 65 },
+        2: { cellWidth: 60 },
+        3: { cellWidth: 70 },
+        4: { cellWidth: "auto" }
+      },
+      didParseCell: (dataCell) => {
+        if (dataCell.section === "body" && dataCell.column.index === 3) {
+          const nivel = dataCell.cell.raw;
+          if (nivel === "Destacado") { dataCell.cell.styles.textColor = [154, 116, 0]; dataCell.cell.styles.fontStyle = "bold"; }
+          else if (nivel === "Notable") { dataCell.cell.styles.textColor = [176, 96, 0]; dataCell.cell.styles.fontStyle = "bold"; }
+          else if (nivel === "A mejorar") { dataCell.cell.styles.textColor = [192, 21, 42]; dataCell.cell.styles.fontStyle = "bold"; }
+        }
+      }
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 20;
+    const totalDestacado = resultados.filter(r => r.nivel === "Destacado").length;
+    const totalNotable = resultados.filter(r => r.nivel === "Notable").length;
+    const totalMejorar = resultados.filter(r => r.nivel === "A mejorar").length;
+
+    doc.setFontSize(9.5);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Total evaluados: ${resultados.length}   -   Destacado: ${totalDestacado}   -   Notable: ${totalNotable}   -   A mejorar: ${totalMejorar}`, 40, finalY);
+
+    doc.save(`Niveles_PruebaDiagnostica_ADR_${hoy.toISOString().split("T")[0]}.pdf`);
+  } catch (err) {
+    console.error(err);
+    alert("Ocurrió un error al generar el PDF: " + err.message);
+  } finally {
+    boton.disabled = false;
+    boton.innerHTML = textoOriginal;
+  }
+}
+</script>
+</body>
+</html>
