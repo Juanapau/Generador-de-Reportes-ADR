@@ -1421,6 +1421,16 @@
   .cumple-icono{ color: var(--dark-green-accent); font-size:15px; }
   .no-cumple-icono{ color:#ef4444; font-size:15px; }
 
+  /* Encabezados de la pestaña "Actividades Extra" — los títulos pueden ser largos */
+  table.tabla-cumplimiento thead th:not(.col-estudiante){ white-space:normal; max-width:220px; }
+  .btn-informe-diagnostico{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:22px; height:22px; margin-left:6px; border:none; border-radius:6px; cursor:pointer;
+    background: var(--dark-blue-accent); color:#fff; font-size:11px; vertical-align:middle;
+  }
+  .btn-informe-diagnostico:hover{ filter:brightness(1.15); }
+  body.light .btn-informe-diagnostico{ background: var(--light-blue-accent); }
+
   /* ============ CASOS EMPRESARIALES - A.1.10 ============ */
   .caso-a110-card{
     max-width:600px; margin:0 auto; background: var(--dark-card); border:2px solid var(--dark-border);
@@ -1551,80 +1561,3 @@
      tema de la app — por eso el texto de las opciones necesita color oscuro explícito
      en TODOS los <select> del sistema, no solo en uno en particular. */
   select option{ color:#1a1a1a; background:#ffffff; }
-
-  /* ============ CUADRO COMPARATIVO - A.1.5 ============ */
-  .tabla-comparativa-scroll{
-    overflow-x:auto; border:1px solid var(--dark-border); border-radius: var(--radius); margin-top:16px;
-  }
-  body.light .tabla-comparativa-scroll{ border:1px solid #dde5f6; }
-  table.tabla-comparativa-a15{ width:100%; border-collapse:collapse; min-width:640px; }
-  table.tabla-comparativa-a15 th, table.tabla-comparativa-a15 td{
-    padding:12px 14px; border-bottom:1px solid var(--dark-border); vertical-align:top;
-  }
-  body.light table.tabla-comparativa-a15 th, body.light table.tabla-comparativa-a15 td{ border-bottom:1px solid #e2e8f0; }
-  table.tabla-comparativa-a15 thead th{
-    background: var(--dark-card-hover); text-align:left; width:33.33%;
-  }
-  body.light table.tabla-comparativa-a15 thead th{ background:#eef2fb; }
-  table.tabla-comparativa-a15 thead th:first-child{ color: var(--dark-gold-accent); font-weight:800; font-size:14.5px; }
-  body.light table.tabla-comparativa-a15 thead th:first-child{ color:#b8790f; }
-  table.tabla-comparativa-a15 tbody td:first-child{
-    font-weight:700; font-size:13.5px; color: var(--dark-text-dim); background: rgba(255,255,255,0.02); width:33.33%;
-  }
-  body.light table.tabla-comparativa-a15 tbody td:first-child{ color: var(--light-text-dim); background: rgba(0,0,0,0.015); }
-  .celda-respuesta-a15{
-    width:100%; min-height:56px; padding:9px 11px; border-radius:8px; resize:vertical;
-    background: rgba(255,255,255,0.05); border:1px solid var(--dark-border); color: var(--dark-text);
-    font-size:14px; font-family:inherit;
-  }
-  body.light .celda-respuesta-a15{ background:#f7f9fd; border:1px solid #d7e0f2; color:var(--light-text); }
-  .celda-respuesta-a15:focus{ outline:2px solid var(--dark-blue-accent); outline-offset:1px; }
-
-  /* ============ VISTA DE DISEÑO REAL - DISEÑADOR DE REPORTES (A.2.1+) ============ */
-  .lienzo-diseno-a21{ display:flex; flex-direction:column; gap:12px; margin:16px 0; }
-  .caja-diseno-a21{
-    background: rgba(255,255,255,0.03); border:2px solid var(--dark-border); border-radius:12px; padding:14px 16px;
-    transition: border-color .2s, background .2s;
-  }
-  body.light .caja-diseno-a21{ background:#f7f9fd; border:2px solid #dde5f6; }
-  .caja-diseno-a21.correcta{ border-color: var(--dark-green-accent); background: rgba(34,197,94,.08); }
-  .caja-diseno-a21.incorrecta{ border-color:#ef4444; }
-  .caja-diseno-titulo{ font-size:12.5px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; color: var(--dark-gold-accent); margin-bottom:10px; }
-  body.light .caja-diseno-titulo{ color:#b8790f; }
-  .caja-diseno-a21 .input-generico{ margin-bottom:0; }
-  .columnas-generadas-a21{
-    font-family:monospace; font-size:12.5px; background: rgba(255,255,255,0.04); border:1px dashed var(--dark-border);
-    border-radius:8px; padding:10px 12px; color: var(--dark-text-dim); min-height:20px;
-  }
-  body.light .columnas-generadas-a21{ background:#fff; border:1px dashed #cbd5e1; color: var(--light-text-dim); }
-  .zona-arrastre-a21{
-    min-height:52px; border:2px dashed var(--dark-border); border-radius:10px; padding:10px;
-    display:flex; flex-wrap:wrap; gap:8px; align-items:center; font-size:13px; color: var(--dark-text-dim);
-  }
-  body.light .zona-arrastre-a21{ border:2px dashed #cbd5e1; color: var(--light-text-dim); }
-  .pool-campos-a21{ display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
-  .campo-chip-a21{
-    padding:8px 14px; border-radius:8px; background: rgba(79,163,255,.12); border:1.5px solid var(--dark-blue-accent);
-    color: var(--dark-blue-accent); font-weight:700; font-size:13px; cursor:grab;
-  }
-  .campo-chip-a21.seleccionado{ background: var(--dark-blue-accent); color:#fff; }
-  .campo-chip-a21.colocado{
-    background: rgba(34,197,94,.15); border-color: var(--dark-green-accent); color: var(--dark-green-accent); cursor:pointer;
-  }
-
-  /* FIX: los campos de texto dentro del lienzo de diseño (A.2.1+) viven dentro de una
-     ventana simulada de fondo SIEMPRE claro (instalador-cuerpo), sin importar el tema
-     de la app — así que su texto necesita color oscuro explícito, igual que ya hicimos
-     con los <select>. Si no, en modo oscuro el texto sale blanco sobre blanco. */
-  .caja-diseno-a21 input.input-generico, .caja-diseno-a21 select.input-generico{ background:#fff; border:1px solid #cbd5e1; color:#1a1a1a; }
-  .caja-diseno-a21 input.input-generico::placeholder{ color:#94a3b8; }
-
-  /* El diseñador de A.2.1 necesita más espacio que un instalador normal, para poder
-     mostrar la línea de detalle y los campos disponibles lado a lado. */
-  #disenadorReporteA21 .instalador-simulado{ max-width:820px; }
-
-  .descripcion-seccion-a21{
-    font-size:11.5px; color: var(--dark-text-dim); margin-top:10px; padding-top:8px;
-    border-top:1px dashed var(--dark-border); line-height:1.4;
-  }
-  body.light .descripcion-seccion-a21{ color: var(--light-text-dim); border-top:1px dashed #e2e8f0; }
