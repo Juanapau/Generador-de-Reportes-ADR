@@ -6,7 +6,15 @@
   const RAS_TODAS_ADMIN = ['RA1', 'RA2', 'RA3', 'RA4', 'RA5'];
   let raActualCalificaciones = 'RA1';
   let ultimoDetalleEstudianteData = null;
-  let ultimaTablaCalificacionesAvances = null; // { ra, estudiantes, actividades, notasPorClave } — para exportar a Excel
+  // { tipo:'ra'|'extra', ra, estudiantes, actividades, notasPorClave } — para exportar a Excel
+  let ultimaTablaCalificacionesAvances = null;
+
+  // Detecta si el título de una actividad extra corresponde a la prueba diagnóstica
+  // (comparación sin tildes/mayúsculas, para no depender de cómo la haya escrito el docente).
+  function esPruebaDiagnosticaExtra_(titulo){
+    const n = String(titulo || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+    return n.includes('diagnostic');
+  }
 
 // ============================================================================
 // CALIFICACIONES Y AVANCES — tabla general + detalle por estudiante
@@ -16,7 +24,7 @@
     document.getElementById('panelDocente').classList.add('hidden');
     document.getElementById('panelCalificacionesAvances').classList.remove('hidden');
     pintarSelectorRACalificaciones();
-    cargarTablaCalificacionesAvances(raActualCalificaciones);
+    cargarVistaCalificaciones(raActualCalificaciones);
   });
 
   document.getElementById('btnBackFromCalificacionesAvances').addEventListener('click', () => {
@@ -28,15 +36,24 @@
     const cont = document.getElementById('selectorRACalificaciones');
     cont.innerHTML = RAS_TODAS_ADMIN.map(ra => `
       <button type="button" class="role-tab ${ra === raActualCalificaciones ? 'active' : ''}" data-ra="${ra}">${ra}</button>
-    `).join('');
+    `).join('') + `
+      <button type="button" class="role-tab ${raActualCalificaciones === 'EXTRA' ? 'active' : ''}" data-ra="EXTRA">
+        <i class="fa-solid fa-star"></i> Actividades Extra
+      </button>`;
     cont.querySelectorAll('.role-tab').forEach(btn => {
       btn.addEventListener('click', () => {
         raActualCalificaciones = btn.dataset.ra;
         cont.querySelectorAll('.role-tab').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        cargarTablaCalificacionesAvances(raActualCalificaciones);
+        cargarVistaCalificaciones(raActualCalificaciones);
       });
     });
+  }
+
+  // Decide cuál tabla cargar según la pestaña activa: un RA normal o Actividades Extra.
+  function cargarVistaCalificaciones(clave){
+    if(clave === 'EXTRA') cargarTablaCalificacionesExtra();
+    else cargarTablaCalificacionesAvances(clave);
   }
 
   async function cargarTablaCalificacionesAvances(ra){
@@ -72,7 +89,7 @@
       if(dataCal.success) dataCal.calificaciones.forEach(c => { notasPorClave[`${c.usuario}|${c.codigo}`] = c; });
 
       // Se guarda para poder exportar exactamente lo que se está mostrando.
-      ultimaTablaCalificacionesAvances = { ra, estudiantes, actividades, notasPorClave };
+      ultimaTablaCalificacionesAvances = { tipo:'ra', ra, estudiantes, actividades, notasPorClave };
 
       wrap.innerHTML = `
         <div class="tabla-cumplimiento-scroll">
@@ -116,24 +133,249 @@
     }
   }
 
+  // ---------- Pestaña "Actividades Extra" ----------
+  async function cargarTablaCalificacionesExtra(){
+    const wrap = document.getElementById('tablaCalificacionesAvancesWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando calificaciones...</div>';
+
+    try{
+      const [dataEst, dataActExtra] = await Promise.all([
+        apiGet({ action:'listarEstudiantes' }),
+        apiGet({ action:'listarActividadesExtra' })
+      ]);
+
+      if(!dataEst.success){
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudo cargar la lista de estudiantes.</div>';
+        return;
+      }
+
+      const estudiantes = dataEst.estudiantes.slice().sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+      const actividades = (dataActExtra.success ? dataActExtra.actividades : []).slice()
+        .sort((a, b) => (a.titulo || a.codigo || '').localeCompare(b.titulo || b.codigo || ''));
+
+      if(actividades.length === 0){
+        wrap.innerHTML = `<div class="empty-table-msg">Todavía no hay actividades extra creadas.</div>`;
+        return;
+      }
+      if(estudiantes.length === 0){
+        wrap.innerHTML = `<div class="empty-table-msg">Todavía no hay estudiantes registrados.</div>`;
+        return;
+      }
+
+      // Se pide, en paralelo, la lista de respuestas de cada actividad extra para todos los estudiantes.
+      const respuestasPorActividad = await Promise.all(
+        actividades.map(a => apiGet({ action:'listarRespuestasPorActividadExtra', codigo:a.codigo }))
+      );
+
+      const notasPorClave = {};
+      actividades.forEach((a, i) => {
+        const resp = respuestasPorActividad[i];
+        if(resp && resp.success){
+          resp.respuestas.forEach(r => { notasPorClave[`${r.usuario}|${a.codigo}`] = r; });
+        }
+      });
+
+      // Se guarda para poder exportar exactamente lo que se está mostrando.
+      ultimaTablaCalificacionesAvances = { tipo:'extra', estudiantes, actividades, notasPorClave };
+
+      wrap.innerHTML = `
+        <div class="tabla-cumplimiento-scroll">
+          <table class="tabla-cumplimiento">
+            <thead>
+              <tr>
+                <th class="col-estudiante">Estudiante</th>
+                ${actividades.map(a => `
+                  <th title="${(a.titulo || a.codigo).replace(/"/g,'&quot;')}">
+                    ${a.titulo || a.codigo}
+                    ${esPruebaDiagnosticaExtra_(a.titulo) ? `
+                      <button type="button" class="btn-informe-diagnostico" data-codigo="${a.codigo}" data-titulo="${(a.titulo||'').replace(/"/g,'&quot;')}" title="Generar informe PDF con retroalimentación">
+                        <i class="fa-solid fa-file-pdf"></i>
+                      </button>` : ''}
+                  </th>`).join('')}
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${estudiantes.map(est => {
+                let total = 0;
+                const celdas = actividades.map(a => {
+                  const r = notasPorClave[`${est.usuario}|${a.codigo}`];
+                  const calificado = r && r.estado === 'calificado';
+                  if(calificado) total += Number(r.nota) || 0;
+                  return `<td>${calificado ? r.nota : '—'}</td>`;
+                }).join('');
+                return `
+                <tr>
+                  <td class="col-estudiante">
+                    <span class="fila-calificaciones-nombre" data-usuario="${est.usuario}" data-nombre="${(est.nombre || est.usuario).replace(/"/g,'&quot;')}">
+                      ${est.nombre || est.usuario}
+                    </span>
+                  </td>
+                  ${celdas}
+                  <td><strong>${Math.round(total)}</strong></td>
+                </tr>
+              `;}).join('')}
+            </tbody>
+          </table>
+        </div>`;
+
+      wrap.querySelectorAll('.fila-calificaciones-nombre').forEach(el => {
+        el.addEventListener('click', () => abrirDetalleEstudianteCalificaciones(el.dataset.usuario, el.dataset.nombre));
+      });
+
+      wrap.querySelectorAll('.btn-informe-diagnostico').forEach(btn => {
+        btn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          generarInformePruebaDiagnostica(btn.dataset.codigo, btn.dataset.titulo, estudiantes, notasPorClave);
+        });
+      });
+    }catch(err){
+      ultimaTablaCalificacionesAvances = null;
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
+
+  // Niveles y comentario de retroalimentación según el porcentaje obtenido en la prueba diagnóstica.
+  function nivelYComentarioDiagnostico_(porcentaje){
+    if(porcentaje >= 90){
+      return { nivel:'Destacado', comentario:'Domina con solidez los contenidos evaluados. Está en una excelente posición para iniciar el módulo sin refuerzos previos.' };
+    }
+    if(porcentaje >= 70){
+      return { nivel:'Notable', comentario:'Muestra un buen manejo general de los contenidos, aunque conviene repasar los temas donde tuvo más dificultad antes de avanzar.' };
+    }
+    return { nivel:'A mejorar', comentario:'Se identifican vacíos importantes en los contenidos evaluados. Se recomienda un plan de refuerzo antes de continuar con el módulo.' };
+  }
+
+  // Informe en PDF de los resultados de la prueba diagnóstica (u otra actividad extra), con retroalimentación
+  // individual por estudiante según la calificación obtenida.
+  async function generarInformePruebaDiagnostica(codigo, titulo, estudiantesYaCargados, notasYaCargadas){
+    if(!window.jspdf){
+      mostrarNotificacion('No se pudo cargar el generador de PDF. Verifica tu conexión e intenta de nuevo.', 'error');
+      return;
+    }
+
+    let estudiantes = estudiantesYaCargados;
+    let notasPorClave = notasYaCargadas;
+
+    // Si se llama desde otro lugar sin datos ya cargados, se buscan aquí.
+    if(!estudiantes || !notasPorClave){
+      try{
+        const [dataEst, dataResp] = await Promise.all([
+          apiGet({ action:'listarEstudiantes' }),
+          apiGet({ action:'listarRespuestasPorActividadExtra', codigo })
+        ]);
+        if(!dataEst.success){
+          mostrarNotificacion('No se pudo cargar la lista de estudiantes.', 'error');
+          return;
+        }
+        estudiantes = dataEst.estudiantes.slice().sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        notasPorClave = {};
+        if(dataResp.success) dataResp.respuestas.forEach(r => { notasPorClave[`${r.usuario}|${codigo}`] = r; });
+      }catch(err){
+        mostrarNotificacion('Error de conexión con el servidor.', 'error');
+        return;
+      }
+    }
+
+    const filas = estudiantes.map(est => {
+      const r = notasPorClave[`${est.usuario}|${codigo}`];
+      const calificado = r && r.estado === 'calificado';
+      if(!calificado){
+        return {
+          nombre: est.nombre || est.usuario, nota: '—', porcentajeTxt: '—',
+          nivel: '—', comentario: 'Todavía no ha completado esta prueba.'
+        };
+      }
+      const puntajeMaximo = Number(r.puntajeMaximo) || 0;
+      const porcentaje = puntajeMaximo > 0 ? Math.round((Number(r.nota) / puntajeMaximo) * 100) : 0;
+      const { nivel, comentario } = nivelYComentarioDiagnostico_(porcentaje);
+      return { nombre: est.nombre || est.usuario, nota: `${r.nota}/${r.puntajeMaximo}`, porcentajeTxt: `${porcentaje}%`, nivel, comentario };
+    });
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const margenIzq = 14;
+    let y = 20;
+
+    doc.setFillColor(37, 99, 235);
+    doc.rect(0, 0, 210, 26, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Informe de resultados — ${titulo || codigo}`, margenIzq, 16);
+
+    doc.setTextColor(30, 30, 30);
+    y = 36;
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Fecha del informe: ${formatearFechaCorta(new Date())}`, margenIzq, y);
+    doc.text(`Estudiantes: ${filas.length}`, margenIzq + 130, y);
+    y += 8;
+
+    doc.setDrawColor(210);
+    doc.line(margenIzq, y, 196, y);
+    y += 8;
+
+    doc.setFontSize(9.5);
+    doc.setFont(undefined, 'bold');
+    doc.text('Estudiante', margenIzq, y);
+    doc.text('Nota', margenIzq + 68, y);
+    doc.text('%', margenIzq + 85, y);
+    doc.text('Nivel', margenIzq + 98, y);
+    doc.text('Retroalimentación', margenIzq + 122, y);
+    y += 4;
+    doc.setDrawColor(210);
+    doc.line(margenIzq, y, 196, y);
+    y += 6;
+
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(8.8);
+    filas.forEach(f => {
+      const comentarioLineas = doc.splitTextToSize(f.comentario, 72);
+      const nombreLineas = doc.splitTextToSize(f.nombre, 62);
+      const altoFila = Math.max(nombreLineas.length, comentarioLineas.length) * 4.6 + 2;
+
+      if(y + altoFila > 285){ doc.addPage(); y = 20; }
+
+      doc.setFont(undefined, 'bold');
+      doc.text(nombreLineas, margenIzq, y);
+      doc.setFont(undefined, 'normal');
+      doc.text(String(f.nota), margenIzq + 68, y);
+      doc.text(String(f.porcentajeTxt), margenIzq + 85, y);
+      doc.text(String(f.nivel), margenIzq + 98, y);
+      doc.text(comentarioLineas, margenIzq + 122, y);
+
+      y += altoFila;
+      doc.setDrawColor(235);
+      doc.line(margenIzq, y - 2, 196, y - 2);
+    });
+
+    const tituloSlug = (titulo || codigo).toString().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '_');
+    doc.save(`Informe_${tituloSlug}.pdf`);
+  }
+
   // Exporta a Excel (.csv con BOM) exactamente la tabla de Calificaciones y avances que se está viendo:
   // la calificación obtenida de cada actividad con decimales, y una columna Total redondeada.
+  // Funciona tanto para las pestañas de RA como para la pestaña de Actividades Extra.
   document.getElementById('btnExportarExcelCalifAvances').addEventListener('click', () => {
     const datos = ultimaTablaCalificacionesAvances;
     if(!datos || datos.actividades.length === 0){
       mostrarNotificacion('No hay datos para exportar todavía.', 'error');
       return;
     }
-    const { ra, estudiantes, actividades, notasPorClave } = datos;
+    const { tipo, ra, estudiantes, actividades, notasPorClave } = datos;
+    const esExtra = tipo === 'extra';
 
-    let csv = 'Estudiante,' + actividades.map(a => a.codigo).join(',') + ',Total\n';
+    const nombreColumna = a => esExtra ? (a.titulo || a.codigo) : a.codigo;
+    let csv = 'Estudiante,' + actividades.map(a => `"${nombreColumna(a).replace(/"/g, '""')}"`).join(',') + ',Total\n';
     estudiantes.forEach(est => {
       const fila = [`"${(est.nombre || est.usuario).replace(/"/g, '""')}"`];
       let total = 0;
       actividades.forEach(a => {
         const c = notasPorClave[`${est.usuario}|${a.codigo}`];
-        if(c) total += Number(c.nota) || 0;
-        fila.push(c ? c.nota : '');
+        const calificado = esExtra ? (c && c.estado === 'calificado') : !!c;
+        if(calificado) total += Number(c.nota) || 0;
+        fila.push(calificado ? c.nota : '');
       });
       fila.push(Math.round(total));
       csv += fila.join(',') + '\n';
@@ -144,7 +386,7 @@
     const url = URL.createObjectURL(blob);
     const enlace = document.createElement('a');
     enlace.href = url;
-    enlace.download = `Calificaciones_y_avances_${ra}.csv`;
+    enlace.download = esExtra ? 'Calificaciones_Actividades_Extra.csv' : `Calificaciones_y_avances_${ra}.csv`;
     document.body.appendChild(enlace);
     enlace.click();
     document.body.removeChild(enlace);
