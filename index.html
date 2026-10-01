@@ -1530,6 +1530,70 @@
         </div>
       </div>
     </div>
+
+    <!-- ---- ACTIVIDAD A.2.3: DISEÑA E IDENTIFICA UN REPORTE AGRUPADO ---- -->
+    <div id="panelActividadA23" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA23"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.2.3 — Diseña e identifica un reporte agrupado</div>
+
+      <!-- Vista 1: enunciado + recursos + instrumento -->
+      <div id="vistaInstrumentoA23">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA23" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA23" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+
+        <div id="instrumentoPrevioA23"></div>
+
+        <div class="empty-note" id="tiempoEstimadoAvisoA23" style="margin-bottom:16px;"></div>
+
+        <button type="button" class="btn btn-primary" id="btnComenzarA23" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <!-- Vista 2: el ejercicio en sí -->
+      <div id="vistaEjercicioA23" class="hidden">
+        <div class="timer-badge" id="timerA23"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+        <div id="progresoA23"></div>
+
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-hand-pointer"></i>
+          Vas a diseñar un reporte de ventas agrupado por región para TECNOVENTAS RD, idéntico al del recurso de apoyo, y luego identificarás sus partes.
+        </div>
+
+        <div id="disenadorReporteA23"></div>
+
+        <div id="identificarSeccionesA23" class="hidden"></div>
+
+        <div id="seccionFinalA23" class="hidden">
+          <button type="button" class="btn btn-primary" id="btnFinalizarA23" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <!-- Vista 3: resultado -->
+      <div id="vistaResultadoA23" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA23">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA23"></div>
+        <div id="resultadoDesgloseA23"></div>
+        <div class="acciones-resultado">
+          <button type="button" class="btn btn-primary" id="btnVolverMisActA23" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+          </button>
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfA23">
+            <i class="fa-solid fa-file-pdf"></i> Descargar resultado en PDF
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
