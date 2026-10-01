@@ -381,6 +381,125 @@
     doc.save(nombreArchivo);
   }
 
+  // ---------- Genera un PDF del REPORTE que el estudiante diseñó (no de su calificación) ----------
+  // Pensado para imprimirse. Lo usan todas las actividades de "Diseñador de Reportes"
+  // (A.2.1, A.2.2, A.2.3 y las que se vayan agregando), por eso vive aquí como helper
+  // genérico en vez de repetirse en cada actividad.
+  //
+  // opciones = {
+  //   nombreEmpresa, tituloReporte: strings para el encabezado del reporte
+  //   columnas: array de títulos de columna ya listos para mostrarse (encabezado de página)
+  //   filas: array de filas (cada fila es un array de celdas, ya formateadas como texto) — para reportes SIN agrupar
+  //   grupos: array de { encabezado, filas: [[...]], pie } — para reportes agrupados (si viene, se usa en vez de "filas")
+  //   numeroPagina: boolean — si se debe imprimir "Página X" al pie de cada hoja
+  //   nombreArchivo: nombre sugerido del PDF (opcional)
+  // }
+  function generarPdfReporteDisenado(opciones){
+    if(!window.jspdf){
+      mostrarNotificacion('No se pudo cargar el generador de PDF. Verifica tu conexión e intenta de nuevo.', 'error');
+      return;
+    }
+    const { nombreEmpresa, tituloReporte, columnas, filas, grupos, numeroPagina } = opciones;
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const margenIzq = 14;
+    const anchoUtil = 182;
+    const anchoCol = anchoUtil / Math.max(columnas.length, 1);
+    let y = 34;
+    let numPaginaActual = 1;
+
+    function pintarPiePagina(){
+      if(!numeroPagina) return;
+      doc.setFontSize(8.5);
+      doc.setTextColor(140, 140, 140);
+      doc.text(`Página ${numPaginaActual}`, 196, 290, { align:'right' });
+      doc.setTextColor(30, 30, 30);
+      numPaginaActual++;
+    }
+
+    function pintarEncabezadoReporte(){
+      doc.setFillColor(...PDF_COLOR_AZUL);
+      doc.rect(0, 0, 210, 26, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(15);
+      doc.setFont(undefined, 'bold');
+      doc.text(nombreEmpresa || '', margenIzq, 14);
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'normal');
+      doc.text(tituloReporte || '', margenIzq, 21);
+      doc.setTextColor(30, 30, 30);
+    }
+
+    function pintarEncabezadoColumnas(){
+      doc.setFillColor(238, 242, 250);
+      doc.rect(margenIzq, y - 5, anchoUtil, 8, 'F');
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(9.5);
+      doc.setTextColor(60, 60, 60);
+      columnas.forEach((c, i) => doc.text(String(c), margenIzq + i * anchoCol + 2, y));
+      doc.setTextColor(30, 30, 30);
+      doc.setFont(undefined, 'normal');
+      y += 8;
+    }
+
+    function saltarPaginaSiNecesario(espacioNecesario){
+      if(y + espacioNecesario > 280){
+        pintarPiePagina();
+        doc.addPage();
+        y = 20;
+        pintarEncabezadoColumnas();
+      }
+    }
+
+    function pintarFila(valores){
+      saltarPaginaSiNecesario(7);
+      doc.setFontSize(9);
+      valores.forEach((v, i) => {
+        const txt = doc.splitTextToSize(v === undefined || v === null ? '' : String(v), anchoCol - 4);
+        doc.text(txt[0] || '', margenIzq + i * anchoCol + 2, y);
+      });
+      y += 6;
+    }
+
+    pintarEncabezadoReporte();
+    pintarEncabezadoColumnas();
+
+    if(grupos && grupos.length){
+      grupos.forEach(g => {
+        saltarPaginaSiNecesario(7);
+        doc.setFillColor(...PDF_COLOR_DORADO);
+        doc.setTextColor(255, 255, 255);
+        doc.setFont(undefined, 'bold');
+        doc.rect(margenIzq, y - 5, anchoUtil, 7, 'F');
+        doc.setFontSize(9.5);
+        doc.text(String(g.encabezado || ''), margenIzq + 3, y);
+        doc.setTextColor(30, 30, 30);
+        doc.setFont(undefined, 'normal');
+        y += 7;
+
+        (g.filas || []).forEach(f => pintarFila(f));
+
+        saltarPaginaSiNecesario(7);
+        doc.setFillColor(...PDF_COLOR_VERDE_BG);
+        doc.setTextColor(...PDF_COLOR_VERDE_TEXTO);
+        doc.setFont(undefined, 'bold');
+        doc.rect(margenIzq, y - 5, anchoUtil, 7, 'F');
+        doc.setFontSize(9.5);
+        doc.text(String(g.pie || ''), margenIzq + 3, y);
+        doc.setTextColor(30, 30, 30);
+        doc.setFont(undefined, 'normal');
+        y += 10;
+      });
+    } else {
+      (filas || []).forEach(f => pintarFila(f));
+    }
+
+    pintarPiePagina();
+
+    const base = (tituloReporte || opciones.nombreArchivo || 'reporte_disenado').toString().replace(/[^a-z0-9]+/gi, '_');
+    doc.save(`${base}.pdf`);
+  }
+
   async function cargarRecursosActividad(codigo, containerId){
     const cont = document.getElementById(containerId);
     if(!cont) return;
