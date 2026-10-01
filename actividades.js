@@ -5220,3 +5220,647 @@
   });
 
   registrarActividadInteractiva('A.2.2', abrirActividadA22);
+
+// ============================================================================
+// A.2.3 — DISEÑA E IDENTIFICA UN REPORTE AGRUPADO (ventas por región)
+// ============================================================================
+  // Reutiliza el mismo Diseñador de Reportes (lienzo editable + 3 vistas) de
+  // A.2.1/A.2.2, agregando una nueva caja "Agrupar por" para que el estudiante
+  // lleve a la práctica el encabezado de grupo, el detalle de grupo y el pie
+  // de grupo explicados en el recurso de apoyo "Reportes_Agrupados_A23.pdf".
+  // El reporte debe quedar idéntico al del recurso: ventas agrupadas por
+  // Región, con un total y una cantidad de ventas por grupo.
+
+  const CAMPOS_CORRECTOS_DETALLE_A23 = ['Producto', 'Vendedor', 'PrecioUnitario'];
+  const ETIQUETAS_CAMPOS_A23 = { PrecioUnitario: 'Monto' };
+
+  const CRITERIOS_BASE_A23 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'encReporte', nombre:'2. Encabezado de reporte', descripcion:'Escribe correctamente el nombre de la empresa y el título del reporte.' },
+    { key:'detalle', nombre:'3. Línea de detalle', descripcion:'Selecciona la tabla correcta y arrastra exactamente los campos correctos hacia la línea de detalle.' },
+    { key:'agrupacion', nombre:'4. Agrupación por región', descripcion:'Agrupa el reporte por el campo correcto, generando encabezado, detalle y pie de grupo.' },
+    { key:'encPagina', nombre:'5. Encabezado de página', descripcion:'Incluye el número de página además de los títulos de columna.' },
+    { key:'vistas', nombre:'6. Recorrido de las 3 vistas', descripcion:'Recorre las vistas de Diseño, Previsualización y Ejecución del reporte ya construido.' },
+    { key:'identificar', nombre:'7. Identifica y define las partes del grupo', descripcion:'Identifica correctamente el encabezado de grupo, el detalle de grupo y el pie de grupo, y explica en sus propias palabras la función que cumple cada uno.' },
+    { key:'tiempo', nombre:'8. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'9. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let tablaSeleccionadaDetalleA23 = '';
+  let datosTablaSeleccionadaA23 = null;
+  let nombreEmpresaValorA23 = '';
+  let tituloReporteValorA23 = '';
+  let camposColocadosDetalleA23 = [];
+  let campoSeleccionadoA23 = null;
+  let campoAgruparA23 = '';
+  let numPaginaMarcadoA23 = false;
+  let encReporteCorrectoA23 = false;
+  let detalleCorrectoA23 = false;
+  let agrupacionCorrectaA23 = false;
+  let encPaginaCorrectoA23 = false;
+  let intentosPorSeccionA23 = { encReporte:0, detalle:0, agrupacion:0, encPagina:0 };
+  let vistaActualA23 = 'diseno';
+  let vistasVisitadasA23 = new Set();
+  let ordenSeccionesIdentificarA23 = [];
+  let respuestasIdentificarA23 = {};
+  let intentosIdentificarGeneralA23 = 0;
+  let identificarSeccionesCompletoA23 = false;
+
+  const SECCIONES_IDENTIFICAR_A23_BASE = [
+    { id:'encGrupo', nombre:'Encabezado de grupo' },
+    { id:'detalleGrupo', nombre:'Detalle de grupo' },
+    { id:'pieGrupo', nombre:'Pie de grupo' }
+  ];
+  let ultimoResultadoA23 = null;
+  let puntajeMaxA23 = 0;
+  let tiempoEstimadoA23 = 10;
+  let inicioTiempoA23 = null;
+  let timerIntervalA23 = null;
+
+  // Busca, entre los campos reales de la tabla cargada, el que corresponde a la
+  // región (independientemente de acentos/mayúsculas: "Región" o "Region").
+  function normalizarNombreCampoA23_(c){
+    return normalizarTextoA15_(c || '').replace(/[^a-z0-9]/g, '');
+  }
+  function campoRegionDisponibleA23_(){
+    const campos = (datosTablaSeleccionadaA23 && datosTablaSeleccionadaA23.campos) || [];
+    return campos.find(c => normalizarNombreCampoA23_(c) === 'region') || null;
+  }
+
+  // Agrupa las filas de datos reales según el campo elegido, conservando el
+  // orden de primera aparición, y calcula el total y la cantidad por grupo.
+  function agruparDatosA23_(datos, campoAgrupar){
+    if(!datos || !campoAgrupar) return [];
+    const grupos = [];
+    const indice = {};
+    datos.forEach(fila => {
+      const clave = fila[campoAgrupar];
+      if(!(clave in indice)){
+        indice[clave] = { clave, filas: [], total: 0, cantidad: 0 };
+        grupos.push(indice[clave]);
+      }
+      indice[clave].filas.push(fila);
+      indice[clave].cantidad++;
+      const monto = Number(fila.PrecioUnitario) || 0;
+      indice[clave].total += monto;
+    });
+    return grupos;
+  }
+
+  async function abrirActividadA23(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA23 = puntajeMaximo;
+    tiempoEstimadoA23 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA23').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA23').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.3') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA23').classList.add('hidden');
+        document.getElementById('vistaEjercicioA23').classList.add('hidden');
+        document.getElementById('vistaResultadoA23').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA23', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA23', previa.detalle);
+        ultimoResultadoA23 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA23').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA23').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA23').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA23').classList.add('hidden');
+    document.getElementById('vistaResultadoA23').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA23').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA23} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.2.3', 'recursosEstudianteA23');
+
+    const criteriosPrevios = CRITERIOS_BASE_A23.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA23', criteriosPrevios, puntajeMaxA23, null);
+  }
+
+  document.getElementById('btnBackFromActividadA23').addEventListener('click', () => {
+    clearInterval(timerIntervalA23);
+    document.getElementById('panelActividadA23').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA23').addEventListener('click', async () => {
+    nombreEmpresaValorA23 = '';
+    tituloReporteValorA23 = '';
+    tablaSeleccionadaDetalleA23 = '';
+    datosTablaSeleccionadaA23 = null;
+    camposColocadosDetalleA23 = [];
+    campoSeleccionadoA23 = null;
+    campoAgruparA23 = '';
+    numPaginaMarcadoA23 = false;
+    encReporteCorrectoA23 = false;
+    detalleCorrectoA23 = false;
+    agrupacionCorrectaA23 = false;
+    encPaginaCorrectoA23 = false;
+    intentosPorSeccionA23 = { encReporte:0, detalle:0, agrupacion:0, encPagina:0 };
+    vistaActualA23 = 'diseno';
+    vistasVisitadasA23 = new Set();
+    ordenSeccionesIdentificarA23 = [];
+    respuestasIdentificarA23 = {};
+    intentosIdentificarGeneralA23 = 0;
+    identificarSeccionesCompletoA23 = false;
+    document.getElementById('identificarSeccionesA23').classList.add('hidden');
+    document.getElementById('disenadorReporteA23').classList.remove('hidden');
+    document.getElementById('seccionFinalA23').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA23').classList.add('hidden');
+    document.getElementById('vistaEjercicioA23').classList.remove('hidden');
+
+    pintarSeccionDisenoYVistasA23();
+
+    inicioTiempoA23 = Date.now();
+    clearInterval(timerIntervalA23);
+    timerIntervalA23 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA23) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA23').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA23} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Sección de diseño + 3 vistas, todo en una sola pantalla con pestañas ----------
+  const DESCRIPCIONES_SECCION_A23 = {
+    encReporte: 'Debe contener el nombre de la empresa y el título del reporte. Aparece una sola vez, al principio de todo el documento.',
+    detalle: 'Debes arrastrar exactamente estos 3 campos: <b>Producto</b>, <b>Vendedor</b> y <b>Monto</b>. Se repite una vez por cada venta, dentro de cada grupo.',
+    agrupar: 'Elige el campo por el que se agrupará el reporte. Cada grupo mostrará un encabezado de grupo, el detalle de sus ventas y un pie de grupo con el total.',
+    encPagina: 'Se repite en la parte superior de cada página, con los títulos de columna y el número de página.'
+  };
+
+  function pintarSeccionDisenoYVistasA23(){
+    const cont = document.getElementById('disenadorReporteA23');
+    cont.innerHTML = `
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Diseña tu reporte en la pestaña "Vista de Diseño". Puedes volver a esa pestaña en cualquier momento para hacer cambios.</div>
+      <div class="vistas-tabs" id="vistasTabsA23"></div>
+      <div id="vistaContenidoA23"></div>`;
+    pintarTabsVistasA23();
+    cambiarVistaA23(vistaActualA23 || 'diseno');
+  }
+
+  function pintarTabsVistasA23(){
+    const cont = document.getElementById('vistasTabsA23');
+    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
+      const info = COLOR_VISTA_A14[v];
+      const visitada = vistasVisitadasA23.has(v);
+      const activa = vistaActualA23 === v;
+      return `
+        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
+        </button>`;
+    }).join('');
+    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => cambiarVistaA23(btn.dataset.vista));
+    });
+  }
+
+  function cambiarVistaA23(vista){
+    vistaActualA23 = vista;
+    vistasVisitadasA23.add(vista);
+    pintarTabsVistasA23();
+    pintarContenidoVistaA23(vista);
+  }
+
+  function pintarContenidoVistaA23(vista){
+    const cont = document.getElementById('vistaContenidoA23');
+    const info = COLOR_VISTA_A14[vista];
+    const nombreEmpresa = nombreEmpresaValorA23 || 'TECNOVENTAS RD, S.R.L.';
+    const tituloReporte = tituloReporteValorA23 || 'Reporte de Ventas por Región';
+
+    // ---- Pestaña "Vista de Diseño": el lienzo editable de verdad (siempre se puede volver aquí) ----
+    if(vista === 'diseno'){
+      actualizarEstadoVisualA23();
+      const campoRegion = campoRegionDisponibleA23_();
+      const campos = (datosTablaSeleccionadaA23 && datosTablaSeleccionadaA23.campos) || [];
+      const camposDisponibles = campos.filter(c => !camposColocadosDetalleA23.includes(c) && c !== campoRegion);
+
+      cont.innerHTML = `
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+
+        <div class="lienzo-diseno-a21">
+          <div class="caja-diseno-a21 ${encReporteCorrectoA23 ? 'correcta' : ''}" id="cajaEncReporteA23">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-heading"></i> Encabezado de reporte</div>
+            <input type="text" id="inputNombreEmpresaA23" class="input-generico" placeholder="Nombre de la empresa..." value="${nombreEmpresaValorA23.replace(/"/g,'&quot;')}">
+            <input type="text" id="inputTituloReporteA23" class="input-generico" placeholder="Título del reporte..." style="margin-top:8px;" value="${tituloReporteValorA23.replace(/"/g,'&quot;')}">
+            <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A23.encReporte}</p>
+          </div>
+
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div class="caja-diseno-a21 ${detalleCorrectoA23 ? 'correcta' : ''}" id="cajaDetalleA23" style="flex:1.3; min-width:260px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
+              <div class="zona-arrastre-a21" id="zonaDetalleA23">
+                ${camposColocadosDetalleA23.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada venta' :
+                  camposColocadosDetalleA23.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${ETIQUETAS_CAMPOS_A23[c] || c} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+              </div>
+              <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A23.detalle}</p>
+            </div>
+
+            <div class="caja-diseno-a21" id="cajaCamposDisponiblesA23" style="flex:1; min-width:220px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-database"></i> Campos disponibles</div>
+              <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
+              <select id="selectTablaDetalleA23" class="input-generico">
+                <option value="" ${tablaSeleccionadaDetalleA23 ? '' : 'selected disabled'}>Selecciona una tabla...</option>
+                ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${tablaSeleccionadaDetalleA23 === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
+              </select>
+              ${camposDisponibles.length > 0 ? `
+                <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
+                <div class="pool-campos-a21" id="poolCamposA23">
+                  ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA23 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${ETIQUETAS_CAMPOS_A23[c] || c}</span>`).join('')}
+                </div>` : ''}
+            </div>
+          </div>
+
+          <div class="caja-diseno-a21 ${agrupacionCorrectaA23 ? 'correcta' : ''}" id="cajaAgruparA23">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-layer-group"></i> Agrupar por</div>
+            <select id="selectAgruparA23" class="input-generico" ${campoRegion ? '' : 'disabled'}>
+              <option value="" ${campoAgruparA23 ? '' : 'selected disabled'}>${campoRegion ? 'Selecciona un campo...' : 'Primero selecciona la tabla DB_Ventas'}</option>
+              ${campoRegion ? `<option value="${campoRegion}" ${campoAgruparA23 === campoRegion ? 'selected' : ''}>${campoRegion}</option>` : ''}
+            </select>
+            <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A23.agrupar}</p>
+          </div>
+
+          <div class="caja-diseno-a21 ${encPaginaCorrectoA23 ? 'correcta' : ''}" id="cajaEncPaginaA23">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-file-lines"></i> Encabezado de página</div>
+            <div class="columnas-generadas-a21" id="columnasGeneradasA23">${camposColocadosDetalleA23.length ? camposColocadosDetalleA23.map(c => ETIQUETAS_CAMPOS_A23[c] || c).join(' | ') : 'Los títulos de columna aparecerán aquí según los campos que arrastres en la línea de detalle...'}</div>
+            <div class="instalador-checkbox" id="checkboxNumPaginaA23" style="margin-top:10px; justify-content:flex-start; cursor:pointer;">
+              <span class="caja ${numPaginaMarcadoA23 ? 'marcada' : ''}"></span> Incluir número de página
+            </div>
+            <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A23.encPagina}</p>
+          </div>
+        </div>`;
+
+      // Encabezado de reporte: guarda lo que va escribiendo, y actualiza el estado visual en vivo
+      document.getElementById('inputNombreEmpresaA23').addEventListener('input', (e) => {
+        nombreEmpresaValorA23 = e.target.value;
+        actualizarEstadoVisualA23();
+        document.getElementById('cajaEncReporteA23').classList.toggle('correcta', encReporteCorrectoA23);
+      });
+      document.getElementById('inputTituloReporteA23').addEventListener('input', (e) => {
+        tituloReporteValorA23 = e.target.value;
+        actualizarEstadoVisualA23();
+        document.getElementById('cajaEncReporteA23').classList.toggle('correcta', encReporteCorrectoA23);
+      });
+
+      // Selector de tabla: al cambiar, carga sus campos reales y reinicia lo ya colocado
+      document.getElementById('selectTablaDetalleA23').addEventListener('change', async (e) => {
+        tablaSeleccionadaDetalleA23 = e.target.value;
+        camposColocadosDetalleA23 = [];
+        campoSeleccionadoA23 = null;
+        campoAgruparA23 = '';
+        cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando campos de la tabla...</div>';
+        datosTablaSeleccionadaA23 = tablaSeleccionadaDetalleA23 ? await cargarTablaDatos(tablaSeleccionadaDetalleA23) : null;
+        pintarContenidoVistaA23('diseno');
+      });
+
+      // Selector "Agrupar por"
+      const selectAgrupar = document.getElementById('selectAgruparA23');
+      if(selectAgrupar){
+        selectAgrupar.addEventListener('change', (e) => {
+          campoAgruparA23 = e.target.value;
+          pintarContenidoVistaA23('diseno');
+        });
+      }
+
+      // Campos del pool: clic para seleccionar (accesible en táctil)
+      document.querySelectorAll('#poolCamposA23 .campo-chip-a21').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const campo = chip.dataset.id;
+          campoSeleccionadoA23 = campoSeleccionadoA23 === campo ? null : campo;
+          pintarContenidoVistaA23('diseno');
+        });
+      });
+
+      // Campos ya colocados: clic para quitar
+      document.querySelectorAll('#zonaDetalleA23 .campo-chip-a21.colocado').forEach(chip => {
+        chip.addEventListener('click', () => {
+          camposColocadosDetalleA23 = camposColocadosDetalleA23.filter(c => c !== chip.dataset.id);
+          pintarContenidoVistaA23('diseno');
+        });
+      });
+
+      // Zona de detalle: clic para colocar el campo seleccionado, o soltar (drag) directamente
+      const zonaDetalle = document.getElementById('zonaDetalleA23');
+      zonaDetalle.addEventListener('click', () => {
+        if(campoSeleccionadoA23 && !camposColocadosDetalleA23.includes(campoSeleccionadoA23)){
+          camposColocadosDetalleA23.push(campoSeleccionadoA23);
+          campoSeleccionadoA23 = null;
+          pintarContenidoVistaA23('diseno');
+        }
+      });
+      const chipsArrastrables = document.querySelectorAll('#poolCamposA23 .campo-chip-a21[draggable="true"]');
+      habilitarArrastre(chipsArrastrables, [zonaDetalle], (campoArrastrado) => {
+        if(!camposColocadosDetalleA23.includes(campoArrastrado)){
+          camposColocadosDetalleA23.push(campoArrastrado);
+          campoSeleccionadoA23 = null;
+          pintarContenidoVistaA23('diseno');
+        }
+      });
+
+      // Checkbox de número de página
+      document.getElementById('checkboxNumPaginaA23').addEventListener('click', () => {
+        numPaginaMarcadoA23 = !numPaginaMarcadoA23;
+        pintarContenidoVistaA23('diseno');
+      });
+
+      return;
+    }
+
+    // ---- Pestañas de Previsualización y Ejecución ----
+    if(camposColocadosDetalleA23.length === 0 || !campoAgruparA23){
+      cont.innerHTML = `
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+        <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-circle-info"></i> Todavía no has completado la línea de detalle y la agrupación en la Vista de Diseño. Vuelve a esa pestaña para completarlo.</div>`;
+      return;
+    }
+
+    const grupos = agruparDatosA23_((datosTablaSeleccionadaA23 && datosTablaSeleccionadaA23.datos) || [], campoAgruparA23);
+
+    function formatearMonto(valor){
+      return 'RD$' + (Number(valor) || 0).toLocaleString('es-DO', {minimumFractionDigits:2});
+    }
+
+    let gruposHtml = '';
+    if(vista === 'previsualizacion'){
+      gruposHtml = ['Norte', 'Sur'].map(claveEjemplo => `
+        <div style="margin-top:14px;">
+          <div style="background:#C9A22733; border-left:4px solid #C9A227; padding:6px 10px; font-weight:800; font-size:12.5px;">${campoAgruparA23}: ${claveEjemplo}</div>
+          ${[1,2].map(() => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 10px; opacity:.6;">${camposColocadosDetalleA23.map(() => `<span style="flex:1;">[muestra]</span>`).join('')}</div>`).join('')}
+          <div style="background:#22c55e22; border-left:4px solid #22c55e; padding:6px 10px; font-weight:700; font-size:12px;">Total ${claveEjemplo}: [muestra]</div>
+        </div>`).join('');
+    } else if(vista === 'ejecucion'){
+      gruposHtml = grupos.map(g => `
+        <div style="margin-top:14px;">
+          <div style="background:#C9A22733; border-left:4px solid #C9A227; padding:6px 10px; font-weight:800; font-size:12.5px;">${campoAgruparA23}: ${g.clave}</div>
+          ${g.filas.map(f => `
+            <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 10px;">
+              ${camposColocadosDetalleA23.map(c => {
+                let valor = f[c];
+                if(c === 'PrecioUnitario') valor = formatearMonto(valor);
+                return `<span style="flex:1;">${valor !== undefined ? valor : ''}</span>`;
+              }).join('')}
+            </div>`).join('')}
+          <div style="background:#22c55e22; border-left:4px solid #22c55e; padding:6px 10px; font-weight:700; font-size:12px;">Total ${g.clave} (${g.cantidad} ventas): ${formatearMonto(g.total)}</div>
+        </div>`).join('');
+    }
+
+    cont.innerHTML = `
+      <div class="simulador-pantalla">
+        <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color};"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
+        <div style="font-weight:800; font-size:15px; margin-top:10px;">${nombreEmpresa}</div>
+        <div style="font-size:13px; opacity:.85; margin-bottom:10px;">${tituloReporte}</div>
+        <div style="display:flex; gap:14px; font-weight:800; font-size:12.5px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+          ${camposColocadosDetalleA23.map(c => `<span style="flex:1;">${ETIQUETAS_CAMPOS_A23[c] || c}</span>`).join('')}
+        </div>
+        ${gruposHtml}
+      </div>
+      ${vista === 'ejecucion' ? `
+        <div id="feedbackEjecucionA23"></div>
+        <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA23" style="width:auto; padding:12px 28px; margin-top:16px;">
+          <i class="fa-solid fa-arrow-right"></i> Siguiente
+        </button>` : ''}`;
+
+    if(vista === 'ejecucion'){
+      document.getElementById('btnSiguienteEjecucionA23').addEventListener('click', intentarAvanzarDesdeEjecucionA23);
+    }
+  }
+
+  // Recalcula en vivo (sin contar intentos) si cada sección luce correcta, para el borde verde inmediato
+  function actualizarEstadoVisualA23(){
+    const empresaOk = normalizarTextoA15_(nombreEmpresaValorA23).includes('tecnoventas');
+    const tituloOk = normalizarTextoA15_(tituloReporteValorA23).includes('venta') && normalizarTextoA15_(tituloReporteValorA23).includes('region');
+    encReporteCorrectoA23 = empresaOk && tituloOk;
+
+    const seleccion = [...camposColocadosDetalleA23].sort();
+    const esperado = [...CAMPOS_CORRECTOS_DETALLE_A23].sort();
+    const tablaOk = tablaSeleccionadaDetalleA23 === 'DB_Ventas';
+    detalleCorrectoA23 = tablaOk && seleccion.length === esperado.length && seleccion.every((c, i) => c === esperado[i]);
+
+    const campoRegion = campoRegionDisponibleA23_();
+    agrupacionCorrectaA23 = !!campoRegion && campoAgruparA23 === campoRegion;
+
+    encPaginaCorrectoA23 = camposColocadosDetalleA23.length > 0 && numPaginaMarcadoA23;
+  }
+
+  // Se dispara desde el botón "Siguiente" de la pestaña de Ejecución — valida todo y, si está
+  // completo, avanza a la segunda parte de la actividad (identificar y definir las partes del grupo).
+  function intentarAvanzarDesdeEjecucionA23(){
+    actualizarEstadoVisualA23();
+    const mensajes = [];
+
+    if(!encReporteCorrectoA23){
+      intentosPorSeccionA23.encReporte++;
+      mensajes.push('El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione que es un reporte de ventas por región. Vuelve a la Vista de Diseño para completarlo.');
+    }
+
+    if(!detalleCorrectoA23){
+      intentosPorSeccionA23.detalle++;
+      mensajes.push('La <b>línea de detalle</b> no tiene exactamente los campos correctos (Producto, Vendedor y Monto).');
+    }
+
+    if(!agrupacionCorrectaA23){
+      intentosPorSeccionA23.agrupacion++;
+      const campoRegion = campoRegionDisponibleA23_();
+      mensajes.push(!campoRegion
+        ? 'Todavía no hay un campo de <b>Región</b> disponible en DB_Ventas. Avísale a tu profesora para que lo agregue, o verifica que seleccionaste la tabla correcta.'
+        : 'Todavía no has elegido el campo correcto en <b>"Agrupar por"</b>. Vuelve a la Vista de Diseño y selecciona Región.');
+    }
+
+    if(!encPaginaCorrectoA23){
+      intentosPorSeccionA23.encPagina++;
+      mensajes.push('El <b>encabezado de página</b> necesita el número de página marcado. Vuelve a la Vista de Diseño para completarlo.');
+    }
+
+    if(mensajes.length > 0){
+      document.getElementById('feedbackEjecucionA23').innerHTML = mensajes.map(m =>
+        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
+      ).join('');
+      return;
+    }
+
+    document.getElementById('disenadorReporteA23').classList.add('hidden');
+    pintarIdentificarSeccionesA23();
+  }
+
+  // ---------- Identifica y define las partes del grupo del reporte ya construido ----------
+  function pintarIdentificarSeccionesA23(){
+    document.getElementById('identificarSeccionesA23').classList.remove('hidden');
+    ordenSeccionesIdentificarA23 = barajar(SECCIONES_IDENTIFICAR_A23_BASE);
+
+    const grupos = agruparDatosA23_((datosTablaSeleccionadaA23 && datosTablaSeleccionadaA23.datos) || [], campoAgruparA23);
+    const primerGrupo = grupos[0] || { clave:'', filas:[], total:0, cantidad:0 };
+    const filaEjemplo = primerGrupo.filas[0] || null;
+
+    function formatearMonto(valor){
+      return 'RD$' + (Number(valor) || 0).toLocaleString('es-DO', {minimumFractionDigits:2});
+    }
+
+    const contenidoPorSeccion = {
+      encGrupo: `<div style="font-weight:800;">${campoAgruparA23}: ${primerGrupo.clave}</div>`,
+      detalleGrupo: `<div style="font-size:13px;">${filaEjemplo ? camposColocadosDetalleA23.map(c => c === 'PrecioUnitario' ? formatearMonto(filaEjemplo[c]) : filaEjemplo[c]).join(' | ') : camposColocadosDetalleA23.join(' — ')}</div>`,
+      pieGrupo: `<div style="font-size:13px; font-weight:700;">Total ${primerGrupo.clave} (${primerGrupo.cantidad} ventas): ${formatearMonto(primerGrupo.total)}</div>`
+    };
+
+    const cont = document.getElementById('identificarSeccionesA23');
+    cont.innerHTML = `
+      <div class="section-heading" style="font-size:18px;">Identifica y define las partes del grupo</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Para cada recuadro, identifica qué parte del grupo es y explica en tus propias palabras qué función cumple.</div>
+
+      ${ordenSeccionesIdentificarA23.map(s => `
+        <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+          <div class="libro-ejemplo-box" style="margin-bottom:12px;">${contenidoPorSeccion[s.id]}</div>
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿Qué parte del grupo es esta?</label>
+          <select class="input-generico select-identificar-a21" data-seccion="${s.id}" style="margin-bottom:12px;">
+            <option value="">Selecciona...</option>
+            ${barajar(SECCIONES_IDENTIFICAR_A23_BASE).map(op => `<option value="${op.id}">${op.nombre}</option>`).join('')}
+          </select>
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">En tus palabras, ¿qué función cumple esta parte?</label>
+          <textarea class="celda-respuesta-a15 textarea-definir-a21" data-seccion="${s.id}" rows="2" placeholder="Escribe tu definición..."></textarea>
+        </div>
+      `).join('')}
+
+      <div id="feedbackIdentificarA23"></div>
+      <button type="button" class="btn btn-primary" id="btnConfirmarIdentificarA23" style="width:auto; padding:12px 28px;">
+        <i class="fa-solid fa-check"></i> Confirmar
+      </button>`;
+
+    document.querySelectorAll('.select-identificar-a21').forEach(sel => {
+      sel.addEventListener('change', () => {
+        const s = sel.dataset.seccion;
+        if(!respuestasIdentificarA23[s]) respuestasIdentificarA23[s] = {};
+        respuestasIdentificarA23[s].identificacion = sel.value;
+      });
+    });
+    document.querySelectorAll('.textarea-definir-a21').forEach(ta => {
+      ta.addEventListener('input', () => {
+        const s = ta.dataset.seccion;
+        if(!respuestasIdentificarA23[s]) respuestasIdentificarA23[s] = {};
+        respuestasIdentificarA23[s].definicion = ta.value;
+      });
+    });
+
+    document.getElementById('btnConfirmarIdentificarA23').addEventListener('click', verificarIdentificarSeccionesA23);
+  }
+
+  function verificarIdentificarSeccionesA23(){
+    intentosIdentificarGeneralA23++;
+    let todoCorrecto = true;
+
+    SECCIONES_IDENTIFICAR_A23_BASE.forEach(s => {
+      const resp = respuestasIdentificarA23[s.id] || {};
+      const identOk = resp.identificacion === s.id;
+      const defOk = contarPalabrasRealesA15_(resp.definicion || '') >= 4;
+      if(!identOk || !defOk) todoCorrecto = false;
+    });
+
+    if(!todoCorrecto){
+      document.getElementById('feedbackIdentificarA23').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Revisa: alguna identificación o definición todavía no está completa. La definición debe tener varias palabras propias, no solo repetir el nombre de la parte.</div></div>`;
+      return;
+    }
+
+    identificarSeccionesCompletoA23 = true;
+    document.getElementById('identificarSeccionesA23').innerHTML = '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la identificación de las 3 partes del grupo!</div>';
+    document.getElementById('seccionFinalA23').classList.remove('hidden');
+  }
+
+  document.getElementById('btnFinalizarA23').addEventListener('click', async () => {
+    clearInterval(timerIntervalA23);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA23) / 60000;
+    const nivelPorIntentos = (intentos) => intentos <= 1 ? 'logrado' : (intentos <= 2 ? 'proceso' : 'no_logrado');
+
+    const criterios = [];
+    criterios.push({ nombre: CRITERIOS_BASE_A23[0].nombre, descripcion: CRITERIOS_BASE_A23[0].descripcion, nivel: 'logrado' });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[1].nombre, descripcion: CRITERIOS_BASE_A23[1].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.encReporte || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[2].nombre, descripcion: CRITERIOS_BASE_A23[2].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.detalle || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[3].nombre, descripcion: CRITERIOS_BASE_A23[3].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.agrupacion || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[4].nombre, descripcion: CRITERIOS_BASE_A23[4].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.encPagina || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[5].nombre, descripcion: CRITERIOS_BASE_A23[5].descripcion, nivel: 'logrado' });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[6].nombre, descripcion: CRITERIOS_BASE_A23[6].descripcion, nivel: nivelPorIntentos(intentosIdentificarGeneralA23 || 1) });
+    criterios.push({
+      nombre: CRITERIOS_BASE_A23[7].nombre, descripcion: CRITERIOS_BASE_A23[7].descripcion,
+      nivel: minutosTranscurridos <= tiempoEstimadoA23 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA23 * 2 ? 'proceso' : 'no_logrado')
+    });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[8].nombre, descripcion: CRITERIOS_BASE_A23[8].descripcion, nivel: 'logrado' });
+
+    const pesoUnidad = puntajeMaxA23 / criterios.length;
+    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA23').classList.add('hidden');
+    document.getElementById('vistaResultadoA23').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA23').classList.add('hidden');
+    renderRubrica('rubricaResultadoA23', criterios, puntajeMaxA23, notaCalculada);
+    ultimoResultadoA23 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA23 };
+
+    const proporcionFinalA23 = puntajeMaxA23 > 0 ? notaCalculada / puntajeMaxA23 : 0;
+    mostrarLogro(proporcionFinalA23 >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinalA23 >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinalA23 >= 0.8) dispararConfeti();
+
+    const detalleA23 = [
+      {
+        titulo: 'Diseño del reporte agrupado',
+        items: [
+          { pregunta:'Encabezado de reporte', tuRespuesta: `Completado en ${intentosPorSeccionA23.encReporte || 1} intento(s)`, correcta: (intentosPorSeccionA23.encReporte || 1) <= 1 },
+          { pregunta:'Línea de detalle', tuRespuesta: camposColocadosDetalleA23.map(c => ETIQUETAS_CAMPOS_A23[c] || c).join(', '), correcta: (intentosPorSeccionA23.detalle || 1) <= 1 },
+          { pregunta:'Agrupación', tuRespuesta: `Agrupado por: ${campoAgruparA23 || 'Sin definir'}`, correcta: (intentosPorSeccionA23.agrupacion || 1) <= 1 },
+          { pregunta:'Encabezado de página', tuRespuesta: `Completado en ${intentosPorSeccionA23.encPagina || 1} intento(s)`, correcta: (intentosPorSeccionA23.encPagina || 1) <= 1 }
+        ]
+      },
+      {
+        titulo: 'Recorrido de vistas e identificación de las partes del grupo',
+        items: [
+          { pregunta:'¿Recorrió las 3 vistas (Diseño, Previsualización, Ejecución)?', tuRespuesta: `${vistasVisitadasA23.size} de 3`, correcta: vistasVisitadasA23.size >= 3 },
+          ...SECCIONES_IDENTIFICAR_A23_BASE.map(s => {
+            const resp = respuestasIdentificarA23[s.id] || {};
+            const nombreIdentificado = (SECCIONES_IDENTIFICAR_A23_BASE.find(x => x.id === resp.identificacion) || {}).nombre || 'Sin responder';
+            return {
+              pregunta: `¿Qué es "${s.nombre}" y qué función cumple?`,
+              tuRespuesta: `Identificó: ${nombreIdentificado}. Definición: ${resp.definicion || 'Sin responder'}`,
+              correcta: resp.identificacion === s.id && contarPalabrasRealesA15_(resp.definicion || '') >= 4
+            };
+          })
+        ]
+      }
+    ];
+    ultimoResultadoA23.detalle = detalleA23;
+    renderDesgloseColoreado('resultadoDesgloseA23', detalleA23);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.2.3',
+        ra:'RA2',
+        ec:'EC6.2.2',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA23,
+        criterios: criterios,
+        detalle: detalleA23
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA23').addEventListener('click', () => {
+    if(!ultimoResultadoA23) return;
+    generarPdfResultado('A.2.3', ultimoResultadoA23.criterios, ultimoResultadoA23.nota, ultimoResultadoA23.puntajeMaximo, 'EC6.2.2', 'RA2', ultimoResultadoA23.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA23').addEventListener('click', () => {
+    document.getElementById('panelActividadA23').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.3', abrirActividadA23);
