@@ -5441,6 +5441,9 @@
       const campoRegion = campoRegionDisponibleA23_();
       const campos = (datosTablaSeleccionadaA23 && datosTablaSeleccionadaA23.campos) || [];
       const camposDisponibles = campos.filter(c => !camposColocadosDetalleA23.includes(c) && c !== campoRegion);
+      // Para "Agrupar por" se ofrecen varias opciones reales (no solo la correcta),
+      // para que el estudiante tenga que elegir el campo correcto entre varios.
+      const camposOpcionesAgrupar = campos.filter(c => !camposColocadosDetalleA23.includes(c));
 
       cont.innerHTML = `
         <span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>
@@ -5480,9 +5483,9 @@
 
           <div class="caja-diseno-a21 ${agrupacionCorrectaA23 ? 'correcta' : ''}" id="cajaAgruparA23">
             <div class="caja-diseno-titulo"><i class="fa-solid fa-layer-group"></i> Agrupar por</div>
-            <select id="selectAgruparA23" class="input-generico" ${campoRegion ? '' : 'disabled'}>
-              <option value="" ${campoAgruparA23 ? '' : 'selected disabled'}>${campoRegion ? 'Selecciona un campo...' : 'Primero selecciona la tabla DB_Ventas'}</option>
-              ${campoRegion ? `<option value="${campoRegion}" ${campoAgruparA23 === campoRegion ? 'selected' : ''}>${campoRegion}</option>` : ''}
+            <select id="selectAgruparA23" class="input-generico" ${camposOpcionesAgrupar.length ? '' : 'disabled'}>
+              <option value="" ${campoAgruparA23 ? '' : 'selected disabled'}>${camposOpcionesAgrupar.length ? 'Selecciona un campo...' : 'Primero selecciona la tabla DB_Ventas'}</option>
+              ${camposOpcionesAgrupar.map(c => `<option value="${c}" ${campoAgruparA23 === c ? 'selected' : ''}>${ETIQUETAS_CAMPOS_A23[c] || c}</option>`).join('')}
             </select>
             <p class="descripcion-seccion-a21">${DESCRIPCIONES_SECCION_A23.agrupar}</p>
           </div>
@@ -5707,6 +5710,13 @@
       detalleGrupo: `<div style="font-size:13px;">${filaEjemplo ? camposColocadosDetalleA23.map(c => c === 'PrecioUnitario' ? formatearMonto(filaEjemplo[c]) : filaEjemplo[c]).join(' | ') : camposColocadosDetalleA23.join(' — ')}</div>`,
       pieGrupo: `<div style="font-size:13px; font-weight:700;">Total ${primerGrupo.clave} (${primerGrupo.cantidad} ventas): ${formatearMonto(primerGrupo.total)}</div>`
     };
+    // Mismos colores usados en la Vista de Ejecución: dorado para el encabezado de
+    // grupo, neutro para el detalle y verde para el pie de grupo.
+    const estiloCajaPorSeccion = {
+      encGrupo: 'background:#C9A22733; border-left:4px solid #C9A227;',
+      detalleGrupo: 'background: rgba(255,255,255,0.04); border-left:4px solid var(--dark-border);',
+      pieGrupo: 'background:#22c55e22; border-left:4px solid #22c55e;'
+    };
 
     const cont = document.getElementById('identificarSeccionesA23');
     cont.innerHTML = `
@@ -5715,14 +5725,14 @@
 
       ${ordenSeccionesIdentificarA23.map(s => `
         <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
-          <div class="libro-ejemplo-box" style="margin-bottom:12px;">${contenidoPorSeccion[s.id]}</div>
+          <div style="${estiloCajaPorSeccion[s.id]} padding:10px 14px; border-radius:8px; margin-bottom:12px;">${contenidoPorSeccion[s.id]}</div>
           <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿Qué parte del grupo es esta?</label>
           <select class="input-generico select-identificar-a21" data-seccion="${s.id}" style="margin-bottom:12px;">
             <option value="">Selecciona...</option>
             ${barajar(SECCIONES_IDENTIFICAR_A23_BASE).map(op => `<option value="${op.id}">${op.nombre}</option>`).join('')}
           </select>
           <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">En tus palabras, ¿qué función cumple esta parte?</label>
-          <textarea class="celda-respuesta-a15 textarea-definir-a21" data-seccion="${s.id}" rows="2" placeholder="Escribe tu definición..."></textarea>
+          <textarea class="input-generico celda-respuesta-a15 textarea-definir-a21" data-seccion="${s.id}" rows="2" placeholder="Escribe tu definición..."></textarea>
         </div>
       `).join('')}
 
