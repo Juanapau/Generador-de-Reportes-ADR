@@ -4460,11 +4460,31 @@
       </div>
       ${vista === 'ejecucion' ? `
         <div id="feedbackEjecucionA21"></div>
-        <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA21" style="width:auto; padding:12px 28px; margin-top:16px;">
-          <i class="fa-solid fa-arrow-right"></i> Siguiente
-        </button>` : ''}`;
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap;">
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarReportePdfA21">
+            <i class="fa-solid fa-file-pdf"></i> Descargar reporte en PDF
+          </button>
+          <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA21" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-right"></i> Siguiente
+          </button>
+        </div>` : ''}`;
 
     if(vista === 'ejecucion'){
+      document.getElementById('btnDescargarReportePdfA21').addEventListener('click', () => {
+        const filas = ((datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) || []).map(f =>
+          camposColocadosDetalleA21.map(c => {
+            const valor = f[c];
+            return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+          })
+        );
+        generarPdfReporteDisenado({
+          nombreEmpresa: nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.',
+          tituloReporte: tituloReporteValorA21 || 'Reporte de Ventas',
+          columnas: camposColocadosDetalleA21,
+          filas,
+          numeroPagina: numPaginaMarcadoA21
+        });
+      });
       document.getElementById('btnSiguienteEjecucionA21').addEventListener('click', intentarAvanzarDesdeEjecucionA21);
     }
   }
@@ -5023,11 +5043,31 @@
       </div>
       ${vista === 'ejecucion' ? `
         <div id="feedbackEjecucionA22"></div>
-        <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA22" style="width:auto; padding:12px 28px; margin-top:16px;">
-          <i class="fa-solid fa-arrow-right"></i> ${indiceReporteActualA22 === 0 ? 'Siguiente reporte' : 'Siguiente'}
-        </button>` : ''}`;
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap;">
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarReportePdfA22">
+            <i class="fa-solid fa-file-pdf"></i> Descargar reporte en PDF
+          </button>
+          <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA22" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-right"></i> ${indiceReporteActualA22 === 0 ? 'Siguiente reporte' : 'Siguiente'}
+          </button>
+        </div>` : ''}`;
 
     if(vista === 'ejecucion'){
+      document.getElementById('btnDescargarReportePdfA22').addEventListener('click', () => {
+        const filas = ((estado.datosTabla && estado.datosTabla.datos) || []).map(f =>
+          estado.camposDetalle.map(c => {
+            const valor = f[c];
+            return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+          })
+        );
+        generarPdfReporteDisenado({
+          nombreEmpresa,
+          tituloReporte: titulo,
+          columnas: estado.camposDetalle,
+          filas,
+          numeroPagina: estado.numPagina
+        });
+      });
       document.getElementById('btnSiguienteEjecucionA22').addEventListener('click', intentarAvanzarDesdeEjecucionA22);
     }
   }
@@ -5626,11 +5666,29 @@
       </div>
       ${vista === 'ejecucion' ? `
         <div id="feedbackEjecucionA23"></div>
-        <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA23" style="width:auto; padding:12px 28px; margin-top:16px;">
-          <i class="fa-solid fa-arrow-right"></i> Siguiente
-        </button>` : ''}`;
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap;">
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarReportePdfA23">
+            <i class="fa-solid fa-file-pdf"></i> Descargar reporte en PDF
+          </button>
+          <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA23" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-right"></i> Siguiente
+          </button>
+        </div>` : ''}`;
 
     if(vista === 'ejecucion'){
+      document.getElementById('btnDescargarReportePdfA23').addEventListener('click', () => {
+        generarPdfReporteDisenado({
+          nombreEmpresa,
+          tituloReporte,
+          columnas: camposColocadosDetalleA23.map(c => ETIQUETAS_CAMPOS_A23[c] || c),
+          grupos: grupos.map(g => ({
+            encabezado: `${campoAgruparA23}: ${g.clave}`,
+            filas: g.filas.map(f => camposColocadosDetalleA23.map(c => c === 'PrecioUnitario' ? formatearMonto(f[c]) : f[c])),
+            pie: `Total ${g.clave} (${g.cantidad} ventas): ${formatearMonto(g.total)}`
+          })),
+          numeroPagina: numPaginaMarcadoA23
+        });
+      });
       document.getElementById('btnSiguienteEjecucionA23').addEventListener('click', intentarAvanzarDesdeEjecucionA23);
     }
   }
