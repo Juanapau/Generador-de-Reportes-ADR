@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Generador de Reportes | Módulo ADR — PNSA</title>
+<link rel="icon" type="image/png" href="logo.png" id="faviconApp">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -21,7 +22,8 @@
     </button>
 
     <div class="login-logo">
-      <div class="crest-fallback">PNSA</div>
+      <img src="logo.png" alt="Logo" onerror="this.remove(); document.getElementById('crestFallbackLogin').style.display='flex';">
+      <div class="crest-fallback" id="crestFallbackLogin" style="display:none;">PNSA</div>
       <div class="login-title">Generador de Reportes</div>
       <div class="login-subtitle">Politécnico Nuestra Señora de la Altagracia</div>
       <div class="login-module">Módulo: Análisis y Diseño de Reportes</div>
@@ -86,7 +88,8 @@
 <div id="appShell" class="hidden">
   <header class="topbar">
     <div class="topbar-left">
-      <div class="crest-fallback-sm">PNSA</div>
+      <img src="logo.png" alt="Logo" onerror="this.remove(); document.getElementById('crestFallbackTopbar').style.display='flex';">
+      <div class="crest-fallback-sm" id="crestFallbackTopbar" style="display:none;">PNSA</div>
       <div class="topbar-title">
         <h1>Generador de Reportes</h1>
         <p id="topbarModule">Módulo: Análisis y Diseño de Reportes</p>
@@ -96,7 +99,10 @@
 
   <div class="userbar">
     <div class="user-profile-toggle" id="userProfileToggle">
-      <div class="user-avatar"><i class="fa-solid fa-user"></i></div>
+      <div class="user-avatar">
+        <img src="" alt="" id="userAvatarImg" class="hidden">
+        <i class="fa-solid fa-user" id="userAvatarIcon"></i>
+      </div>
       <div class="user-meta">
         <div class="u-name" id="userName">—</div>
         <div class="u-role" id="userRole">—</div>
