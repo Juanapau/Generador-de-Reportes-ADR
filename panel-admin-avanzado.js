@@ -354,9 +354,16 @@
     doc.save(`Informe_${tituloSlug}.pdf`);
   }
 
-  // Exporta a Excel (.csv con BOM) exactamente la tabla de Calificaciones y avances que se está viendo:
-  // la calificación obtenida de cada actividad con decimales, y una columna Total redondeada.
-  // Funciona tanto para las pestañas de RA como para la pestaña de Actividades Extra.
+  // Exporta a un archivo .xlsx REAL (no un .csv disfrazado) exactamente la tabla de
+  // Calificaciones y avances que se está viendo: la calificación obtenida de cada
+  // actividad con decimales, y una columna Total redondeada. Funciona tanto para las
+  // pestañas de RA como para la pestaña de Actividades Extra.
+  //
+  // Antes esto se armaba como texto CSV separado por comas. En Excel con el idioma
+  // en español, el separador de listas regional es el punto y coma (;), no la coma —
+  // así que Excel no partía el texto en columnas y todo terminaba amontonado en la
+  // columna A. Un .xlsx de verdad (con XLSX.utils.aoa_to_sheet) evita ese problema
+  // por completo, porque cada dato ya queda guardado en su propia celda.
   document.getElementById('btnExportarExcelCalifAvances').addEventListener('click', () => {
     const datos = ultimaTablaCalificacionesAvances;
     if(!datos || datos.actividades.length === 0){
@@ -367,30 +374,25 @@
     const esExtra = tipo === 'extra';
 
     const nombreColumna = a => esExtra ? (a.titulo || a.codigo) : a.codigo;
-    let csv = 'Estudiante,' + actividades.map(a => `"${nombreColumna(a).replace(/"/g, '""')}"`).join(',') + ',Total\n';
-    estudiantes.forEach(est => {
-      const fila = [`"${(est.nombre || est.usuario).replace(/"/g, '""')}"`];
+    const encabezados = ['Estudiante', ...actividades.map(nombreColumna), 'Total'];
+    const filas = estudiantes.map(est => {
+      const fila = [est.nombre || est.usuario];
       let total = 0;
       actividades.forEach(a => {
         const c = notasPorClave[`${est.usuario}|${a.codigo}`];
         const calificado = esExtra ? (c && c.estado === 'calificado') : !!c;
         if(calificado) total += Number(c.nota) || 0;
-        fila.push(calificado ? c.nota : '');
+        fila.push(calificado ? Number(c.nota) : '');
       });
       fila.push(Math.round(total));
-      csv += fila.join(',') + '\n';
+      return fila;
     });
 
-    // El BOM (﻿) al inicio asegura que Excel muestre bien las tildes/ñ
-    const blob = new Blob(['﻿' + csv], { type:'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const enlace = document.createElement('a');
-    enlace.href = url;
-    enlace.download = esExtra ? 'Calificaciones_Actividades_Extra.csv' : `Calificaciones_y_avances_${ra}.csv`;
-    document.body.appendChild(enlace);
-    enlace.click();
-    document.body.removeChild(enlace);
-    URL.revokeObjectURL(url);
+    const hoja = XLSX.utils.aoa_to_sheet([encabezados, ...filas]);
+    hoja['!cols'] = encabezados.map((_, i) => ({ wch: i === 0 ? 32 : 12 }));
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Calificaciones');
+    XLSX.writeFile(libro, esExtra ? 'Calificaciones_Actividades_Extra.xlsx' : `Calificaciones_y_avances_${ra}.xlsx`);
   });
 
   // ---------- Detalle de un estudiante ----------
@@ -647,26 +649,23 @@
       const notasPorClave = {};
       if(dataCal.success) dataCal.calificaciones.forEach(c => { notasPorClave[`${c.usuario}|${c.codigo}`] = c; });
 
-      let csv = 'Estudiante,' + actividades.map(a => a.codigo).join(',') + '\n';
-      estudiantes.forEach(est => {
-        const fila = [`"${(est.nombre || est.usuario).replace(/"/g, '""')}"`];
+      const encabezados = ['Estudiante', ...actividades.map(a => a.codigo)];
+      const filas = estudiantes.map(est => {
+        const fila = [est.nombre || est.usuario];
         actividades.forEach(a => {
           const c = notasPorClave[`${est.usuario}|${a.codigo}`];
           fila.push(c ? `${c.nota}/${c.puntajeMaximo}` : '');
         });
-        csv += fila.join(',') + '\n';
+        return fila;
       });
 
-      // El BOM (\ufeff) al inicio asegura que Excel muestre bien las tildes/ñ
-      const blob = new Blob(['\ufeff' + csv], { type:'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const enlace = document.createElement('a');
-      enlace.href = url;
-      enlace.download = `Calificaciones_${ra}.csv`;
-      document.body.appendChild(enlace);
-      enlace.click();
-      document.body.removeChild(enlace);
-      URL.revokeObjectURL(url);
+      // Archivo .xlsx real (no CSV): así cada dato queda en su propia celda sin
+      // depender del separador de listas regional de Excel (que en español es ";").
+      const hoja = XLSX.utils.aoa_to_sheet([encabezados, ...filas]);
+      hoja['!cols'] = encabezados.map((_, i) => ({ wch: i === 0 ? 32 : 12 }));
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, 'Calificaciones');
+      XLSX.writeFile(libro, `Calificaciones_${ra}.xlsx`);
     }catch(err){
       mostrarNotificacion('Error de conexión con el servidor.', 'error');
     }finally{
