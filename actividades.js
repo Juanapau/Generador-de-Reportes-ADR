@@ -4436,7 +4436,7 @@
       }
       filasHtml = [1, 2].map(() => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.6;">${camposColocadosDetalleA21.map(() => `<span style="flex:1;">[muestra]</span>`).join('')}</div>`).join('');
     } else if(vista === 'ejecucion'){
-      const filas = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) ? datosTablaSeleccionadaA21.datos.slice(0, 3) : [];
+      const filas = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) ? datosTablaSeleccionadaA21.datos : [];
       filasHtml = filas.map(f => `
         <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;">
           ${camposColocadosDetalleA21.map(c => {
@@ -4545,12 +4545,21 @@
 
     const nombreEmpresa = nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.';
     const tituloReporte = tituloReporteValorA21 || 'Reporte de Ventas';
-    const filaEjemplo = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos && datosTablaSeleccionadaA21.datos[0]) ? datosTablaSeleccionadaA21.datos[0] : null;
+    const filasTodasA21 = (datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) || [];
+
+    // Muestra el contenido COMPLETO de la línea de detalle: todas las ventas, no
+    // solo una, porque esta sección se repite una vez por cada fila del reporte.
+    const detalleHtmlA21 = filasTodasA21.length
+      ? filasTodasA21.map(f => `<div>${camposColocadosDetalleA21.map(c => {
+          const valor = f[c];
+          return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+        }).join(' | ')}</div>`).join('')
+      : camposColocadosDetalleA21.join(' — ');
 
     const contenidoPorSeccion = {
       encReporte: `<div style="font-weight:800;">${nombreEmpresa}</div><div style="opacity:.85;">${tituloReporte}</div>`,
       encPagina: `<div style="font-weight:800; font-size:13px;">${camposColocadosDetalleA21.join(' | ')}</div>`,
-      detalle: `<div style="font-size:13px;">${filaEjemplo ? camposColocadosDetalleA21.map(c => filaEjemplo[c]).join(' | ') : camposColocadosDetalleA21.join(' — ')}</div>`
+      detalle: `<div style="font-size:13px; line-height:1.7;">${detalleHtmlA21}</div>`
     };
 
     const cont = document.getElementById('identificarSeccionesA21');
@@ -4560,14 +4569,14 @@
 
       ${ordenSeccionesIdentificarA21.map(s => `
         <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
-          <div class="libro-ejemplo-box" style="margin-bottom:12px;">${contenidoPorSeccion[s.id]}</div>
+          <div class="libro-ejemplo-box" style="margin-bottom:12px; max-height:180px; overflow-y:auto;">${contenidoPorSeccion[s.id]}</div>
           <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿Qué sección del reporte es esta?</label>
           <select class="input-generico select-identificar-a21" data-seccion="${s.id}" style="margin-bottom:12px;">
             <option value="">Selecciona...</option>
             ${barajar(SECCIONES_IDENTIFICAR_A21_BASE).map(op => `<option value="${op.id}">${op.nombre}</option>`).join('')}
           </select>
           <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">En tus palabras, ¿qué función cumple esta sección?</label>
-          <textarea class="celda-respuesta-a15 textarea-definir-a21" data-seccion="${s.id}" rows="2" placeholder="Escribe tu definición..."></textarea>
+          <textarea class="input-generico celda-respuesta-a15 textarea-definir-a21" data-seccion="${s.id}" rows="2" placeholder="Escribe tu definición..."></textarea>
         </div>
       `).join('')}
 
@@ -5020,7 +5029,7 @@
     if(vista === 'previsualizacion'){
       filasHtml = [1, 2].map(() => `<div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0; opacity:.6;">${estado.camposDetalle.map(() => `<span style="flex:1;">[muestra]</span>`).join('')}</div>`).join('');
     } else if(vista === 'ejecucion'){
-      const filas = (estado.datosTabla && estado.datosTabla.datos) ? estado.datosTabla.datos.slice(0, 3) : [];
+      const filas = (estado.datosTabla && estado.datosTabla.datos) ? estado.datosTabla.datos : [];
       filasHtml = filas.map(f => `
         <div style="display:flex; gap:14px; font-size:12.5px; padding:3px 0;">
           ${estado.camposDetalle.map(c => {
@@ -5108,6 +5117,17 @@
     }
   }
 
+  // Muestra el contenido COMPLETO de la línea de detalle de un reporte de A.2.2
+  // (todas sus filas reales), no solo una, porque esta sección se repite por cada fila.
+  function construirDetalleCompletoA22_(estadoReporte){
+    const filas = (estadoReporte.datosTabla && estadoReporte.datosTabla.datos) || [];
+    if(!filas.length) return estadoReporte.camposDetalle.join(' — ');
+    return filas.map(f => `<div>${estadoReporte.camposDetalle.map(c => {
+      const valor = f[c];
+      return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+    }).join(' | ')}</div>`).join('');
+  }
+
   // ---------- Parte 2: comparación de las 3 secciones entre ambos reportes ----------
   function pintarComparacionA22(){
     document.getElementById('comparacionSeccionesA22').classList.remove('hidden');
@@ -5124,8 +5144,8 @@
         b: `<div style="font-weight:800; font-size:13px;">${asi.camposDetalle.join(' | ')}</div>`
       },
       detalle: {
-        a: `<div style="font-size:13px;">${(inv.datosTabla && inv.datosTabla.datos[0]) ? inv.camposDetalle.map(c => inv.datosTabla.datos[0][c]).join(' | ') : inv.camposDetalle.join(' — ')}</div>`,
-        b: `<div style="font-size:13px;">${(asi.datosTabla && asi.datosTabla.datos[0]) ? asi.camposDetalle.map(c => asi.datosTabla.datos[0][c]).join(' | ') : asi.camposDetalle.join(' — ')}</div>`
+        a: `<div style="font-size:13px; line-height:1.7;">${construirDetalleCompletoA22_(inv)}</div>`,
+        b: `<div style="font-size:13px; line-height:1.7;">${construirDetalleCompletoA22_(asi)}</div>`
       }
     };
 
@@ -5138,11 +5158,11 @@
         <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
           <div class="caso-a110-escenario" style="margin-bottom:8px;">${s.nombre}</div>
           <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:12px;">
-            <div class="libro-ejemplo-box" style="flex:1; min-width:220px;"><b style="font-size:11px; opacity:.7;">${specInv.nombre.toUpperCase()}</b><br>${contenidoPorSeccion[s.id].a}</div>
-            <div class="libro-ejemplo-box" style="flex:1; min-width:220px;"><b style="font-size:11px; opacity:.7;">${specAsi.nombre.toUpperCase()}</b><br>${contenidoPorSeccion[s.id].b}</div>
+            <div class="libro-ejemplo-box" style="flex:1; min-width:220px; max-height:180px; overflow-y:auto;"><b style="font-size:11px; opacity:.7;">${specInv.nombre.toUpperCase()}</b><br>${contenidoPorSeccion[s.id].a}</div>
+            <div class="libro-ejemplo-box" style="flex:1; min-width:220px; max-height:180px; overflow-y:auto;"><b style="font-size:11px; opacity:.7;">${specAsi.nombre.toUpperCase()}</b><br>${contenidoPorSeccion[s.id].b}</div>
           </div>
           <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿En qué se diferencia esta sección entre ambos reportes?</label>
-          <textarea class="celda-respuesta-a15 textarea-comparar-a22" data-seccion="${s.id}" rows="2" placeholder="Escribe tu explicación..."></textarea>
+          <textarea class="input-generico celda-respuesta-a15 textarea-comparar-a22" data-seccion="${s.id}" rows="2" placeholder="Escribe tu explicación..."></textarea>
         </div>
       `).join('')}
 
