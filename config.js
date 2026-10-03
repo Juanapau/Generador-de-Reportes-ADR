@@ -394,6 +394,14 @@
   //   numeroPagina: boolean — si se debe imprimir "Página X" al pie de cada hoja
   //   nombreArchivo: nombre sugerido del PDF (opcional)
   // }
+  // Paleta propia de este PDF (más llamativa que la del PDF de resultados): azul
+  // marino oscuro + dorado + franjas alternas, para que se vea como un reporte de
+  // verdad y no como una lista plana. Es el diseño ESTÁNDAR para cualquier reporte
+  // que el estudiante construya en el Diseñador de Reportes (A.2.1, A.2.2, A.2.3...).
+  const PDF_REPORTE_AZUL_MARINO = [15, 35, 65];
+  const PDF_REPORTE_FRANJA_PAR = [255, 255, 255];
+  const PDF_REPORTE_FRANJA_IMPAR = [244, 246, 251];
+
   function generarPdfReporteDisenado(opciones){
     if(!window.jspdf){
       mostrarNotificacion('No se pudo cargar el generador de PDF. Verifica tu conexión e intenta de nuevo.', 'error');
@@ -403,92 +411,129 @@
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const margenIzq = 14;
+    const margenDer = 196;
     const anchoUtil = 182;
     const anchoCol = anchoUtil / Math.max(columnas.length, 1);
-    let y = 34;
+    let y = 40;
     let numPaginaActual = 1;
+    let indiceFilaFranja = 0;
+
+    function pintarMarcoPagina(){
+      doc.setDrawColor(...PDF_COLOR_DORADO);
+      doc.setLineWidth(0.6);
+      doc.rect(6, 6, 198, 285);
+      doc.setLineWidth(0.2);
+    }
 
     function pintarPiePagina(){
-      if(!numeroPagina) return;
-      doc.setFontSize(8.5);
+      doc.setDrawColor(220);
+      doc.line(margenIzq, 284, margenDer, 284);
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'italic');
       doc.setTextColor(140, 140, 140);
-      doc.text(`Página ${numPaginaActual}`, 196, 290, { align:'right' });
+      doc.text('Generador de Reportes ADR — Análisis y Diseño de Reportes', margenIzq, 289);
+      if(numeroPagina){
+        doc.text(`Página ${numPaginaActual}`, margenDer, 289, { align:'right' });
+      }
+      doc.setFont(undefined, 'normal');
       doc.setTextColor(30, 30, 30);
       numPaginaActual++;
     }
 
     function pintarEncabezadoReporte(){
-      doc.setFillColor(...PDF_COLOR_AZUL);
-      doc.rect(0, 0, 210, 26, 'F');
+      // Franja dorada superior (detalle decorativo) + banda azul marino con el
+      // nombre de la empresa y el título, y una etiqueta "REPORTE" a la derecha.
+      doc.setFillColor(...PDF_COLOR_DORADO);
+      doc.rect(0, 0, 210, 3, 'F');
+      doc.setFillColor(...PDF_REPORTE_AZUL_MARINO);
+      doc.rect(0, 3, 210, 29, 'F');
+
       doc.setTextColor(255, 255, 255);
-      doc.setFontSize(15);
+      doc.setFontSize(17);
       doc.setFont(undefined, 'bold');
-      doc.text(nombreEmpresa || '', margenIzq, 14);
-      doc.setFontSize(11);
+      doc.text(nombreEmpresa || '', margenIzq, 18);
+      doc.setFontSize(11.5);
       doc.setFont(undefined, 'normal');
-      doc.text(tituloReporte || '', margenIzq, 21);
+      doc.setTextColor(...PDF_COLOR_DORADO);
+      doc.text(tituloReporte || '', margenIzq, 26);
+
+      doc.setDrawColor(...PDF_COLOR_DORADO);
+      doc.setLineWidth(0.6);
+      doc.roundedRect(margenDer - 32, 9, 32, 9, 1.5, 1.5);
+      doc.setFontSize(8.5);
+      doc.setFont(undefined, 'bold');
+      doc.text('REPORTE', margenDer - 16, 14.8, { align:'center' });
+      doc.setFontSize(7);
+      doc.setFont(undefined, 'normal');
+      doc.text(formatearFechaCorta(new Date()), margenDer - 16, 18.8, { align:'center' });
+
+      doc.setLineWidth(0.2);
       doc.setTextColor(30, 30, 30);
+      doc.setFont(undefined, 'normal');
     }
 
     function pintarEncabezadoColumnas(){
-      doc.setFillColor(238, 242, 250);
-      doc.rect(margenIzq, y - 5, anchoUtil, 8, 'F');
+      doc.setFillColor(...PDF_REPORTE_AZUL_MARINO);
+      doc.rect(margenIzq, y - 5.5, anchoUtil, 8, 'F');
       doc.setFont(undefined, 'bold');
-      doc.setFontSize(9.5);
-      doc.setTextColor(60, 60, 60);
-      columnas.forEach((c, i) => doc.text(String(c), margenIzq + i * anchoCol + 2, y));
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      columnas.forEach((c, i) => doc.text(String(c).toUpperCase(), margenIzq + i * anchoCol + 3, y));
       doc.setTextColor(30, 30, 30);
       doc.setFont(undefined, 'normal');
-      y += 8;
+      y += 7;
+      indiceFilaFranja = 0;
     }
 
     function saltarPaginaSiNecesario(espacioNecesario){
-      if(y + espacioNecesario > 280){
+      if(y + espacioNecesario > 278){
         pintarPiePagina();
         doc.addPage();
-        y = 20;
+        pintarMarcoPagina();
+        y = 24;
         pintarEncabezadoColumnas();
       }
     }
 
     function pintarFila(valores){
       saltarPaginaSiNecesario(7);
+      const alturaFila = 6.3;
+      doc.setFillColor(...(indiceFilaFranja % 2 === 0 ? PDF_REPORTE_FRANJA_PAR : PDF_REPORTE_FRANJA_IMPAR));
+      doc.rect(margenIzq, y - 4.6, anchoUtil, alturaFila, 'F');
       doc.setFontSize(9);
       valores.forEach((v, i) => {
-        const txt = doc.splitTextToSize(v === undefined || v === null ? '' : String(v), anchoCol - 4);
-        doc.text(txt[0] || '', margenIzq + i * anchoCol + 2, y);
+        const txt = doc.splitTextToSize(v === undefined || v === null ? '' : String(v), anchoCol - 5);
+        doc.text(txt[0] || '', margenIzq + i * anchoCol + 3, y);
       });
-      y += 6;
+      doc.setDrawColor(226, 230, 240);
+      doc.line(margenIzq, y + 1.7, margenDer, y + 1.7);
+      y += alturaFila;
+      indiceFilaFranja++;
     }
 
+    function pintarBandaGrupo(texto, colorFondo, colorTexto, icono){
+      saltarPaginaSiNecesario(8);
+      doc.setFillColor(...colorFondo);
+      doc.roundedRect(margenIzq, y - 5, anchoUtil, 7.5, 1.2, 1.2, 'F');
+      doc.setTextColor(...colorTexto);
+      doc.setFont(undefined, 'bold');
+      doc.setFontSize(9.5);
+      doc.text(`${icono}  ${texto || ''}`, margenIzq + 3, y);
+      doc.setTextColor(30, 30, 30);
+      doc.setFont(undefined, 'normal');
+      y += 9;
+      indiceFilaFranja = 0;
+    }
+
+    pintarMarcoPagina();
     pintarEncabezadoReporte();
     pintarEncabezadoColumnas();
 
     if(grupos && grupos.length){
       grupos.forEach(g => {
-        saltarPaginaSiNecesario(7);
-        doc.setFillColor(...PDF_COLOR_DORADO);
-        doc.setTextColor(255, 255, 255);
-        doc.setFont(undefined, 'bold');
-        doc.rect(margenIzq, y - 5, anchoUtil, 7, 'F');
-        doc.setFontSize(9.5);
-        doc.text(String(g.encabezado || ''), margenIzq + 3, y);
-        doc.setTextColor(30, 30, 30);
-        doc.setFont(undefined, 'normal');
-        y += 7;
-
+        pintarBandaGrupo(g.encabezado, PDF_COLOR_DORADO, [255, 255, 255], '▸');
         (g.filas || []).forEach(f => pintarFila(f));
-
-        saltarPaginaSiNecesario(7);
-        doc.setFillColor(...PDF_COLOR_VERDE_BG);
-        doc.setTextColor(...PDF_COLOR_VERDE_TEXTO);
-        doc.setFont(undefined, 'bold');
-        doc.rect(margenIzq, y - 5, anchoUtil, 7, 'F');
-        doc.setFontSize(9.5);
-        doc.text(String(g.pie || ''), margenIzq + 3, y);
-        doc.setTextColor(30, 30, 30);
-        doc.setFont(undefined, 'normal');
-        y += 10;
+        pintarBandaGrupo(g.pie, PDF_COLOR_VERDE_BG, PDF_COLOR_VERDE_TEXTO, 'Σ');
       });
     } else {
       (filas || []).forEach(f => pintarFila(f));
