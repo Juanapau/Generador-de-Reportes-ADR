@@ -55,6 +55,8 @@
     document.getElementById('userName').textContent = currentUser.nombre;
     document.getElementById('userRole').textContent =
       currentUser.rol === 'docente' ? 'Docente — Administrador del sistema' : 'Estudiante';
+    actualizarAvatarUsuario_();
+    guardarSesionLocal_();
 
     // El menú de cambio de rol solo tiene sentido para quien es docente de verdad,
     // o mientras está en su propia vista previa de estudiante (para poder regresar).
@@ -126,6 +128,7 @@
     estudiantesCache = [];
     docenteOriginal = null;
     modoPreviewDocente = false;
+    borrarSesionLocal_();
     document.getElementById('impersonationBanner').classList.add('hidden');
     document.getElementById('previewDocenteBanner').classList.add('hidden');
     document.getElementById('appShell').classList.add('hidden');
@@ -137,3 +140,55 @@
     document.getElementById('loginForm').reset();
     document.getElementById('loginError').textContent = '';
   });
+
+  // ---------- Foto del docente administrador ----------
+  // Solo el docente (fuera de su propia vista previa de estudiante) muestra una
+  // foto en vez del ícono genérico. Si el archivo "foto-docente.jpg" no existe
+  // todavía en el repositorio, simplemente se queda el ícono de siempre — no rompe nada.
+  function actualizarAvatarUsuario_(){
+    const img = document.getElementById('userAvatarImg');
+    const icon = document.getElementById('userAvatarIcon');
+    const esDocenteReal = currentUser && currentUser.rol === 'docente' && !modoPreviewDocente;
+
+    if(!esDocenteReal){
+      img.classList.add('hidden');
+      icon.classList.remove('hidden');
+      return;
+    }
+
+    img.onload = () => { img.classList.remove('hidden'); icon.classList.add('hidden'); };
+    img.onerror = () => { img.classList.add('hidden'); icon.classList.remove('hidden'); };
+    img.src = 'foto-docente.jpg';
+  }
+
+  // ---------- Mantener la sesión iniciada al recargar la página ----------
+  // Antes, la sesión solo vivía en memoria (la variable currentUser), así que
+  // actualizar la página (o Ctrl+Shift+R) la perdía y volvía siempre al login.
+  // Ahora se guarda una copia mínima (rol, nombre, usuario, equipo — nunca la
+  // contraseña) en localStorage cada vez que se entra a la app, y al cargar la
+  // página se restaura automáticamente esa sesión sin pedir credenciales de nuevo.
+  const CLAVE_SESION_LOCAL_ = 'gr_sesion_activa';
+
+  function guardarSesionLocal_(){
+    try{
+      // Si se está previsualizando como estudiante, lo que debe persistir es la
+      // sesión real del docente, no la vista temporal de estudiante.
+      const sesionReal = (modoPreviewDocente && docenteOriginal) ? docenteOriginal : currentUser;
+      if(sesionReal) localStorage.setItem(CLAVE_SESION_LOCAL_, JSON.stringify(sesionReal));
+    }catch(err){ /* almacenamiento no disponible (ej. modo incógnito estricto): se ignora */ }
+  }
+
+  function borrarSesionLocal_(){
+    try{ localStorage.removeItem(CLAVE_SESION_LOCAL_); }catch(err){ /* se ignora */ }
+  }
+
+  (function restaurarSesionAlCargar_(){
+    try{
+      const guardada = localStorage.getItem(CLAVE_SESION_LOCAL_);
+      if(!guardada) return;
+      const sesion = JSON.parse(guardada);
+      if(!sesion || !sesion.usuario || !sesion.rol) return;
+      currentUser = sesion;
+      renderApp();
+    }catch(err){ /* si algo falla, simplemente se queda en la pantalla de login */ }
+  })();
