@@ -143,7 +143,7 @@
 
   // ---------- Foto del docente administrador ----------
   // Solo el docente (fuera de su propia vista previa de estudiante) muestra una
-  // foto en vez del ícono genérico. Si el archivo "foto-docente.jpg" no existe
+  // foto en vez del ícono genérico. Si el archivo "foto-docente.jpeg" no existe
   // todavía en el repositorio, simplemente se queda el ícono de siempre — no rompe nada.
   function actualizarAvatarUsuario_(){
     const img = document.getElementById('userAvatarImg');
@@ -158,7 +158,7 @@
 
     img.onload = () => { img.classList.remove('hidden'); icon.classList.add('hidden'); };
     img.onerror = () => { img.classList.add('hidden'); icon.classList.remove('hidden'); };
-    img.src = 'foto-docente.jpg';
+    img.src = 'foto-docente.jpeg';
   }
 
   // ---------- Mantener la sesión iniciada al recargar la página ----------
