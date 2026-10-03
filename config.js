@@ -123,6 +123,54 @@
     return soloMedianoche ? `${yyyy}-${mm}-${dd}` : `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
   }
 
+  // ---------- Fecha corta "dd/mm/aaaa", sin hora — para espacios pequeños (ej. el sello del PDF) ----------
+  function formatearFechaCortaSinHora_(fecha){
+    if(!fecha) return '';
+    const d = fecha instanceof Date ? fecha : new Date(fecha);
+    if(isNaN(d.getTime())) return '';
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    return `${dd}/${mm}/${d.getFullYear()}`;
+  }
+
+  // ---------- Formatea el valor de UNA CELDA de un reporte diseñado por el estudiante ----------
+  // Las tablas de Google Sheets devuelven las fechas y horas como texto ISO
+  // ("1899-12-30T12:42:00.000Z", "2026-10-03T00:00:00.000Z"...), que no debe
+  // verse así en pantalla ni en el PDF. Esta función detecta esos valores y los
+  // convierte a un formato corto y legible:
+  //  - Si la "fecha" es el 30/12/1899 (el cero de los números seriales de Sheets),
+  //    el valor original era solo una HORA sin fecha real → se muestra solo la hora.
+  //  - Si tiene fecha real sin hora (medianoche) → se muestra solo la fecha.
+  //  - Si tiene fecha y hora → se muestran ambas, cortas.
+  // Cualquier otro valor (texto, número) se devuelve tal cual.
+  function formatearValorCeldaReporte_(valor){
+    if(valor === null || valor === undefined || valor === '') return valor;
+    const esTextoISO = typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$/.test(valor);
+    if(!(valor instanceof Date) && !esTextoISO) return valor;
+
+    const d = valor instanceof Date ? valor : new Date(valor);
+    if(isNaN(d.getTime())) return valor;
+
+    const anio = d.getUTCFullYear();
+    const mes = d.getUTCMonth();
+    const dia = d.getUTCDate();
+    const horas = d.getUTCHours();
+    const minutos = d.getUTCMinutes();
+
+    const horaCorta = () => {
+      const h12 = horas % 12 === 0 ? 12 : horas % 12;
+      const ampm = horas < 12 ? 'a.m.' : 'p.m.';
+      return `${h12}:${String(minutos).padStart(2, '0')} ${ampm}`;
+    };
+
+    const esSoloHora = anio === 1899 && mes === 11 && dia === 30;
+    if(esSoloHora) return horaCorta();
+
+    const fechaCorta = `${String(dia).padStart(2, '0')}/${String(mes + 1).padStart(2, '0')}/${anio}`;
+    const tieneHora = horas !== 0 || minutos !== 0;
+    return tieneHora ? `${fechaCorta} ${horaCorta()}` : fechaCorta;
+  }
+
   function pintarTarjetasRA(items){
     return items.map(({ ra, disponible }) => {
       const info = RA_INFO[ra];
@@ -457,15 +505,16 @@
       doc.setTextColor(...PDF_COLOR_DORADO);
       doc.text(tituloReporte || '', margenIzq, 26);
 
+      const anchoPastilla = 38;
       doc.setDrawColor(...PDF_COLOR_DORADO);
       doc.setLineWidth(0.6);
-      doc.roundedRect(margenDer - 32, 9, 32, 9, 1.5, 1.5);
-      doc.setFontSize(8.5);
+      doc.roundedRect(margenDer - anchoPastilla, 8, anchoPastilla, 11, 1.8, 1.8);
+      doc.setFontSize(8);
       doc.setFont(undefined, 'bold');
-      doc.text('REPORTE', margenDer - 16, 14.8, { align:'center' });
+      doc.text('REPORTE', margenDer - anchoPastilla / 2, 13, { align:'center' });
       doc.setFontSize(7);
       doc.setFont(undefined, 'normal');
-      doc.text(formatearFechaCorta(new Date()), margenDer - 16, 18.8, { align:'center' });
+      doc.text(formatearFechaCortaSinHora_(new Date()), margenDer - anchoPastilla / 2, 17, { align:'center' });
 
       doc.setLineWidth(0.2);
       doc.setTextColor(30, 30, 30);
