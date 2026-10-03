@@ -4442,6 +4442,7 @@
           ${camposColocadosDetalleA21.map(c => {
             let valor = f[c];
             if(c === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
+            else valor = formatearValorCeldaReporte_(valor);
             return `<span style="flex:1;">${valor !== undefined ? valor : ''}</span>`;
           }).join('')}
         </div>`).join('');
@@ -4474,7 +4475,7 @@
         const filas = ((datosTablaSeleccionadaA21 && datosTablaSeleccionadaA21.datos) || []).map(f =>
           camposColocadosDetalleA21.map(c => {
             const valor = f[c];
-            return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+            return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : formatearValorCeldaReporte_(valor);
           })
         );
         generarPdfReporteDisenado({
@@ -4552,7 +4553,7 @@
     const detalleHtmlA21 = filasTodasA21.length
       ? filasTodasA21.map(f => `<div>${camposColocadosDetalleA21.map(c => {
           const valor = f[c];
-          return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+          return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : formatearValorCeldaReporte_(valor);
         }).join(' | ')}</div>`).join('')
       : camposColocadosDetalleA21.join(' — ');
 
@@ -5035,6 +5036,7 @@
           ${estado.camposDetalle.map(c => {
             let valor = f[c];
             if(c === 'PrecioUnitario' && typeof valor === 'number') valor = 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2});
+            else valor = formatearValorCeldaReporte_(valor);
             return `<span style="flex:1;">${valor !== undefined ? valor : ''}</span>`;
           }).join('')}
         </div>`).join('');
@@ -5066,7 +5068,7 @@
         const filas = ((estado.datosTabla && estado.datosTabla.datos) || []).map(f =>
           estado.camposDetalle.map(c => {
             const valor = f[c];
-            return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+            return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : formatearValorCeldaReporte_(valor);
           })
         );
         generarPdfReporteDisenado({
@@ -5124,7 +5126,7 @@
     if(!filas.length) return estadoReporte.camposDetalle.join(' — ');
     return filas.map(f => `<div>${estadoReporte.camposDetalle.map(c => {
       const valor = f[c];
-      return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : valor;
+      return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : formatearValorCeldaReporte_(valor);
     }).join(' | ')}</div>`).join('');
   }
 
@@ -5667,6 +5669,7 @@
               ${camposColocadosDetalleA23.map(c => {
                 let valor = f[c];
                 if(c === 'PrecioUnitario') valor = formatearMonto(valor);
+                else valor = formatearValorCeldaReporte_(valor);
                 return `<span style="flex:1;">${valor !== undefined ? valor : ''}</span>`;
               }).join('')}
             </div>`).join('')}
@@ -5703,7 +5706,7 @@
           columnas: camposColocadosDetalleA23.map(c => ETIQUETAS_CAMPOS_A23[c] || c),
           grupos: grupos.map(g => ({
             encabezado: `${campoAgruparA23}: ${g.clave}`,
-            filas: g.filas.map(f => camposColocadosDetalleA23.map(c => c === 'PrecioUnitario' ? formatearMonto(f[c]) : f[c])),
+            filas: g.filas.map(f => camposColocadosDetalleA23.map(c => c === 'PrecioUnitario' ? formatearMonto(f[c]) : formatearValorCeldaReporte_(f[c]))),
             pie: `Total ${g.clave} (${g.cantidad} ventas): ${formatearMonto(g.total)}`
           })),
           numeroPagina: numPaginaMarcadoA23
@@ -5785,7 +5788,7 @@
 
     const contenidoPorSeccion = {
       encGrupo: `<div style="font-weight:800;">${campoAgruparA23}: ${primerGrupo.clave}</div>`,
-      detalleGrupo: `<div style="font-size:13px;">${filaEjemplo ? camposColocadosDetalleA23.map(c => c === 'PrecioUnitario' ? formatearMonto(filaEjemplo[c]) : filaEjemplo[c]).join(' | ') : camposColocadosDetalleA23.join(' — ')}</div>`,
+      detalleGrupo: `<div style="font-size:13px;">${filaEjemplo ? camposColocadosDetalleA23.map(c => c === 'PrecioUnitario' ? formatearMonto(filaEjemplo[c]) : formatearValorCeldaReporte_(filaEjemplo[c])).join(' | ') : camposColocadosDetalleA23.join(' — ')}</div>`,
       pieGrupo: `<div style="font-size:13px; font-weight:700;">Total ${primerGrupo.clave} (${primerGrupo.cantidad} ventas): ${formatearMonto(primerGrupo.total)}</div>`
     };
     // Mismos colores usados en la Vista de Ejecución: dorado para el encabezado de
