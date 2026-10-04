@@ -53,6 +53,55 @@
       </div>`;
   }
 
+  // ---------- Pantalla de búsqueda simulada (home de un buscador, solo el cuadro) ----------
+  // Se usa ANTES de mostrar resultados: el estudiante debe escribir algo en el cuadro
+  // de búsqueda (como en un buscador real) y enviarlo para recién ahí ver resultados.
+  // Genérico y reutilizable: containerId es dónde se dibuja, opciones admite:
+  //   dominio: texto mostrado como "sitio" del buscador (ej. 'buscador.com')
+  //   placeholder: texto de ejemplo dentro del cuadro de búsqueda
+  //   onBuscar(texto, { mostrarError }): se llama al enviar la búsqueda; si el texto
+  //     no es válido, llama a mostrarError(mensaje) para avisar sin perder lo escrito.
+  function pintarBuscadorSimulado(containerId, opciones){
+    opciones = opciones || {};
+    const dominio = opciones.dominio || 'buscador.com';
+    const placeholder = opciones.placeholder || 'Escribe tu búsqueda...';
+    const formId = containerId + '_formBuscar';
+    const inputId = containerId + '_inputBuscar';
+    const errorId = containerId + '_errorBuscar';
+
+    const contenidoHTML = `
+      <div class="buscador-home">
+        <div class="buscador-home-logo"><i class="fa-solid fa-magnifying-glass"></i> ${dominio}</div>
+        <form id="${formId}" class="buscador-home-form">
+          <input type="text" id="${inputId}" class="buscador-home-input" placeholder="${placeholder}" autocomplete="off">
+          <button type="submit" class="buscador-home-btn"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+        </form>
+        <div id="${errorId}" class="buscador-home-error hidden"></div>
+      </div>`;
+
+    pintarVentanaNavegadorSimulado(containerId, dominio, contenidoHTML);
+
+    const form = document.getElementById(formId);
+    const input = document.getElementById(inputId);
+    const errorBox = document.getElementById(errorId);
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const texto = input.value.trim();
+      errorBox.classList.add('hidden');
+      if(opciones.onBuscar){
+        opciones.onBuscar(texto, {
+          mostrarError: (mensaje) => {
+            errorBox.textContent = mensaje;
+            errorBox.classList.remove('hidden');
+          }
+        });
+      }
+    });
+
+    setTimeout(() => { if(input) input.focus(); }, 50);
+  }
+
   // ---------- Instalador simulado (ventana con barra de título + cuerpo) ----------
   // Igual de genérico que el navegador: solo dibuja la "ventana", el contenido de
   // cada paso lo decide quien llama (la actividad). Reutilizable para instalar
