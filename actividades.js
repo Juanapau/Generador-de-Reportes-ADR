@@ -2621,6 +2621,7 @@
   let inicioTiempoA17 = null;
   let timerIntervalA17 = null;
   let ultimoResultadoA17 = null;
+  let ultimoTerminoBuscadoA17 = '';
 
   async function abrirActividadA17(puntajeMaximo, tiempoEstimado, enunciado){
     puntajeMaxA17 = puntajeMaximo;
@@ -2670,6 +2671,7 @@
     intentosCaminoA17 = [];
     intentosSitioA17 = 0;
     descargaCompletadaA17 = false;
+    ultimoTerminoBuscadoA17 = '';
     document.getElementById('justificacionA17').value = '';
     document.getElementById('seccionNavegadorA17').classList.add('hidden');
     document.getElementById('seccionFinalA17').classList.add('hidden');
@@ -2714,7 +2716,7 @@
           </div>
         </div>`;
       document.getElementById('seccionNavegadorA17').classList.remove('hidden');
-      pintarResultadosBusquedaA17();
+      pintarBuscadorA17();
       return;
     }
 
@@ -2773,7 +2775,24 @@
   }
 
   // ---------- Sección 2: navegador simulado ----------
-  function pintarResultadosBusquedaA17(){
+  // Antes de ver resultados, el estudiante ve solo el cuadro de búsqueda (como un
+  // buscador real) y debe escribir algo relacionado a "descargar NexaReport".
+  function pintarBuscadorA17(){
+    pintarBuscadorSimulado('ventanaNavegadorA17', {
+      dominio: 'buscador.com',
+      placeholder: 'Buscar en buscador.com',
+      onBuscar: (texto, { mostrarError }) => {
+        const limpio = texto.toLowerCase();
+        if(!limpio.includes('nexareport')){
+          mostrarError('Tu búsqueda debe incluir el nombre del programa. Prueba con algo como "descargar NexaReport".');
+          return;
+        }
+        pintarResultadosBusquedaA17(texto);
+      }
+    });
+  }
+
+  function pintarResultadosBusquedaA17(terminoBuscado){
     const resultadosHTML = barajar(RESULTADOS_BUSQUEDA_A17).map(r => `
       <div class="resultado-busqueda" data-id="${r.id}">
         <div class="resultado-url"><i class="fa-solid fa-globe"></i> ${r.url} ${r.esAnuncio ? '<span class="badge-anuncio">Anuncio</span>' : ''}</div>
@@ -2782,7 +2801,10 @@
       </div>
     `).join('');
 
-    pintarVentanaNavegadorSimulado('ventanaNavegadorA17', 'buscador.com/busqueda?q=descargar+nexareport', resultadosHTML);
+    const termino = (terminoBuscado || ultimoTerminoBuscadoA17 || 'descargar nexareport').trim();
+    ultimoTerminoBuscadoA17 = termino;
+    const q = encodeURIComponent(termino).replace(/%20/g, '+');
+    pintarVentanaNavegadorSimulado('ventanaNavegadorA17', `buscador.com/busqueda?q=${q}`, resultadosHTML);
 
     document.querySelectorAll('#ventanaNavegadorA17 .resultado-busqueda').forEach(el => {
       el.addEventListener('click', () => manejarClicResultadoA17(el.dataset.id));
@@ -2807,7 +2829,7 @@
         <i class="fa-solid fa-arrow-left"></i> Volver a los resultados de búsqueda
       </button>`;
     pintarVentanaNavegadorSimulado('ventanaNavegadorA17', resultado.url, contenidoHTML);
-    document.getElementById('btnVolverResultadosA17').addEventListener('click', pintarResultadosBusquedaA17);
+    document.getElementById('btnVolverResultadosA17').addEventListener('click', () => pintarResultadosBusquedaA17());
   }
 
   function pintarSitioOficialA17(){
