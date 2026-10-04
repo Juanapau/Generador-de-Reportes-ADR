@@ -1288,6 +1288,26 @@
   .resultado-busqueda .resultado-titulo{ color:#1a0dab; font-size:17px; margin:2px 0 3px; font-weight:500; }
   .resultado-busqueda .resultado-desc{ color:#4d5156; font-size:13.5px; line-height:1.4; }
 
+  /* ---- Pantalla de búsqueda (home del buscador antes de mostrar resultados) ---- */
+  .buscador-home{ padding:40px 10px 20px; text-align:center; }
+  .buscador-home-logo{ font-size:26px; font-weight:800; color:#334155; margin-bottom:22px; letter-spacing:.3px; }
+  .buscador-home-logo i{ color:#6366f1; margin-right:6px; }
+  .buscador-home-form{ display:flex; gap:10px; max-width:460px; margin:0 auto; }
+  .buscador-home-input{
+    flex:1; padding:12px 18px; border-radius:24px; border:1.5px solid #d8dee8; font-size:15px;
+    outline:none; color:#1f2937; background:#fff;
+  }
+  .buscador-home-input:focus{ border-color:#6366f1; }
+  .buscador-home-btn{
+    background:#6366f1; color:#fff; border:none; border-radius:24px; padding:12px 20px;
+    font-weight:700; font-size:14px; cursor:pointer; display:flex; align-items:center; gap:7px;
+  }
+  .buscador-home-btn:hover{ background:#4f46e5; }
+  .buscador-home-error{
+    margin:16px auto 0; max-width:460px; background:#fef2f2; border:1.5px solid #ef4444; color:#991b1b;
+    border-radius:10px; padding:10px 14px; font-size:13.5px; font-weight:600; text-align:left;
+  }
+
   .advertencia-sitio-falso{
     background:#fef2f2; border:1.5px solid #ef4444; border-radius:12px; padding:16px 18px;
     color:#991b1b; font-size:14px; font-weight:600; display:flex; gap:10px; align-items:flex-start; margin-bottom:14px;
