@@ -488,6 +488,14 @@
       return;
     }
     const { nombreEmpresa, tituloReporte, columnas, filas, grupos, numeroPagina } = opciones;
+    // Opciones del diseñador completo (A.2.4): pie de página configurable (número "Página n de N" y/o
+    // fecha de impresión, repetidos en CADA hoja), pie de reporte (resumen que aparece UNA sola vez
+    // al final) y posibilidad de omitir los títulos de columna del encabezado de página.
+    const piePaginaConfig = opciones.piePagina || null;
+    const pieReporteLineas = opciones.pieReporte || null;
+    const mostrarTitulosColumna = opciones.mostrarTitulosColumna !== false;
+    const filasPorHoja = opciones.filasPorHoja || 0;   // si se indica, cada hoja lleva como máximo esa cantidad de filas
+    let filasEnHoja = 0;
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const margenIzq = 14;
@@ -506,6 +514,7 @@
     }
 
     function pintarPiePagina(){
+      if(piePaginaConfig) return; // con pie de página configurable se dibuja al final, cuando ya se conoce el total de hojas
       doc.setDrawColor(220);
       doc.line(margenIzq, 284, margenDer, 284);
       doc.setFontSize(8);
@@ -554,6 +563,7 @@
     }
 
     function pintarEncabezadoColumnas(){
+      if(!mostrarTitulosColumna){ y += 2; indiceFilaFranja = 0; return; }
       doc.setFillColor(...PDF_REPORTE_AZUL_MARINO);
       doc.rect(margenIzq, y - 5.5, anchoUtil, 8, 'F');
       doc.setFont(undefined, 'bold');
@@ -577,7 +587,16 @@
     }
 
     function pintarFila(valores){
+      if(filasPorHoja && filasEnHoja >= filasPorHoja){
+        pintarPiePagina();
+        doc.addPage();
+        pintarMarcoPagina();
+        y = 24;
+        pintarEncabezadoColumnas();
+        filasEnHoja = 0;
+      }
       saltarPaginaSiNecesario(7);
+      filasEnHoja++;
       const alturaFila = 6.3;
       doc.setFillColor(...(indiceFilaFranja % 2 === 0 ? PDF_REPORTE_FRANJA_PAR : PDF_REPORTE_FRANJA_IMPAR));
       doc.rect(margenIzq, y - 4.6, anchoUtil, alturaFila, 'F');
@@ -620,7 +639,47 @@
       (filas || []).forEach(f => pintarFila(f));
     }
 
-    pintarPiePagina();
+    // Pie de reporte: resumen de TODO el reporte, una sola vez, tras el último registro
+    if(pieReporteLineas && pieReporteLineas.length){
+      saltarPaginaSiNecesario(pieReporteLineas.length * 8 + 6);
+      y += 3;
+      pieReporteLineas.forEach(l => {
+        doc.setFillColor(...PDF_COLOR_VERDE_BG);
+        doc.rect(margenIzq, y - 5, anchoUtil, 7.5, 'F');
+        doc.setDrawColor(...PDF_COLOR_VERDE_TEXTO);
+        doc.setLineWidth(0.5);
+        doc.line(margenIzq, y - 5, margenIzq, y + 2.5);
+        doc.setLineWidth(0.2);
+        doc.setTextColor(...PDF_COLOR_VERDE_TEXTO);
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(9.5);
+        doc.text(String(l.etiqueta || ''), margenIzq + 3, y);
+        doc.text(String(l.valor || ''), margenDer - 3, y, { align:'right' });
+        y += 8;
+      });
+      doc.setTextColor(30, 30, 30);
+      doc.setFont(undefined, 'normal');
+    }
+
+    if(piePaginaConfig){
+      // Pie de página: se dibuja en CADA hoja (con "Página n de N" porque ya se sabe el total)
+      const totalHojas = doc.getNumberOfPages();
+      for(let p = 1; p <= totalHojas; p++){
+        doc.setPage(p);
+        doc.setFillColor(253, 240, 214);
+        doc.rect(margenIzq, 279, anchoUtil, 7, 'F');
+        doc.setDrawColor(180, 83, 9);
+        doc.line(margenIzq, 279, margenDer, 279);
+        doc.setFontSize(8);
+        doc.setFont(undefined, 'normal');
+        doc.setTextColor(120, 60, 10);
+        if(piePaginaConfig.fecha) doc.text('Impreso: ' + formatearFechaCortaSinHora_(new Date()), margenIzq + 3, 283.8);
+        if(piePaginaConfig.numero) doc.text(`Página ${p} de ${totalHojas}`, margenDer - 3, 283.8, { align:'right' });
+      }
+      doc.setTextColor(30, 30, 30);
+    } else {
+      pintarPiePagina();
+    }
 
     const base = (tituloReporte || opciones.nombreArchivo || 'reporte_disenado').toString().replace(/[^a-z0-9]+/gi, '_');
     doc.save(`${base}.pdf`);
