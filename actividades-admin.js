@@ -1,680 +1,966 @@
-// ===================== CONFIGURACIÓN =====================
-var SHEET_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
-var SHEET_USUARIOS = 'Usuarios';
-var SHEET_ACTIVIDADES = 'Actividades';
-var SHEET_CALIFICACIONES = 'Calificaciones';
-var SHEET_RECURSOS = 'Recursos';
-var SHEET_DB_VENTAS = 'DB_Ventas';
-var SHEET_ACTIVIDADES_EXTRA = 'ActividadesExtra';
-var SHEET_RESPUESTAS_EXTRA = 'RespuestasExtra';
-var SHEET_CONFIGURACION = 'Configuracion';
+// ================= ACTIVIDADES POR RA (panel docente) =================
+  let actividadesCache = [];
+  let raActual = 'RA1';
+  const RAS_DISPONIBLES = ['RA1','RA2']; // RA2-RA5 se habilitan cuando se construyan sus actividades
 
-function getSheet(name){
-  return SpreadsheetApp.openById(SHEET_ID).getSheetByName(name);
-}
+  // Paletas del editor de enunciados (colores estándar + los que la docente ha usado en la sesión)
+  const COLORES_ESTANDAR_TEXTO = ['#1a1a1a','#ffffff','#ef4444','#f59e0b','#22c55e','#0ea5e9','#8b5cf6','#ec4899'];
+  const COLORES_ESTANDAR_RESALTADO = ['#fff58a','#a7f3d0','#bfdbfe','#fbcfe8','#fed7aa','#ddd6fe','#fca5a5','#ffffff'];
+  let coloresRecientesTextoA = [];
+  let coloresRecientesResaltadoA = [];
 
-function jsonResponse(obj){
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
-}
+  // Genera el HTML del editor de texto enriquecido completo (barra + área editable),
+  // reutilizable por cualquier pantalla que necesite un enunciado editable (RA o extra).
+  function construirEditorEnunciadoHTML(contenidoActual){
+    return `
+      <div class="editor-wrap">
+        <div class="editor-toolbar">
+          <button type="button" class="editor-btn" data-cmd="bold" title="Negrita"><b>B</b></button>
+          <button type="button" class="editor-btn" data-cmd="italic" title="Cursiva"><i>I</i></button>
+          <button type="button" class="editor-btn" data-cmd="underline" title="Subrayado"><u>S</u></button>
+          <button type="button" class="editor-btn" data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
 
-function doGet(e){
-  var action = e.parameter.action;
-  if(action === 'login'){ return login(e.parameter.usuario, e.parameter.password, e.parameter.rol); }
-  if(action === 'listarEstudiantes'){ return listarEstudiantes(); }
-  if(action === 'listarActividades'){ return listarActividades(e.parameter.ra); }
-  if(action === 'listarCalificaciones'){ return listarCalificaciones(e.parameter.usuario); }
-  if(action === 'listarRecursos'){ return listarRecursos(e.parameter.codigo); }
-  if(action === 'listarTablaDatos'){ return listarTablaDatos(e.parameter.tabla); }
-  if(action === 'listarActividadesExtra'){ return listarActividadesExtra(); }
-  if(action === 'listarRespuestasExtra'){ return listarRespuestasExtra(e.parameter.usuario); }
-  if(action === 'listarRespuestasPorActividadExtra'){ return listarRespuestasPorActividadExtra(e.parameter.codigo); }
-  if(action === 'listarCalificacionesPorRA'){ return listarCalificacionesPorRA(e.parameter.ra); }
-  if(action === 'listarConfiguracion'){ return listarConfiguracion(); }
-  return jsonResponse({ success:false, error:'Acción no reconocida' });
-}
+          <select class="editor-fontsize" title="Tamaño de fuente">
+            <option value="">Tamaño</option>
+            <option value="2">Pequeño</option>
+            <option value="3">Normal</option>
+            <option value="5">Grande</option>
+            <option value="7">Muy grande</option>
+          </select>
 
-function doPost(e){
-  var data = JSON.parse(e.postData.contents);
-  var action = data.action;
-  if(action === 'agregarEstudiante') return agregarEstudiante(data);
-  if(action === 'actualizarEstudiante') return actualizarEstudiante(data);
-  if(action === 'eliminarEstudiante') return eliminarEstudiante(data);
-  if(action === 'cambiarPassword') return cambiarPassword(data);
-  if(action === 'importarEstudiantes') return importarEstudiantes(data);
-  if(action === 'actualizarActividad') return actualizarActividad(data);
-  if(action === 'guardarCalificacion') return guardarCalificacion(data);
-  if(action === 'agregarRecurso') return agregarRecurso(data);
-  if(action === 'agregarRecursoArchivo') return agregarRecursoArchivo(data);
-  if(action === 'eliminarRecurso') return eliminarRecurso(data);
-  if(action === 'actualizarRecurso') return actualizarRecurso(data);
-  if(action === 'guardarActividadExtra') return guardarActividadExtra(data);
-  if(action === 'eliminarActividadExtra') return eliminarActividadExtra(data);
-  if(action === 'enviarRespuestaExtra') return enviarRespuestaExtra(data);
-  if(action === 'calificarRespuestaExtra') return calificarRespuestaExtra(data);
-  if(action === 'guardarConfiguracion') return guardarConfiguracion(data);
-  return jsonResponse({ success:false, error:'Acción no reconocida' });
-}
+          <span class="editor-separador"></span>
 
-function login(usuario, password, rol){
-  var sheet = getSheet(SHEET_USUARIOS);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(String(row[0]) === String(usuario) && String(row[1]) === String(password) && String(row[2]) === String(rol)){
-      return jsonResponse({ success:true, usuario: row[0], rol: row[2], nombre: row[3], equipo: row[4],
-        primerAcceso: !(row[6] === false || String(row[6]).trim().toLowerCase() === 'no') });
-    }
+          <div class="editor-color-group" data-tipo="texto">
+            <button type="button" class="editor-btn editor-color-toggle" title="Color de texto">A</button>
+            <div class="editor-color-popover hidden">
+              <div class="editor-swatches" data-tipo="texto">
+                ${COLORES_ESTANDAR_TEXTO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                ${coloresRecientesTextoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+              </div>
+              <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                <input type="color" class="editor-color-picker" data-tipo="texto" data-cmd="foreColor">
+              </label>
+            </div>
+          </div>
+
+          <div class="editor-color-group" data-tipo="resaltado">
+            <button type="button" class="editor-btn editor-color-toggle" title="Resaltar texto"><i class="fa-solid fa-highlighter"></i></button>
+            <div class="editor-color-popover hidden">
+              <div class="editor-swatches" data-tipo="resaltado">
+                ${COLORES_ESTANDAR_RESALTADO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                ${coloresRecientesResaltadoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+              </div>
+              <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                <input type="color" class="editor-color-picker" data-tipo="resaltado" data-cmd="hiliteColor">
+              </label>
+            </div>
+          </div>
+
+          <span class="editor-separador"></span>
+
+          <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Viñetas"><i class="fa-solid fa-list-ul"></i></button>
+          <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Lista numerada"><i class="fa-solid fa-list-ol"></i></button>
+          <button type="button" class="editor-btn" data-cmd="outdent" title="Disminuir sangría (quitar sublista)"><i class="fa-solid fa-outdent"></i></button>
+          <button type="button" class="editor-btn" data-cmd="indent" title="Aumentar sangría (crear sublista) — también con Tab"><i class="fa-solid fa-indent"></i></button>
+
+          <span class="editor-separador"></span>
+
+          <button type="button" class="editor-btn" data-cmd="justifyLeft" title="Alinear a la izquierda"><i class="fa-solid fa-align-left"></i></button>
+          <button type="button" class="editor-btn" data-cmd="justifyCenter" title="Centrar"><i class="fa-solid fa-align-center"></i></button>
+          <button type="button" class="editor-btn" data-cmd="justifyRight" title="Alinear a la derecha"><i class="fa-solid fa-align-right"></i></button>
+
+          <span class="editor-separador"></span>
+
+          <button type="button" class="editor-btn editor-btn-link" title="Insertar enlace"><i class="fa-solid fa-link"></i></button>
+          <button type="button" class="editor-btn" data-cmd="undo" title="Deshacer"><i class="fa-solid fa-rotate-left"></i></button>
+          <button type="button" class="editor-btn" data-cmd="redo" title="Rehacer"><i class="fa-solid fa-rotate-right"></i></button>
+          <button type="button" class="editor-btn" data-cmd="removeFormat" title="Quitar formato"><i class="fa-solid fa-eraser"></i></button>
+        </div>
+        <div class="editor-contenido input-enunciado contenido-enriquecido" contenteditable="true">${limpiarColoresCasiBlancos(contenidoActual || '')}</div>
+      </div>`;
   }
-  return jsonResponse({ success:false, error:'Usuario, contraseña o rol incorrecto.' });
-}
 
-function listarEstudiantes(){
-  var sheet = getSheet(SHEET_USUARIOS);
-  var rows = sheet.getDataRange().getValues();
-  var estudiantes = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(String(row[2]) === 'estudiante'){
-      estudiantes.push({ usuario: row[0], nombre: row[3], equipo: row[4], fechaRegistro: row[5] });
-    }
-  }
-  return jsonResponse({ success:true, estudiantes: estudiantes });
-}
+  // Conecta TODA la lógica del editor de texto enriquecido dentro de un contenedor dado.
+  // Reutilizable por cualquier tarjeta (RA o extra) que use construirEditorEnunciadoHTML().
+  function conectarEditorEnunciado(card){
+    const editorContenido = card.querySelector('.editor-contenido');
+    if(!editorContenido) return;
+    let seleccionGuardadaA = null;
 
-function agregarEstudiante(data){
-  var sheet = getSheet(SHEET_USUARIOS);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.usuario)){ return jsonResponse({ success:false, error:'Ese usuario ya existe.' }); }
-  }
-  sheet.appendRow([data.usuario, data.password, 'estudiante', data.nombre, data.equipo || '', new Date(), 'Si']);
-  return jsonResponse({ success:true });
-}
-
-function actualizarEstudiante(data){
-  var sheet = getSheet(SHEET_USUARIOS);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.usuarioOriginal)){
-      sheet.getRange(i+1, 1).setValue(data.usuario);
-      if(data.password){
-        sheet.getRange(i+1, 2).setValue(data.password);
-        sheet.getRange(i+1, 7).setValue('Si');
-      }
-      sheet.getRange(i+1, 4).setValue(data.nombre);
-      sheet.getRange(i+1, 5).setValue(data.equipo || '');
-      return jsonResponse({ success:true });
-    }
-  }
-  return jsonResponse({ success:false, error:'Estudiante no encontrado.' });
-}
-
-function cambiarPassword(data){
-  var sheet = getSheet(SHEET_USUARIOS);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.usuario)){
-      sheet.getRange(i+1, 2).setValue(data.passwordNueva);
-      sheet.getRange(i+1, 7).setValue('No');
-      return jsonResponse({ success:true });
-    }
-  }
-  return jsonResponse({ success:false, error:'Usuario no encontrado.' });
-}
-
-function importarEstudiantes(data){
-  var sheet = getSheet(SHEET_USUARIOS);
-  var rows = sheet.getDataRange().getValues();
-  var existentes = {};
-  for(var i=1; i<rows.length; i++){ existentes[String(rows[i][0])] = true; }
-  var agregados = 0;
-  var omitidos = [];
-  (data.estudiantes || []).forEach(function(est){
-    var usuario = String(est.usuario || '').trim();
-    var nombre = String(est.nombre || '').trim();
-    if(!usuario || !nombre){ omitidos.push(usuario || '(sin usuario)'); return; }
-    if(existentes[usuario]){ omitidos.push(usuario); return; }
-    sheet.appendRow([usuario, est.password ? String(est.password) : usuario, 'estudiante', nombre, est.equipo ? String(est.equipo) : '', new Date(), 'Si']);
-    existentes[usuario] = true;
-    agregados++;
-  });
-  return jsonResponse({ success:true, agregados: agregados, omitidos: omitidos });
-}
-
-function eliminarEstudiante(data){
-  var sheet = getSheet(SHEET_USUARIOS);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.usuario)){ sheet.deleteRow(i+1); return jsonResponse({ success:true }); }
-  }
-  return jsonResponse({ success:false, error:'Estudiante no encontrado.' });
-}
-
-function listarActividades(ra){
-  var sheet = getSheet(SHEET_ACTIVIDADES);
-  var rows = sheet.getDataRange().getValues();
-  var actividades = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(!ra || String(row[1]) === String(ra)){
-      actividades.push({ codigo: row[0], ra: row[1], ec: row[2], enunciado: row[3], metodologia: row[4],
-        puntaje: row[5], habilitada: row[6], tiempoEstimado: row[7] || 10,
-        fechaInicio: row[8] ? formatearFechaISO(row[8]) : '', fechaFin: row[9] ? formatearFechaISO(row[9]) : '',
-        titulo: row[10] || '' });
-    }
-  }
-  return jsonResponse({ success:true, actividades: actividades });
-}
-
-function formatearFechaISO(valor){
-  if(Object.prototype.toString.call(valor) === '[object Date]'){
-    var tz = Session.getScriptTimeZone();
-    return Utilities.formatDate(valor, tz, "yyyy-MM-dd'T'HH:mm");
-  }
-  return String(valor);
-}
-
-function actualizarActividad(data){
-  var sheet = getSheet(SHEET_ACTIVIDADES);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.codigo)){
-      if(data.enunciado !== undefined){ sheet.getRange(i+1, 4).setValue(data.enunciado); }
-      sheet.getRange(i+1, 6).setValue(Number(data.puntaje) || 0);
-      sheet.getRange(i+1, 7).setValue(data.habilitada ? 'Si' : 'No');
-      sheet.getRange(i+1, 8).setValue(Number(data.tiempoEstimado) || 10);
-      sheet.getRange(i+1, 9).setValue(data.fechaInicio || '');
-      sheet.getRange(i+1, 10).setValue(data.fechaFin || '');
-      sheet.getRange(i+1, 11).setValue(data.titulo || '');
-      return jsonResponse({ success:true });
-    }
-  }
-  return jsonResponse({ success:false, error:'Actividad no encontrada.' });
-}
-
-function guardarCalificacion(data){
-  var sheet = getSheet(SHEET_CALIFICACIONES);
-  var rows = sheet.getDataRange().getValues();
-  var criteriosJSON = data.criterios ? JSON.stringify(data.criterios) : '';
-  var detalleJSON = data.detalle ? JSON.stringify(data.detalle) : '';
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.usuario) && String(rows[i][1]) === String(data.codigo)){
-      sheet.getRange(i+1, 5).setValue(Number(data.nota));
-      sheet.getRange(i+1, 6).setValue(Number(data.puntajeMaximo));
-      sheet.getRange(i+1, 7).setValue(new Date());
-      sheet.getRange(i+1, 8).setValue(criteriosJSON);
-      sheet.getRange(i+1, 9).setValue(detalleJSON);
-      return jsonResponse({ success:true });
-    }
-  }
-  sheet.appendRow([data.usuario, data.codigo, data.ra || '', data.ec || '', Number(data.nota), Number(data.puntajeMaximo), new Date(), criteriosJSON, detalleJSON]);
-  return jsonResponse({ success:true });
-}
-
-function listarCalificaciones(usuario){
-  var sheet = getSheet(SHEET_CALIFICACIONES);
-  var rows = sheet.getDataRange().getValues();
-  var calificaciones = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(String(row[0]) === String(usuario)){
-      calificaciones.push({ codigo: row[1], ra: row[2], ec: row[3], nota: row[4], puntajeMaximo: row[5], fecha: row[6],
-        criterios: row[7] ? JSON.parse(row[7]) : [], detalle: row[8] ? JSON.parse(row[8]) : [] });
-    }
-  }
-  return jsonResponse({ success:true, calificaciones: calificaciones });
-}
-
-function listarRecursos(codigo){
-  var sheet = getSheet(SHEET_RECURSOS);
-  var rows = sheet.getDataRange().getValues();
-  var recursos = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(String(row[1]) === String(codigo)){
-      recursos.push({ id: row[0], codigo: row[1], tipo: row[2], nombre: row[3], url: row[4] });
-    }
-  }
-  return jsonResponse({ success:true, recursos: recursos });
-}
-
-function agregarRecurso(data){
-  var sheet = getSheet(SHEET_RECURSOS);
-  var id = Utilities.getUuid();
-  sheet.appendRow([id, data.codigo, data.tipo || 'enlace', data.nombre, data.url, new Date()]);
-  return jsonResponse({ success:true, id:id });
-}
-
-function agregarRecursoArchivo(data){
-  var carpeta = obtenerOCrearCarpetaRecursos();
-  var bytes = Utilities.base64Decode(data.archivoBase64);
-  var blob = Utilities.newBlob(bytes, data.mimeType, data.nombreArchivo);
-  var archivo = carpeta.createFile(blob);
-  archivo.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-  var sheet = getSheet(SHEET_RECURSOS);
-  var id = Utilities.getUuid();
-  sheet.appendRow([id, data.codigo, 'archivo', data.nombre, archivo.getUrl(), new Date()]);
-  return jsonResponse({ success:true, id:id, url: archivo.getUrl() });
-}
-
-function obtenerOCrearCarpetaRecursos(){
-  var nombre = 'Recursos - Generador de Reportes';
-  var carpetas = DriveApp.getFoldersByName(nombre);
-  if(carpetas.hasNext()){ return carpetas.next(); }
-  return DriveApp.createFolder(nombre);
-}
-
-function eliminarRecurso(data){
-  var sheet = getSheet(SHEET_RECURSOS);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.id)){ sheet.deleteRow(i+1); return jsonResponse({ success:true }); }
-  }
-  return jsonResponse({ success:false, error:'Recurso no encontrado.' });
-}
-
-function actualizarRecurso(data){
-  var sheet = getSheet(SHEET_RECURSOS);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.id)){
-      if(data.nombre !== undefined && String(data.nombre).trim() !== ''){ sheet.getRange(i+1, 4).setValue(data.nombre); }
-      // La URL solo se cambia en enlaces; en archivos de Drive se conserva la existente.
-      if(data.url !== undefined && String(data.url).trim() !== '' && String(rows[i][2]) !== 'archivo'){ sheet.getRange(i+1, 5).setValue(data.url); }
-      return jsonResponse({ success:true });
-    }
-  }
-  return jsonResponse({ success:false, error:'Recurso no encontrado.' });
-}
-
-function listarTablaDatos(nombreTabla){
-  var sheet = getSheet(nombreTabla);
-  if(!sheet){ return jsonResponse({ success:false, error:'La tabla "' + nombreTabla + '" no existe en la base de datos.' }); }
-  var rows = sheet.getDataRange().getValues();
-  if(rows.length < 2){ return jsonResponse({ success:true, tabla:nombreTabla, campos:rows[0] || [], datos:[] }); }
-  var headers = rows[0];
-  var datos = [];
-  for(var i=1; i<rows.length; i++){
-    var obj = {};
-    for(var j=0; j<headers.length; j++){ obj[headers[j]] = rows[i][j]; }
-    datos.push(obj);
-  }
-  return jsonResponse({ success:true, tabla:nombreTabla, campos:headers, datos:datos });
-}
-
-function sembrarDBVentas(){
-  var sheet = getSheet(SHEET_DB_VENTAS);
-  if(sheet.getLastRow() === 0){
-    sheet.appendRow(['Fecha','Producto','Categoria','Cantidad','PrecioUnitario','Vendedor']);
-  } else { return; }
-  var ventas = [
-    ['2026-01-05','Laptop HP 15','Computadoras',3,28500,'M. Reyes'],
-    ['2026-01-06','Mouse inalámbrico','Accesorios',12,650,'P. Guzmán'],
-    ['2026-01-07','Teclado mecánico','Accesorios',7,1200,'L. Fermín'],
-    ['2026-01-08','Monitor LED 24"','Computadoras',5,7800,'M. Reyes'],
-    ['2026-01-09','Impresora multifuncional','Periféricos',2,9500,'P. Guzmán'],
-    ['2026-01-12','Disco SSD 480GB','Accesorios',9,2400,'L. Fermín'],
-    ['2026-01-13','Audífonos Bluetooth','Accesorios',15,1100,'M. Reyes'],
-    ['2026-01-14','Cámara web HD','Periféricos',6,1800,'P. Guzmán'],
-    ['2026-01-15','Router WiFi','Redes',4,3200,'L. Fermín'],
-    ['2026-01-16','Cargador USB-C','Accesorios',20,450,'M. Reyes'],
-    ['2026-01-19','Laptop HP 15','Computadoras',2,28500,'P. Guzmán'],
-    ['2026-01-20','Mouse inalámbrico','Accesorios',8,650,'L. Fermín'],
-    ['2026-01-21','Monitor LED 24"','Computadoras',3,7800,'M. Reyes'],
-    ['2026-01-22','Teclado mecánico','Accesorios',5,1200,'P. Guzmán'],
-    ['2026-01-23','Router WiFi','Redes',2,3200,'L. Fermín']
-  ];
-  ventas.forEach(function(v){ sheet.appendRow(v); });
-}
-
-function sembrarActividadesRA1(){
-  var sheet = getSheet(SHEET_ACTIVIDADES);
-  if(sheet.getLastRow() === 0){
-    sheet.appendRow(['Codigo','RA','EC','Enunciado','Metodologia','PuntajeMaximo','Habilitada','TiempoEstimadoMin']);
-  }
-  var actividades = [
-    ['A.1.1','RA1','EC6.1.1','x','Estudio de caso'],
-    ['A.1.2','RA1','EC6.1.1','x','Indagación guiada'],
-    ['A.1.3','RA1','EC6.1.2','x','Aprendizaje práctico guiado'],
-    ['A.1.4','RA1','EC6.1.2','x','Práctica dirigida'],
-    ['A.1.5','RA1','EC6.1.3','x','Indagación guiada'],
-    ['A.1.6','RA1','EC6.1.3','x','Aprendizaje colaborativo'],
-    ['A.1.7','RA1','EC6.1.4','x','Práctica dirigida'],
-    ['A.1.8','RA1','EC6.1.4','x','Aprendizaje práctico'],
-    ['A.1.9','RA1','EC6.1.5','x','Aprendizaje basado en proyectos'],
-    ['A.1.10','RA1','EC6.1.5','x','Estudio de caso']
-  ];
-  var existentes = {};
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){ existentes[String(rows[i][0])] = true; }
-  actividades.forEach(function(act){
-    if(!existentes[act[0]]){
-      sheet.appendRow([act[0], act[1], act[2], act[3], act[4], 0, 'No', 10]);
-    }
-  });
-}
-
-function listarActividadesExtra(){
-  var sheet = getSheet(SHEET_ACTIVIDADES_EXTRA);
-  var rows = sheet.getDataRange().getValues();
-  var actividades = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(!row[0]) continue;
-    actividades.push({ codigo: row[0], titulo: row[1], enunciado: row[2], criterios: row[3] ? JSON.parse(row[3]) : [],
-      puntajeMaximo: row[4], tiempoEstimadoMin: row[5], tipoRespuesta: row[6], habilitada: row[7] === 'Si' || row[7] === true,
-      fechaInicio: formatearFechaISO(row[8]), fechaFin: formatearFechaISO(row[9]),
-      tieneInstrumento: row[10] === '' || row[10] === undefined ? true : (row[10] === 'Si' || row[10] === true) });
-  }
-  return jsonResponse({ success:true, actividades: actividades });
-}
-
-function guardarActividadExtra(data){
-  var sheet = getSheet(SHEET_ACTIVIDADES_EXTRA);
-  var rows = sheet.getDataRange().getValues();
-  var criteriosJSON = data.criterios ? JSON.stringify(data.criterios) : '[]';
-  var habilitadaVal = data.habilitada ? 'Si' : 'No';
-  var tieneInstrumentoVal = data.tieneInstrumento === false ? 'No' : 'Si';
-  var codigo = data.codigo;
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(codigo)){
-      sheet.getRange(i+1, 2).setValue(data.titulo || '');
-      sheet.getRange(i+1, 3).setValue(data.enunciado || '');
-      sheet.getRange(i+1, 4).setValue(criteriosJSON);
-      sheet.getRange(i+1, 5).setValue(Number(data.puntajeMaximo) || 0);
-      sheet.getRange(i+1, 6).setValue(Number(data.tiempoEstimadoMin) || 10);
-      sheet.getRange(i+1, 7).setValue(data.tipoRespuesta || 'texto');
-      sheet.getRange(i+1, 8).setValue(habilitadaVal);
-      sheet.getRange(i+1, 9).setValue(data.fechaInicio ? new Date(data.fechaInicio) : '');
-      sheet.getRange(i+1, 10).setValue(data.fechaFin ? new Date(data.fechaFin) : '');
-      sheet.getRange(i+1, 11).setValue(tieneInstrumentoVal);
-      return jsonResponse({ success:true, codigo: codigo });
-    }
-  }
-  var maxNum = 0;
-  for(var j=1; j<rows.length; j++){
-    var m = String(rows[j][0]).match(/^EX\.(\d+)$/);
-    if(m) maxNum = Math.max(maxNum, Number(m[1]));
-  }
-  codigo = 'EX.' + (maxNum + 1);
-  sheet.appendRow([codigo, data.titulo || '', data.enunciado || '', criteriosJSON, Number(data.puntajeMaximo) || 0,
-    Number(data.tiempoEstimadoMin) || 10, data.tipoRespuesta || 'texto', habilitadaVal,
-    data.fechaInicio ? new Date(data.fechaInicio) : '', data.fechaFin ? new Date(data.fechaFin) : '', tieneInstrumentoVal]);
-  return jsonResponse({ success:true, codigo: codigo });
-}
-
-function eliminarActividadExtra(data){
-  var sheet = getSheet(SHEET_ACTIVIDADES_EXTRA);
-  var rows = sheet.getDataRange().getValues();
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.codigo)){ sheet.deleteRow(i+1); return jsonResponse({ success:true }); }
-  }
-  return jsonResponse({ success:false, error:'No se encontró la actividad.' });
-}
-
-function enviarRespuestaExtra(data){
-  var sheet = getSheet(SHEET_RESPUESTAS_EXTRA);
-  var rows = sheet.getDataRange().getValues();
-  var sheetAct = getSheet(SHEET_ACTIVIDADES_EXTRA);
-  var rowsAct = sheetAct.getDataRange().getValues();
-  var tieneInstrumento = true;
-  for(var k=1; k<rowsAct.length; k++){
-    if(String(rowsAct[k][0]) === String(data.codigo)){ tieneInstrumento = rowsAct[k][10] !== 'No'; break; }
-  }
-  var estadoInicial = tieneInstrumento ? 'pendiente' : 'completado';
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.usuario) && String(rows[i][1]) === String(data.codigo)){
-      if(String(rows[i][3]) === 'calificado'){ return jsonResponse({ success:false, error:'Esta actividad ya fue calificada, no se puede reenviar.' }); }
-      sheet.getRange(i+1, 3).setValue(data.respuestaTexto || '');
-      sheet.getRange(i+1, 4).setValue(estadoInicial);
-      sheet.getRange(i+1, 8).setValue(new Date());
-      return jsonResponse({ success:true });
-    }
-  }
-  sheet.appendRow([data.usuario, data.codigo, data.respuestaTexto || '', estadoInicial, '', '', '', new Date(), '']);
-  return jsonResponse({ success:true });
-}
-
-function listarRespuestasExtra(usuario){
-  var sheet = getSheet(SHEET_RESPUESTAS_EXTRA);
-  var rows = sheet.getDataRange().getValues();
-  var respuestas = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(String(row[0]) === String(usuario)){
-      respuestas.push({ codigo: row[1], respuestaTexto: row[2], estado: row[3], nota: row[4], puntajeMaximo: row[5],
-        criteriosCalificados: row[6] ? JSON.parse(row[6]) : [], fechaEnvio: formatearFechaISO(row[7]), fechaCalificacion: formatearFechaISO(row[8]) });
-    }
-  }
-  return jsonResponse({ success:true, respuestas: respuestas });
-}
-
-function listarRespuestasPorActividadExtra(codigo){
-  var sheet = getSheet(SHEET_RESPUESTAS_EXTRA);
-  var rows = sheet.getDataRange().getValues();
-  var respuestas = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(String(row[1]) === String(codigo)){
-      respuestas.push({ usuario: row[0], codigo: row[1], respuestaTexto: row[2], estado: row[3], nota: row[4], puntajeMaximo: row[5],
-        criteriosCalificados: row[6] ? JSON.parse(row[6]) : [], fechaEnvio: formatearFechaISO(row[7]), fechaCalificacion: formatearFechaISO(row[8]) });
-    }
-  }
-  return jsonResponse({ success:true, respuestas: respuestas });
-}
-
-function calificarRespuestaExtra(data){
-  var sheet = getSheet(SHEET_RESPUESTAS_EXTRA);
-  var rows = sheet.getDataRange().getValues();
-  var criteriosJSON = data.criterios ? JSON.stringify(data.criterios) : '[]';
-  for(var i=1; i<rows.length; i++){
-    if(String(rows[i][0]) === String(data.usuario) && String(rows[i][1]) === String(data.codigo)){
-      sheet.getRange(i+1, 4).setValue('calificado');
-      sheet.getRange(i+1, 5).setValue(Number(data.nota));
-      sheet.getRange(i+1, 6).setValue(Number(data.puntajeMaximo));
-      sheet.getRange(i+1, 7).setValue(criteriosJSON);
-      sheet.getRange(i+1, 9).setValue(new Date());
-      return jsonResponse({ success:true });
-    }
-  }
-  return jsonResponse({ success:false, error:'No se encontró el envío del estudiante.' });
-}
-
-// ===================== TABLA DE CUMPLIMIENTO (todas las calificaciones de un RA a la vez) =====================
-// Trae, en una sola llamada, qué estudiante completó qué actividad dentro de un RA —
-// mucho más eficiente que pedir listarCalificaciones() estudiante por estudiante.
-function listarCalificacionesPorRA(ra){
-  var sheet = getSheet(SHEET_CALIFICACIONES);
-  var rows = sheet.getDataRange().getValues();
-  var calificaciones = [];
-  for(var i=1; i<rows.length; i++){
-    var row = rows[i];
-    if(String(row[2]) === String(ra)){
-      calificaciones.push({ usuario: row[0], codigo: row[1], nota: row[4], puntajeMaximo: row[5] });
-    }
-  }
-  return jsonResponse({ success:true, calificaciones: calificaciones });
-}
-
-function obtenerOCrearHojaGenerador_(nombre){
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var hoja = ss.getSheetByName(nombre);
-  if(!hoja){ hoja = ss.insertSheet(nombre); }
-  return hoja;
-}
-
-function sembrarDBEmpleados(){
-  var sheet = obtenerOCrearHojaGenerador_('DB_Empleados');
-  if(sheet.getLastRow() === 0){ sheet.appendRow(['Id','Nombre','Departamento','Cargo','FechaContratacion','Salario','Email']); }
-  if(sheet.getLastRow() <= 1){
-    var datos = [[1,'a','a','a','a',1,'a']];
-    datos.forEach(function(d){ sheet.appendRow(d); });
-  }
-}
-function sembrarDBClientes(){
-  var sheet = obtenerOCrearHojaGenerador_('DB_Clientes');
-  if(sheet.getLastRow() === 0){ sheet.appendRow(['Id','Nombre','Ciudad','Telefono','TipoCliente','FechaRegistro']); }
-  if(sheet.getLastRow() <= 1){
-    var datos = [[1,'a','a','a','a','a']];
-    datos.forEach(function(d){ sheet.appendRow(d); });
-  }
-}
-function sembrarDBInventario(){
-  var sheet = obtenerOCrearHojaGenerador_('DB_Inventario');
-  if(sheet.getLastRow() === 0){ sheet.appendRow(['Producto','Categoria','CantidadDisponible','PrecioUnitario','Proveedor','NivelMinimo']); }
-  if(sheet.getLastRow() <= 1){
-    var datos = [['a','a',1,1,'a',1]];
-    datos.forEach(function(d){ sheet.appendRow(d); });
-  }
-}
-function sembrarDBGastos(){
-  var sheet = obtenerOCrearHojaGenerador_('DB_Gastos');
-  if(sheet.getLastRow() === 0){ sheet.appendRow(['Fecha','Categoria','Descripcion','Monto','Departamento','AprobadoPor']); }
-  if(sheet.getLastRow() <= 1){
-    var datos = [['a','a','a',1,'a','a']];
-    datos.forEach(function(d){ sheet.appendRow(d); });
-  }
-}
-function sembrarTodaLaBaseDeDatosAmpliada(){
-  sembrarDBEmpleados();
-  sembrarDBClientes();
-  sembrarDBInventario();
-  sembrarDBGastos();
-}
-
-// ===================== CONFIGURACIÓN GENERAL DEL SISTEMA =====================
-// Hoja "Configuracion": Clave | Valor  (par simple, una fila por dato guardado)
-// Se autocrea si aún no existe, para no depender de crearla a mano en el Sheet.
-function obtenerHojaConfiguracion_(){
-  var ss = SpreadsheetApp.openById(SHEET_ID);
-  var hoja = ss.getSheetByName(SHEET_CONFIGURACION);
-  if(!hoja){
-    hoja = ss.insertSheet(SHEET_CONFIGURACION);
-    hoja.appendRow(['Clave', 'Valor']);
-  }
-  return hoja;
-}
-
-function listarConfiguracion(){
-  var sheet = obtenerHojaConfiguracion_();
-  var rows = sheet.getDataRange().getValues();
-  var config = {};
-  for(var i=1; i<rows.length; i++){
-    if(rows[i][0]) config[String(rows[i][0])] = rows[i][1];
-  }
-  return jsonResponse({ success:true, config: config });
-}
-
-function guardarConfiguracion(data){
-  var sheet = obtenerHojaConfiguracion_();
-  var rows = sheet.getDataRange().getValues();
-  var claves = ['nombreModulo', 'anioLectivo', 'docenteResponsable'];
-
-  claves.forEach(function(clave){
-    var encontrada = false;
-    for(var i=1; i<rows.length; i++){
-      if(String(rows[i][0]) === clave){
-        sheet.getRange(i+1, 2).setValue(data[clave] || '');
-        encontrada = true;
-        break;
+    function guardarSeleccionEditor(){
+      const sel = window.getSelection();
+      if(sel.rangeCount > 0 && editorContenido.contains(sel.anchorNode)){
+        seleccionGuardadaA = sel.getRangeAt(0);
       }
     }
-    if(!encontrada){
-      sheet.appendRow([clave, data[clave] || '']);
+    function restaurarSeleccionEditor(){
+      if(seleccionGuardadaA){
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(seleccionGuardadaA);
+      }
+      editorContenido.focus();
+      document.execCommand('styleWithCSS', false, false);
+    }
+
+    const COMANDOS_CON_ESTADO = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter', 'justifyRight'];
+    function actualizarBotonesActivos(){
+      COMANDOS_CON_ESTADO.forEach(cmd => {
+        const btn = card.querySelector(`.editor-btn[data-cmd="${cmd}"]`);
+        if(!btn) return;
+        let activo = false;
+        try{ activo = document.queryCommandState(cmd); }catch(err){ /* no soportado */ }
+        btn.classList.toggle('activo', activo);
+      });
+    }
+
+    editorContenido.addEventListener('mouseup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+    editorContenido.addEventListener('keyup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+    editorContenido.addEventListener('click', actualizarBotonesActivos);
+    editorContenido.addEventListener('focus', actualizarBotonesActivos);
+    editorContenido.addEventListener('input', () => normalizarListas(editorContenido));
+    editorContenido.addEventListener('keydown', (e) => {
+      if(e.key === 'Tab'){
+        e.preventDefault();
+        document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
+        normalizarListas(editorContenido);
+      }
+    });
+
+    card.querySelectorAll('.editor-btn[data-cmd]').forEach(editorBtn => {
+      editorBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      editorBtn.addEventListener('click', () => {
+        restaurarSeleccionEditor();
+        document.execCommand(editorBtn.dataset.cmd, false, null);
+        normalizarListas(editorContenido);
+        actualizarBotonesActivos();
+      });
+    });
+
+    const selectTamano = card.querySelector('.editor-fontsize');
+    if(selectTamano){
+      selectTamano.addEventListener('mousedown', guardarSeleccionEditor);
+      selectTamano.addEventListener('change', () => {
+        if(!selectTamano.value) return;
+        restaurarSeleccionEditor();
+        document.execCommand('fontSize', false, selectTamano.value);
+        selectTamano.value = '';
+      });
+    }
+
+    function aplicarColorA(cmd, color){
+      restaurarSeleccionEditor();
+      document.execCommand(cmd, false, color);
+    }
+
+    card.querySelectorAll('.editor-color-toggle').forEach(toggleBtn => {
+      toggleBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const popover = toggleBtn.nextElementSibling;
+        const estabaAbierto = !popover.classList.contains('hidden');
+        document.querySelectorAll('.editor-color-popover').forEach(p => p.classList.add('hidden'));
+        if(!estabaAbierto) popover.classList.remove('hidden');
+      });
+    });
+
+    card.querySelectorAll('.swatch-btn').forEach(swatch => {
+      swatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      swatch.addEventListener('click', () => {
+        const tipo = swatch.closest('.editor-swatches').dataset.tipo;
+        aplicarColorA(tipo === 'texto' ? 'foreColor' : 'hiliteColor', swatch.dataset.color);
+        swatch.closest('.editor-color-popover').classList.add('hidden');
+      });
+    });
+
+    card.querySelectorAll('.editor-color-picker').forEach(colorInput => {
+      colorInput.addEventListener('mousedown', guardarSeleccionEditor);
+      colorInput.addEventListener('input', () => {
+        aplicarColorA(colorInput.dataset.cmd, colorInput.value);
+        const tipo = colorInput.dataset.tipo;
+        const listaRecientes = tipo === 'texto' ? coloresRecientesTextoA : coloresRecientesResaltadoA;
+        if(!listaRecientes.includes(colorInput.value)){
+          listaRecientes.unshift(colorInput.value);
+          if(listaRecientes.length > 6) listaRecientes.pop();
+          const contSwatches = card.querySelector(`.editor-swatches[data-tipo="${tipo}"]`);
+          const nuevoSwatch = document.createElement('button');
+          nuevoSwatch.type = 'button';
+          nuevoSwatch.className = 'swatch-btn swatch-reciente';
+          nuevoSwatch.dataset.color = colorInput.value;
+          nuevoSwatch.style.background = colorInput.value;
+          nuevoSwatch.title = colorInput.value;
+          nuevoSwatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+          nuevoSwatch.addEventListener('click', () => {
+            aplicarColorA(colorInput.dataset.cmd, nuevoSwatch.dataset.color);
+            nuevoSwatch.closest('.editor-color-popover').classList.add('hidden');
+          });
+          contSwatches.appendChild(nuevoSwatch);
+        }
+      });
+    });
+
+    const btnLink = card.querySelector('.editor-btn-link');
+    if(btnLink){
+      btnLink.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+      btnLink.addEventListener('click', () => {
+        const url = window.prompt('Escribe la dirección del enlace (URL):', 'https://');
+        if(url){
+          restaurarSeleccionEditor();
+          document.execCommand('createLink', false, url);
+        }
+      });
+    }
+  }
+
+  // El navegador a veces "parte" una lista numerada/con viñetas en dos listas separadas
+  // (típicamente después de salir de una sublista), lo que hace que la numeración se
+  // reinicie desde 1. Esta función fusiona listas del mismo tipo que quedaron como
+  // hermanas consecutivas, para que la numeración vuelva a ser continua automáticamente.
+  function normalizarListas(raiz){
+    ['ol', 'ul'].forEach(tag => {
+      let cambiado = true;
+      let intentos = 0;
+      while(cambiado && intentos < 50){
+        cambiado = false;
+        intentos++;
+        const listas = raiz.querySelectorAll(tag);
+        for(let i = 0; i < listas.length; i++){
+          const lista = listas[i];
+          const siguiente = lista.nextElementSibling;
+          if(siguiente && siguiente.tagName && siguiente.tagName.toLowerCase() === tag){
+            while(siguiente.firstChild){ lista.appendChild(siguiente.firstChild); }
+            siguiente.remove();
+            cambiado = true;
+            break;
+          }
+        }
+      }
+    });
+  }
+
+  // Cierra cualquier menú de color abierto al hacer clic fuera de él (se registra una sola vez)
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('.editor-color-group')){
+      document.querySelectorAll('.editor-color-popover').forEach(p => p.classList.add('hidden'));
     }
   });
 
-  return jsonResponse({ success:true });
-}
-
-
-function sembrarDBAsistencia() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const existente = ss.getSheetByName('DB_Asistencia');
-  if (existente) { ss.deleteSheet(existente); }
-  const hoja = ss.insertSheet('DB_Asistencia');
-
-  const encabezados = ['Fecha', 'Empleado', 'Departamento', 'HoraEntrada', 'HoraSalida', 'Estado'];
-  hoja.appendRow(encabezados);
-
-  const datos = [
-    ['15/01/2026', 'Carlos Fernández', 'Ventas',         '08:02', '17:05', 'Presente'],
-    ['15/01/2026', 'Ana Ramírez',      'Ventas',         '07:55', '17:00', 'Presente'],
-    ['15/01/2026', 'Miguel Santos',    'Almacén',        '08:15', '17:10', 'Tarde'],
-    ['15/01/2026', 'Rosa Jiménez',     'Contabilidad',   '08:00', '17:00', 'Presente'],
-    ['15/01/2026', 'Luis Peña',        'Administración', '',      '',      'Ausente'],
-    ['15/01/2026', 'Carmen Reyes',     'Almacén',        '07:58', '17:02', 'Presente'],
-
-    ['16/01/2026', 'Carlos Fernández', 'Ventas',         '07:59', '17:03', 'Presente'],
-    ['16/01/2026', 'Ana Ramírez',      'Ventas',         '08:10', '17:00', 'Tarde'],
-    ['16/01/2026', 'Miguel Santos',    'Almacén',        '08:01', '17:05', 'Presente'],
-    ['16/01/2026', 'Rosa Jiménez',     'Contabilidad',   '08:03', '17:08', 'Presente'],
-    ['16/01/2026', 'Luis Peña',        'Administración', '08:00', '17:00', 'Presente'],
-    ['16/01/2026', 'Carmen Reyes',     'Almacén',        '07:57', '16:58', 'Presente'],
-
-    ['19/01/2026', 'Carlos Fernández', 'Ventas',         '08:00', '17:00', 'Presente'],
-    ['19/01/2026', 'Ana Ramírez',      'Ventas',         '07:50', '17:00', 'Presente'],
-    ['19/01/2026', 'Miguel Santos',    'Almacén',        '',      '',      'Ausente'],
-    ['19/01/2026', 'Rosa Jiménez',     'Contabilidad',   '08:05', '17:02', 'Presente'],
-    ['19/01/2026', 'Luis Peña',        'Administración', '08:01', '17:00', 'Presente'],
-    ['19/01/2026', 'Carmen Reyes',     'Almacén',        '08:12', '17:00', 'Tarde'],
-
-    ['20/01/2026', 'Carlos Fernández', 'Ventas',         '08:03', '17:01', 'Presente'],
-    ['20/01/2026', 'Ana Ramírez',      'Ventas',         '07:58', '17:05', 'Presente'],
-    ['20/01/2026', 'Miguel Santos',    'Almacén',        '08:00', '17:00', 'Presente'],
-    ['20/01/2026', 'Rosa Jiménez',     'Contabilidad',   '08:00', '17:00', 'Presente'],
-    ['20/01/2026', 'Luis Peña',        'Administración', '08:20', '17:00', 'Tarde'],
-    ['20/01/2026', 'Carmen Reyes',     'Almacén',        '07:59', '17:00', 'Presente']
-  ];
-
-  hoja.getRange(2, 1, datos.length, encabezados.length).setValues(datos);
-  hoja.getRange(1, 1, 1, encabezados.length).setFontWeight('bold');
-  hoja.autoResizeColumns(1, encabezados.length);
-
-  Logger.log('DB_Asistencia creada con ' + datos.length + ' registros.');
-}
-
-
-function sembrarCampoRegionVentas() {
-  const REGIONES = ['Norte', 'Sur', 'Este', 'Oeste'];
-
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const hoja = ss.getSheetByName('DB_Ventas');
-  if (!hoja) {
-    throw new Error('No se encontró la hoja "DB_Ventas" en esta base de datos.');
-  }
-
-  const ultimaFila = hoja.getLastRow();
-  const ultimaColumna = hoja.getLastColumn();
-  if (ultimaFila < 2) {
-    Logger.log('DB_Ventas no tiene filas de datos todavía; no hay nada que rellenar.');
-    return;
-  }
-
-  const encabezados = hoja.getRange(1, 1, 1, ultimaColumna).getValues()[0];
-  let colRegion = encabezados.findIndex(h => String(h).trim().toLowerCase() === 'región' || String(h).trim().toLowerCase() === 'region');
-
-  if (colRegion === -1) {
-    // La columna no existe todavía: se crea al final de la hoja.
-    colRegion = ultimaColumna; // índice 0-based de la nueva columna
-    hoja.getRange(1, colRegion + 1).setValue('Región');
-    Logger.log('Columna "Región" creada en DB_Ventas.');
-  } else {
-    Logger.log('La columna "Región" ya existía; solo se rellenarán las filas vacías.');
-  }
-
-  const numFilasDatos = ultimaFila - 1;
-  const rangoRegion = hoja.getRange(2, colRegion + 1, numFilasDatos, 1);
-  const valoresActuales = rangoRegion.getValues();
-
-  const nuevosValores = valoresActuales.map((fila, i) => {
-    const valorActual = String(fila[0] || '').trim();
-    if (valorActual) return [valorActual]; // ya tiene región asignada: no se toca
-    return [REGIONES[i % REGIONES.length]];
+  document.getElementById('cardActividadesRA').addEventListener('click', () => {
+    document.getElementById('panelDocente').classList.add('hidden');
+    document.getElementById('panelActividades').classList.remove('hidden');
+    document.getElementById('vistaRaCardsAdmin').classList.remove('hidden');
+    document.getElementById('vistaListaActividades').classList.add('hidden');
+    pintarRaCardsAdmin();
+  });
+  document.getElementById('btnBackFromActividades').addEventListener('click', () => {
+    document.getElementById('panelActividades').classList.add('hidden');
+    document.getElementById('panelDocente').classList.remove('hidden');
+  });
+  document.getElementById('btnBackToRaCardsAdmin').addEventListener('click', () => {
+    document.getElementById('vistaListaActividades').classList.add('hidden');
+    document.getElementById('vistaRaCardsAdmin').classList.remove('hidden');
   });
 
-  rangoRegion.setValues(nuevosValores);
+  function pintarRaCardsAdmin(){
+    const wrap = document.getElementById('raCardsAdminWrap');
+    wrap.innerHTML = pintarTarjetasRA(
+      ['RA1','RA2','RA3','RA4','RA5'].map(ra => ({ ra, disponible: RAS_DISPONIBLES.includes(ra) }))
+    );
 
-  Logger.log('Listo: DB_Ventas ahora tiene la columna "Región" completa en ' + numFilasDatos + ' filas.');
-}
+    wrap.querySelectorAll('.ra-card:not(.ra-card-disabled)').forEach(card => {
+      card.addEventListener('click', () => {
+        raActual = card.dataset.ra;
+        document.getElementById('vistaRaCardsAdmin').classList.add('hidden');
+        document.getElementById('vistaListaActividades').classList.remove('hidden');
+        cargarActividades();
+      });
+    });
+  }
+
+  async function cargarActividades(){
+    const wrap = document.getElementById('listaActividadesWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
+    try{
+      const data = await apiGet({ action:'listarActividades', ra: raActual });
+      if(data.success){
+        actividadesCache = data.actividades;
+        pintarActividades();
+      } else {
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudo cargar la lista de actividades.</div>';
+      }
+    }catch(err){
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
+
+  function pintarActividades(){
+    const wrap = document.getElementById('listaActividadesWrap');
+    const habilitadas = actividadesCache.filter(a => a.habilitada === 'Si').length;
+    document.getElementById('totalActividadesLabel').textContent =
+      `${raActual} — ${actividadesCache.length} actividades — ${habilitadas} habilitada(s)`;
+
+    if(actividadesCache.length === 0){
+      wrap.innerHTML = `<div class="empty-table-msg">
+        <i class="fa-solid fa-triangle-exclamation"></i><br>
+        No hay actividades cargadas para ${raActual}. Ejecuta la función <b>sembrarActividadesRA1()</b> una vez desde el editor de Apps Script para precargarlas.
+      </div>`;
+      return;
+    }
+
+    wrap.innerHTML = actividadesCache.map(act => `
+      <div class="actividad-card" data-codigo="${act.codigo}">
+        <div class="actividad-top">
+          <div>
+            <div class="actividad-codigo">${act.codigo}</div>
+            <div class="actividad-ec">${act.ec} · ${act.ra}</div>
+          </div>
+        </div>
+        <input type="text" class="input-titulo-actividad titulo-actividad-input" placeholder="Título de la actividad (se ve en la lista antes de entrar)" value="${(act.titulo || '').replace(/"/g,'&quot;')}">
+        <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:12px 0 6px;">Enunciado (editable — el estudiante ve este texto)</label>
+        <div class="editor-wrap">
+          <div class="editor-toolbar">
+            <button type="button" class="editor-btn" data-cmd="bold" title="Negrita"><b>B</b></button>
+            <button type="button" class="editor-btn" data-cmd="italic" title="Cursiva"><i>I</i></button>
+            <button type="button" class="editor-btn" data-cmd="underline" title="Subrayado"><u>S</u></button>
+            <button type="button" class="editor-btn" data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
+
+            <select class="editor-fontsize" title="Tamaño de fuente">
+              <option value="">Tamaño</option>
+              <option value="2">Pequeño</option>
+              <option value="3">Normal</option>
+              <option value="5">Grande</option>
+              <option value="7">Muy grande</option>
+            </select>
+
+            <span class="editor-separador"></span>
+
+            <div class="editor-color-group" data-tipo="texto">
+              <button type="button" class="editor-btn editor-color-toggle" title="Color de texto">A</button>
+              <div class="editor-color-popover hidden">
+                <div class="editor-swatches" data-tipo="texto">
+                  ${COLORES_ESTANDAR_TEXTO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                  ${coloresRecientesTextoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                </div>
+                <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                  <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                  <input type="color" class="editor-color-picker" data-tipo="texto" data-cmd="foreColor">
+                </label>
+              </div>
+            </div>
+
+            <div class="editor-color-group" data-tipo="resaltado">
+              <button type="button" class="editor-btn editor-color-toggle" title="Resaltar texto"><i class="fa-solid fa-highlighter"></i></button>
+              <div class="editor-color-popover hidden">
+                <div class="editor-swatches" data-tipo="resaltado">
+                  ${COLORES_ESTANDAR_RESALTADO.map(c => `<button type="button" class="swatch-btn" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                  ${coloresRecientesResaltadoA.map(c => `<button type="button" class="swatch-btn swatch-reciente" data-color="${c}" style="background:${c};" title="${c}"></button>`).join('')}
+                </div>
+                <label class="editor-color-custom-btn" title="Elegir color personalizado">
+                  <i class="fa-solid fa-plus" style="pointer-events:none;"></i>
+                  <input type="color" class="editor-color-picker" data-tipo="resaltado" data-cmd="hiliteColor">
+                </label>
+              </div>
+            </div>
+
+            <span class="editor-separador"></span>
+
+            <button type="button" class="editor-btn" data-cmd="insertUnorderedList" title="Viñetas"><i class="fa-solid fa-list-ul"></i></button>
+            <button type="button" class="editor-btn" data-cmd="insertOrderedList" title="Lista numerada"><i class="fa-solid fa-list-ol"></i></button>
+            <button type="button" class="editor-btn" data-cmd="outdent" title="Disminuir sangría (quitar sublista)"><i class="fa-solid fa-outdent"></i></button>
+            <button type="button" class="editor-btn" data-cmd="indent" title="Aumentar sangría (crear sublista) — también con Tab"><i class="fa-solid fa-indent"></i></button>
+
+            <span class="editor-separador"></span>
+
+            <button type="button" class="editor-btn" data-cmd="justifyLeft" title="Alinear a la izquierda"><i class="fa-solid fa-align-left"></i></button>
+            <button type="button" class="editor-btn" data-cmd="justifyCenter" title="Centrar"><i class="fa-solid fa-align-center"></i></button>
+            <button type="button" class="editor-btn" data-cmd="justifyRight" title="Alinear a la derecha"><i class="fa-solid fa-align-right"></i></button>
+
+            <span class="editor-separador"></span>
+
+            <button type="button" class="editor-btn editor-btn-link" title="Insertar enlace"><i class="fa-solid fa-link"></i></button>
+            <button type="button" class="editor-btn" data-cmd="undo" title="Deshacer"><i class="fa-solid fa-rotate-left"></i></button>
+            <button type="button" class="editor-btn" data-cmd="redo" title="Rehacer"><i class="fa-solid fa-rotate-right"></i></button>
+            <button type="button" class="editor-btn" data-cmd="removeFormat" title="Quitar formato"><i class="fa-solid fa-eraser"></i></button>
+          </div>
+          <div class="editor-contenido input-enunciado contenido-enriquecido" contenteditable="true">${limpiarColoresCasiBlancos(act.enunciado)}</div>
+        </div>
+        <div class="actividad-meta"><i class="fa-solid fa-people-group"></i> ${act.metodologia}</div>
+        <div class="actividad-controls">
+          <div class="puntaje-field">
+            <label>Puntaje máx.</label>
+            <input type="number" min="0" step="0.5" class="input-puntaje" value="${act.puntaje || 0}">
+          </div>
+          <div class="puntaje-field">
+            <label>Tiempo est. (min)</label>
+            <input type="number" min="1" step="1" class="input-tiempo" value="${act.tiempoEstimado || 10}">
+          </div>
+          <div class="switch-field">
+            <label class="switch">
+              <input type="checkbox" class="input-habilitada" ${act.habilitada === 'Si' ? 'checked' : ''}>
+              <span class="switch-slider"></span>
+            </label>
+            <span class="switch-label">Habilitada</span>
+          </div>
+        </div>
+
+        <div class="disponibilidad-section">
+          <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:14px 0 8px;">
+            <i class="fa-solid fa-calendar-days"></i> Ventana de disponibilidad para el estudiante (opcional)
+          </label>
+          <div class="actividad-controls" style="margin-top:0;">
+            <div class="puntaje-field">
+              <label>Disponible desde</label>
+              <input type="datetime-local" class="input-fecha-inicio" value="${act.fechaInicio || ''}">
+            </div>
+            <div class="puntaje-field">
+              <label>Disponible hasta</label>
+              <input type="datetime-local" class="input-fecha-fin" value="${act.fechaFin || ''}">
+            </div>
+          </div>
+          <div class="empty-note" style="margin:10px 0 0; padding:10px 14px; font-size:12.5px;">
+            <i class="fa-solid fa-circle-info"></i>
+            Si dejas estos campos vacíos, la actividad estará disponible sin límite de fecha mientras esté habilitada.
+          </div>
+        </div>
+
+        <div class="recursos-section">
+          <div style="font-weight:800; font-size:15px; margin-top:16px; margin-bottom:8px;">
+            <i class="fa-solid fa-paperclip"></i> Recursos de apoyo
+          </div>
+          <div class="recursos-lista" data-recursos-de="${act.codigo}">
+            <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+          </div>
+
+          <div class="role-tabs" style="margin:10px 0 12px; width:auto; max-width:260px;">
+            <button type="button" class="role-tab recurso-tipo-tab active" data-tipo="enlace">Enlace</button>
+            <button type="button" class="role-tab recurso-tipo-tab" data-tipo="archivo">Archivo</button>
+          </div>
+
+          <div class="recurso-form recurso-form-enlace">
+            <div class="field">
+              <label>Nombre del recurso</label>
+              <input type="text" class="input-recurso-nombre" placeholder="Ej. Guía de tipos de reportes">
+            </div>
+            <div class="field">
+              <label>Enlace (URL)</label>
+              <input type="text" class="input-recurso-url" placeholder="https://...">
+            </div>
+            <button type="button" class="btn-add btn-add-recurso" style="padding:10px 16px;">
+              <i class="fa-solid fa-plus"></i> Agregar
+            </button>
+          </div>
+
+          <div class="recurso-form recurso-form-archivo hidden">
+            <div class="field">
+              <label>Nombre del recurso</label>
+              <input type="text" class="input-recurso-nombre-archivo" placeholder="Ej. Presentación de apoyo">
+            </div>
+            <div class="field">
+              <label>Archivo (PDF, Word, PPT — máx. 5 MB)</label>
+              <input type="file" class="input-recurso-archivo" accept=".pdf,.doc,.docx,.ppt,.pptx">
+            </div>
+            <button type="button" class="btn-add btn-add-recurso-archivo" style="padding:10px 16px;">
+              <i class="fa-solid fa-upload"></i> Subir
+            </button>
+          </div>
+          <div class="form-msg" style="margin-top:6px;" data-msg-de="${act.codigo}"></div>
+        </div>
+
+        <div class="actividad-guardar-final">
+          <button type="button" class="btn-save-act"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios de esta actividad</button>
+          <span class="save-ok-msg"><i class="fa-solid fa-check"></i> Guardado</span>
+        </div>
+      </div>
+    `).join('');
+
+    // Vincular botones de guardar de cada tarjeta
+    wrap.querySelectorAll('.actividad-card').forEach(card => {
+      const codigo = card.dataset.codigo;
+      const btn = card.querySelector('.btn-save-act');
+      const okMsg = card.querySelector('.save-ok-msg');
+      const editorContenido = card.querySelector('.editor-contenido');
+      let seleccionGuardadaA = null;
+
+      function guardarSeleccionEditor(){
+        const sel = window.getSelection();
+        if(sel.rangeCount > 0 && editorContenido.contains(sel.anchorNode)){
+          seleccionGuardadaA = sel.getRangeAt(0);
+        }
+      }
+      function restaurarSeleccionEditor(){
+        if(seleccionGuardadaA){
+          const sel = window.getSelection();
+          sel.removeAllRanges();
+          sel.addRange(seleccionGuardadaA);
+        }
+        editorContenido.focus();
+        // "styleWithCSS" en false evita que el navegador "hornee" el color calculado del tema
+        // (claro/oscuro) dentro del texto — así el texto sin color explícito siempre se adapta al tema.
+        document.execCommand('styleWithCSS', false, false);
+      }
+
+      // Comandos que se pueden "activar/desactivar" (togglear) y por lo tanto tiene sentido
+      // resaltar su botón cuando el cursor está sobre texto que ya tiene ese formato.
+      const COMANDOS_CON_ESTADO = ['bold', 'italic', 'underline', 'strikeThrough', 'insertUnorderedList', 'insertOrderedList', 'justifyLeft', 'justifyCenter', 'justifyRight'];
+
+      function actualizarBotonesActivos(){
+        COMANDOS_CON_ESTADO.forEach(cmd => {
+          const btn = card.querySelector(`.editor-btn[data-cmd="${cmd}"]`);
+          if(!btn) return;
+          let activo = false;
+          try{ activo = document.queryCommandState(cmd); }catch(err){ /* algunos navegadores pueden no soportar el comando */ }
+          btn.classList.toggle('activo', activo);
+        });
+      }
+
+      editorContenido.addEventListener('mouseup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+      editorContenido.addEventListener('keyup', () => { guardarSeleccionEditor(); actualizarBotonesActivos(); });
+      editorContenido.addEventListener('click', actualizarBotonesActivos);
+      editorContenido.addEventListener('focus', actualizarBotonesActivos);
+
+      // Corrige automáticamente listas partidas por el navegador mientras se escribe
+      editorContenido.addEventListener('input', () => normalizarListas(editorContenido));
+
+      // Tab / Shift+Tab dentro del editor = aumentar/disminuir sangría (crear o quitar sublistas)
+      editorContenido.addEventListener('keydown', (e) => {
+        if(e.key === 'Tab'){
+          e.preventDefault();
+          document.execCommand(e.shiftKey ? 'outdent' : 'indent', false, null);
+          normalizarListas(editorContenido);
+        }
+      });
+
+      // Botones normales (negrita, cursiva, alinear, deshacer, enlace, etc.)
+      card.querySelectorAll('.editor-btn[data-cmd]').forEach(editorBtn => {
+        // mousedown + preventDefault evita que el editor pierda el foco/selección al hacer clic en el botón
+        editorBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+        editorBtn.addEventListener('click', () => {
+          restaurarSeleccionEditor();
+          document.execCommand(editorBtn.dataset.cmd, false, null);
+          normalizarListas(editorContenido);
+          actualizarBotonesActivos();
+        });
+      });
+
+      // Tamaño de fuente
+      const selectTamano = card.querySelector('.editor-fontsize');
+      if(selectTamano){
+        selectTamano.addEventListener('mousedown', guardarSeleccionEditor);
+        selectTamano.addEventListener('change', () => {
+          if(!selectTamano.value) return;
+          restaurarSeleccionEditor();
+          document.execCommand('fontSize', false, selectTamano.value);
+          selectTamano.value = '';
+        });
+      }
+
+      // Aplica un color (de una paleta o personalizado) al texto u al resaltado
+      function aplicarColorA(cmd, color){
+        restaurarSeleccionEditor();
+        document.execCommand(cmd, false, color);
+      }
+
+      // Abrir/cerrar el menú desplegable de colores al hacer clic en "A" o el resaltador
+      card.querySelectorAll('.editor-color-toggle').forEach(toggleBtn => {
+        toggleBtn.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+        toggleBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const popover = toggleBtn.nextElementSibling;
+          const estabaAbierto = !popover.classList.contains('hidden');
+          document.querySelectorAll('.editor-color-popover').forEach(p => p.classList.add('hidden'));
+          if(!estabaAbierto) popover.classList.remove('hidden');
+        });
+      });
+
+      // Swatches de colores estándar y recientes (clic directo, sin abrir el selector del sistema)
+      card.querySelectorAll('.swatch-btn').forEach(swatch => {
+        swatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+        swatch.addEventListener('click', () => {
+          const tipo = swatch.closest('.editor-swatches').dataset.tipo;
+          aplicarColorA(tipo === 'texto' ? 'foreColor' : 'hiliteColor', swatch.dataset.color);
+          swatch.closest('.editor-color-popover').classList.add('hidden');
+        });
+      });
+
+      // Selector de color personalizado — agrega el color elegido a "recientes" para reutilizarlo después
+      card.querySelectorAll('.editor-color-picker').forEach(colorInput => {
+        colorInput.addEventListener('mousedown', guardarSeleccionEditor);
+        colorInput.addEventListener('input', () => {
+          aplicarColorA(colorInput.dataset.cmd, colorInput.value);
+
+          const tipo = colorInput.dataset.tipo;
+          const listaRecientes = tipo === 'texto' ? coloresRecientesTextoA : coloresRecientesResaltadoA;
+          if(!listaRecientes.includes(colorInput.value)){
+            listaRecientes.unshift(colorInput.value);
+            if(listaRecientes.length > 6) listaRecientes.pop();
+
+            const contSwatches = card.querySelector(`.editor-swatches[data-tipo="${tipo}"]`);
+            const nuevoSwatch = document.createElement('button');
+            nuevoSwatch.type = 'button';
+            nuevoSwatch.className = 'swatch-btn swatch-reciente';
+            nuevoSwatch.dataset.color = colorInput.value;
+            nuevoSwatch.style.background = colorInput.value;
+            nuevoSwatch.title = colorInput.value;
+            nuevoSwatch.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+            nuevoSwatch.addEventListener('click', () => {
+              aplicarColorA(colorInput.dataset.cmd, nuevoSwatch.dataset.color);
+              nuevoSwatch.closest('.editor-color-popover').classList.add('hidden');
+            });
+            contSwatches.appendChild(nuevoSwatch);
+          }
+        });
+      });
+
+      // Insertar enlace
+      const btnLink = card.querySelector('.editor-btn-link');
+      if(btnLink){
+        btnLink.addEventListener('mousedown', (e) => { e.preventDefault(); guardarSeleccionEditor(); });
+        btnLink.addEventListener('click', () => {
+          const url = window.prompt('Escribe la dirección del enlace (URL):', 'https://');
+          if(url){
+            restaurarSeleccionEditor();
+            document.execCommand('createLink', false, url);
+          }
+        });
+      }
+
+      btn.addEventListener('click', async () => {
+        const titulo = card.querySelector('.input-titulo-actividad').value.trim();
+        const puntaje = card.querySelector('.input-puntaje').value;
+        const tiempoEstimado = card.querySelector('.input-tiempo').value;
+        const habilitada = card.querySelector('.input-habilitada').checked;
+        const enunciado = limpiarColoresCasiBlancos(card.querySelector('.input-enunciado').innerHTML.trim());
+        const fechaInicio = card.querySelector('.input-fecha-inicio').value;
+        const fechaFin = card.querySelector('.input-fecha-fin').value;
+
+        if(fechaInicio && fechaFin && new Date(fechaFin) <= new Date(fechaInicio)){
+          mostrarNotificacion('La fecha "hasta" debe ser posterior a la fecha "desde".', 'error');
+          return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+        okMsg.classList.remove('show');
+
+        try{
+          const data = await apiPost({ action:'actualizarActividad', codigo, titulo, puntaje, tiempoEstimado, habilitada, enunciado, fechaInicio, fechaFin });
+          if(data.success){
+            okMsg.classList.add('show');
+            setTimeout(() => okMsg.classList.remove('show'), 2000);
+          } else {
+            mostrarNotificacion(data.error || 'No se pudo guardar.', 'error');
+          }
+        }catch(err){
+          mostrarNotificacion('Error de conexión con el servidor.', 'error');
+        }finally{
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar';
+        }
+      });
+
+      cargarRecursosAdmin(codigo, card);
+
+      // Toggle entre "Enlace" y "Archivo"
+      card.querySelectorAll('.recurso-tipo-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          card.querySelectorAll('.recurso-tipo-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const esArchivo = tab.dataset.tipo === 'archivo';
+          card.querySelector('.recurso-form-enlace').classList.toggle('hidden', esArchivo);
+          card.querySelector('.recurso-form-archivo').classList.toggle('hidden', !esArchivo);
+        });
+      });
+
+      const msgBox = card.querySelector(`[data-msg-de="${codigo}"]`);
+
+      const btnAdd = card.querySelector('.btn-add-recurso');
+      btnAdd.addEventListener('click', async () => {
+        const nombre = card.querySelector('.input-recurso-nombre').value.trim();
+        const url = card.querySelector('.input-recurso-url').value.trim();
+        if(!nombre || !url){ mostrarNotificacion('Completa el nombre y el enlace del recurso.', 'error'); return; }
+
+        btnAdd.disabled = true;
+        try{
+          const data = await apiPost({ action:'agregarRecurso', codigo, tipo:'enlace', nombre, url });
+          if(data.success){
+            card.querySelector('.input-recurso-nombre').value = '';
+            card.querySelector('.input-recurso-url').value = '';
+            cargarRecursosAdmin(codigo, card);
+          } else {
+            mostrarNotificacion(data.error || 'No se pudo agregar el recurso.', 'error');
+          }
+        }catch(err){
+          mostrarNotificacion('Error de conexión con el servidor.', 'error');
+        }finally{
+          btnAdd.disabled = false;
+        }
+      });
+
+      // Subida de archivo (PDF/Word/PPT) a Google Drive
+      const btnAddArchivo = card.querySelector('.btn-add-recurso-archivo');
+      btnAddArchivo.addEventListener('click', () => {
+        const nombre = card.querySelector('.input-recurso-nombre-archivo').value.trim();
+        const fileInput = card.querySelector('.input-recurso-archivo');
+        const archivo = fileInput.files[0];
+
+        if(!nombre || !archivo){ mostrarNotificacion('Completa el nombre y selecciona un archivo.', 'error'); return; }
+        if(archivo.size > 5 * 1024 * 1024){ mostrarNotificacion('El archivo supera los 5 MB. Sube uno más liviano o comparte un enlace.', 'error'); return; }
+
+        btnAddArchivo.disabled = true;
+        msgBox.className = 'form-msg';
+        msgBox.textContent = 'Subiendo archivo, puede tardar unos segundos...';
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64 = e.target.result.split(',')[1]; // quita el prefijo data:...;base64,
+          try{
+            const data = await apiPost({
+              action:'agregarRecursoArchivo',
+              codigo,
+              nombre,
+              archivoBase64: base64,
+              nombreArchivo: archivo.name,
+              mimeType: archivo.type || 'application/octet-stream'
+            });
+            if(data.success){
+              msgBox.className = 'form-msg ok';
+              msgBox.textContent = 'Archivo subido correctamente.';
+              card.querySelector('.input-recurso-nombre-archivo').value = '';
+              fileInput.value = '';
+              cargarRecursosAdmin(codigo, card);
+            } else {
+              msgBox.className = 'form-msg err';
+              msgBox.textContent = data.error || 'No se pudo subir el archivo.';
+            }
+          }catch(err){
+            msgBox.className = 'form-msg err';
+            msgBox.textContent = 'Error de conexión con el servidor.';
+          }finally{
+            btnAddArchivo.disabled = false;
+          }
+        };
+        reader.readAsDataURL(archivo);
+      });
+    });
+  }
+
+  async function cargarRecursosAdmin(codigo, card){
+    const cont = card.querySelector(`.recursos-lista[data-recursos-de="${codigo}"]`);
+    try{
+      const data = await apiGet({ action:'listarRecursos', codigo });
+      if(!data.success || data.recursos.length === 0){
+        cont.innerHTML = '<div style="font-size:14.5px; opacity:.6; padding:6px 0;">Sin recursos agregados todavía.</div>';
+        return;
+      }
+      cont.innerHTML = data.recursos.map(r => `
+        <div class="recurso-bloque" data-id="${r.id}">
+          <div class="recurso-item">
+            <i class="fa-solid ${r.tipo === 'archivo' ? 'fa-file-lines' : 'fa-link'}"></i>
+            <span>${r.nombre}</span>
+            <span class="recurso-acciones">
+              <i class="fa-solid fa-pen recurso-edit" data-id="${r.id}" title="Editar recurso"></i>
+              <i class="fa-solid fa-trash recurso-del" data-id="${r.id}" data-codigo="${codigo}" title="Eliminar recurso"></i>
+            </span>
+          </div>
+          <div class="recurso-editor hidden"></div>
+        </div>
+      `).join('');
+
+      cont.querySelectorAll('.recurso-edit').forEach(btnEdit => {
+        btnEdit.addEventListener('click', () => {
+          const recurso = data.recursos.find(r => String(r.id) === String(btnEdit.dataset.id));
+          abrirEditorRecurso(recurso, codigo, card, btnEdit.closest('.recurso-bloque'));
+        });
+      });
+
+      cont.querySelectorAll('.recurso-del').forEach(del => {
+        del.addEventListener('click', async () => {
+          if(!await confirmarAccion('¿Eliminar este recurso? Esta acción no se puede deshacer.', 'Eliminar recurso')) return;
+          await apiPost({ action:'eliminarRecurso', id: del.dataset.id });
+          mostrarNotificacion('Recurso eliminado correctamente.', 'success');
+          cargarRecursosAdmin(del.dataset.codigo, card);
+        });
+      });
+    }catch(err){
+      cont.innerHTML = '<div style="font-size:14.5px; opacity:.6;">Error al cargar recursos.</div>';
+    }
+  }
+
+  // ---------- Edición de un recurso ya subido (título, enlace o archivo) ----------
+  // Enlace: se puede cambiar nombre y URL. Archivo: se puede cambiar el nombre y,
+  // opcionalmente, reemplazar el archivo por otro (si no se elige uno, se conserva el actual).
+  // Para evitar perder el recurso si algo falla, el archivo/enlace nuevo se crea primero y
+  // solo entonces se elimina el anterior.
+  function abrirEditorRecurso(recurso, codigo, card, bloque){
+    const editor = bloque.querySelector('.recurso-editor');
+    if(!editor.classList.contains('hidden')){ editor.classList.add('hidden'); editor.innerHTML = ''; return; }
+
+    const esArchivo = recurso.tipo === 'archivo';
+    editor.innerHTML = `
+      <div class="recurso-form">
+        <div class="field"><label>Nombre del recurso</label><input type="text" class="ed-nombre"></div>
+        ${esArchivo
+          ? `<div class="field"><label>Reemplazar archivo (opcional, máx. 5 MB)</label><input type="file" class="ed-archivo" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"></div>`
+          : `<div class="field"><label>Enlace (URL)</label><input type="url" class="ed-url"></div>`}
+        <button type="button" class="btn-add ed-guardar"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios</button>
+        <button type="button" class="btn-add ed-cancelar" style="background:transparent; border:1px solid var(--dark-border); color:inherit;">Cancelar</button>
+      </div>
+      <div class="form-msg ed-msg"></div>`;
+    editor.classList.remove('hidden');
+
+    const inputNombre = editor.querySelector('.ed-nombre');
+    inputNombre.value = recurso.nombre || '';
+    if(!esArchivo) editor.querySelector('.ed-url').value = recurso.url || '';
+
+    const msg = editor.querySelector('.ed-msg');
+    const btnGuardar = editor.querySelector('.ed-guardar');
+    editor.querySelector('.ed-cancelar').addEventListener('click', () => { editor.classList.add('hidden'); editor.innerHTML = ''; });
+
+    const error = (t) => { msg.className = 'form-msg err'; msg.textContent = t; };
+    const terminar = () => { mostrarNotificacion('Recurso actualizado correctamente.', 'success'); cargarRecursosAdmin(codigo, card); };
+    const esAccionNoSoportada = (d) => d && !d.success && /acci[oó]n|action|desconoc|no reconoc|inv[aá]lid/i.test(d.error || '');
+
+    btnGuardar.addEventListener('click', async () => {
+      const nombre = inputNombre.value.trim();
+      if(!nombre){ error('Escribe el nombre del recurso.'); return; }
+
+      btnGuardar.disabled = true;
+      msg.className = 'form-msg';
+      msg.textContent = 'Guardando...';
+
+      try{
+        if(!esArchivo){
+          const url = editor.querySelector('.ed-url').value.trim();
+          if(!url){ error('Escribe el enlace del recurso.'); return; }
+
+          let data = await apiPost({ action:'actualizarRecurso', id: recurso.id, nombre, url });
+          if(esAccionNoSoportada(data)){
+            // Respaldo si el backend aún no tiene "actualizarRecurso": crea el nuevo y elimina el anterior.
+            data = await apiPost({ action:'agregarRecurso', codigo, tipo:'enlace', nombre, url });
+            if(data.success) await apiPost({ action:'eliminarRecurso', id: recurso.id });
+          }
+          if(!data.success){ error(data.error || 'No se pudo guardar el recurso.'); return; }
+          terminar();
+          return;
+        }
+
+        const archivo = editor.querySelector('.ed-archivo').files[0];
+
+        if(!archivo){
+          // Solo cambia el nombre: requiere "actualizarRecurso" en el backend.
+          const data = await apiPost({ action:'actualizarRecurso', id: recurso.id, nombre });
+          if(esAccionNoSoportada(data)){
+            error('Para cambiar solo el nombre de un archivo hay que actualizar el Apps Script (función actualizarRecurso). Mientras tanto puedes reemplazar el archivo por el mismo documento con el nombre nuevo.');
+            return;
+          }
+          if(!data.success){ error(data.error || 'No se pudo guardar el recurso.'); return; }
+          terminar();
+          return;
+        }
+
+        if(archivo.size > 5 * 1024 * 1024){ error('El archivo supera los 5 MB. Sube uno más liviano o usa un enlace.'); return; }
+        msg.textContent = 'Subiendo el archivo nuevo, puede tardar unos segundos...';
+
+        const base64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = e => resolve(e.target.result.split(',')[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(archivo);
+        });
+
+        const subida = await apiPost({
+          action:'agregarRecursoArchivo', codigo, nombre,
+          archivoBase64: base64, nombreArchivo: archivo.name, mimeType: archivo.type || 'application/octet-stream'
+        });
+        if(!subida.success){ error(subida.error || 'No se pudo subir el archivo nuevo. El recurso anterior se conserva.'); return; }
+
+        await apiPost({ action:'eliminarRecurso', id: recurso.id });
+        terminar();
+      }catch(err){
+        error('Error de conexión con el servidor.');
+      }finally{
+        btnGuardar.disabled = false;
+      }
+    });
+  }
+
+// ============================================================================
+// TABLA DE CUMPLIMIENTO — vista rápida de qué estudiante completó qué actividad
+// dentro del RA que se esté viendo en ese momento.
+// ============================================================================
+
+  document.getElementById('btnAbrirTablaCumplimiento').addEventListener('click', () => {
+    document.getElementById('panelActividades').classList.add('hidden');
+    document.getElementById('panelTablaCumplimiento').classList.remove('hidden');
+    cargarTablaCumplimiento();
+  });
+
+  document.getElementById('btnBackFromTablaCumplimiento').addEventListener('click', () => {
+    document.getElementById('panelTablaCumplimiento').classList.add('hidden');
+    document.getElementById('panelActividades').classList.remove('hidden');
+  });
+
+  async function cargarTablaCumplimiento(){
+    document.getElementById('tituloTablaCumplimiento').textContent = `Tabla de cumplimiento — ${raActual}`;
+    const wrap = document.getElementById('tablaCumplimientoWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando tabla...</div>';
+
+    try{
+      const [dataEst, dataCal] = await Promise.all([
+        apiGet({ action:'listarEstudiantes' }),
+        apiGet({ action:'listarCalificacionesPorRA', ra: raActual })
+      ]);
+
+      if(!dataEst.success){
+        wrap.innerHTML = '<div class="empty-table-msg">No se pudo cargar la lista de estudiantes.</div>';
+        return;
+      }
+
+      const estudiantes = dataEst.estudiantes.slice().sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+      const actividadesDelRA = actividadesCache.slice().sort((a, b) => String(a.codigo).localeCompare(String(b.codigo), undefined, { numeric:true }));
+
+      if(actividadesDelRA.length === 0){
+        wrap.innerHTML = '<div class="empty-table-msg">Este RA todavía no tiene actividades creadas.</div>';
+        return;
+      }
+      if(estudiantes.length === 0){
+        wrap.innerHTML = '<div class="empty-table-msg">Todavía no hay estudiantes registrados.</div>';
+        return;
+      }
+
+      // Set de "usuario|codigo" para saber, de un vistazo, quién completó qué
+      const completadas = new Set();
+      if(dataCal.success){
+        dataCal.calificaciones.forEach(c => completadas.add(`${c.usuario}|${c.codigo}`));
+      }
+
+      wrap.innerHTML = `
+        <div class="tabla-cumplimiento-scroll">
+          <table class="tabla-cumplimiento">
+            <thead>
+              <tr>
+                <th class="col-estudiante">Estudiante</th>
+                ${actividadesDelRA.map(a => `<th>${a.codigo}</th>`).join('')}
+              </tr>
+            </thead>
+            <tbody>
+              ${estudiantes.map(est => `
+                <tr>
+                  <td class="col-estudiante">${est.nombre || est.usuario}</td>
+                  ${actividadesDelRA.map(a => {
+                    const cumple = completadas.has(`${est.usuario}|${a.codigo}`);
+                    return `<td>${cumple
+                      ? '<i class="fa-solid fa-check cumple-icono"></i>'
+                      : '<i class="fa-solid fa-xmark no-cumple-icono"></i>'}</td>`;
+                  }).join('')}
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }catch(err){
+      wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
+    }
+  }
