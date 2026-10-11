@@ -485,6 +485,7 @@
   ];
 
   let pasoCaminoA12 = 0;
+  let vistaCaminoA12 = null; // paso que se está repasando (null = el paso actual)
   let respuestasCaminoA12 = [];
   let intentosCaminoA12 = [];
   let asignacionesA12 = {};
@@ -541,6 +542,7 @@
 
   document.getElementById('btnComenzarA12').addEventListener('click', () => {
     pasoCaminoA12 = 0;
+    vistaCaminoA12 = null;
     respuestasCaminoA12 = [];
     intentosCaminoA12 = [];
     asignacionesA12 = {};
@@ -576,7 +578,12 @@
       return `<div class="camino-nodo ${claseNodo}">${i < pasoCaminoA12 ? '<i class="fa-solid fa-check" style="color:var(--dark-green-accent);"></i>' : p.avatar}</div>${linea}`;
     }).join('');
 
-    if(pasoCaminoA12 >= PERSONAJES_A12.length){
+    // Paso que se muestra: el actual, o uno anterior si el estudiante está repasando
+    let idxVista = (vistaCaminoA12 === null || vistaCaminoA12 > pasoCaminoA12) ? pasoCaminoA12 : vistaCaminoA12;
+    if(idxVista < 0) idxVista = 0;
+    const repasando = idxVista < pasoCaminoA12;
+
+    if(idxVista >= PERSONAJES_A12.length){
       cont.innerHTML = `
         <div class="camino-wrap">
           <div class="camino-progreso">${nodosHtml}</div>
@@ -584,16 +591,21 @@
             <div class="camino-avatar">🎉</div>
             <div style="flex:1;">
               <div class="camino-completa-msg"><i class="fa-solid fa-circle-check"></i> ¡Completaste el camino! Ya puedes continuar con la Sección 2.</div>
+              ${htmlNavPasos_('navCaminoA12', true, false)}
             </div>
           </div>
         </div>`;
+      document.getElementById('navCaminoA12Anterior').addEventListener('click', () => {
+        vistaCaminoA12 = PERSONAJES_A12.length - 1;
+        pintarCaminoA12();
+      });
       document.getElementById('seccion2A12').classList.remove('hidden');
       actualizarBotonFinalizarA12();
       return;
     }
 
-    const p = PERSONAJES_A12[pasoCaminoA12];
-    const yaResuelto = respuestasCaminoA12[pasoCaminoA12] !== undefined;
+    const p = PERSONAJES_A12[idxVista];
+    const yaResuelto = respuestasCaminoA12[idxVista] !== undefined;
 
     cont.innerHTML = `
       <div class="camino-wrap">
@@ -601,6 +613,7 @@
         <div class="camino-tarjeta">
           <div class="camino-avatar">${p.avatar}</div>
           <div style="flex:1;">
+            ${repasando ? HTML_AVISO_REPASO_ : ''}
             <div class="camino-nombre-personaje">${p.nombre}</div>
             <div class="camino-burbuja">${p.pregunta}</div>
             <div class="asistente-opciones">
@@ -609,24 +622,44 @@
               `).join('')}
             </div>
             <div id="caminoFeedbackA12"></div>
-            ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePersonajeA12" style="width:auto; padding:10px 22px; margin-top:14px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+            ${repasando
+              ? htmlNavPasos_('navCaminoA12', idxVista > 0, true)
+              : `<div class="nav-pasos">
+                  ${idxVista > 0 ? '<button type="button" class="btn-nav-paso" id="navCaminoA12Anterior"><i class="fa-solid fa-arrow-left"></i> Anterior</button>' : ''}
+                  ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePersonajeA12" style="width:auto; padding:10px 22px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+                </div>`}
           </div>
         </div>
       </div>`;
 
     if(yaResuelto){
       const idxCorrecta = p.correctaIdx;
-      const btnCorrecta = document.querySelector(`.camino-opcion[data-opcion="${idxCorrecta}"]`);
+      const btnCorrecta = document.querySelector(`#caminoA12 .camino-opcion[data-opcion="${idxCorrecta}"]`);
       if(btnCorrecta) btnCorrecta.classList.add('correcta-marcada');
       document.getElementById('caminoFeedbackA12').innerHTML =
         `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ¡Correcto! Esa es: <b>${p.opciones[idxCorrecta]}</b>.</div>`;
-      document.getElementById('btnSiguientePersonajeA12').addEventListener('click', () => {
-        pasoCaminoA12++;
+    } else {
+      document.querySelectorAll('#caminoA12 .camino-opcion').forEach(btn => {
+        btn.addEventListener('click', () => manejarOpcionCaminoA12(Number(btn.dataset.opcion), btn));
+      });
+    }
+
+    const btnAnterior = document.getElementById('navCaminoA12Anterior');
+    if(btnAnterior) btnAnterior.addEventListener('click', () => {
+      vistaCaminoA12 = idxVista - 1;
+      pintarCaminoA12();
+    });
+
+    if(repasando){
+      document.getElementById('navCaminoA12Siguiente').addEventListener('click', () => {
+        vistaCaminoA12 = (idxVista + 1 >= pasoCaminoA12) ? null : idxVista + 1;
         pintarCaminoA12();
       });
-    } else {
-      document.querySelectorAll('.camino-opcion').forEach(btn => {
-        btn.addEventListener('click', () => manejarOpcionCaminoA12(Number(btn.dataset.opcion), btn));
+    } else if(yaResuelto){
+      document.getElementById('btnSiguientePersonajeA12').addEventListener('click', () => {
+        pasoCaminoA12++;
+        vistaCaminoA12 = null;
+        pintarCaminoA12();
       });
     }
   }
@@ -2192,6 +2225,7 @@
     preguntasRespondidasA16 = [];
     carasMostradasA16 = [];
     respuestasDadoA16 = [];
+    document.getElementById('historialDadoA16').innerHTML = '';
     paresResueltosApareoA16 = 0;
     intentosApareoA16 = 0;
     errorApareoIdA16 = {};
@@ -2296,6 +2330,7 @@
         respuestaCorrecta: p.opciones[p.correctaIdx]
       });
       preguntasRespondidasA16.push(indicePregunta);
+      pintarHistorialDadoA16();
 
       cont.innerHTML = `
         <div class="dado-pregunta-card ${correcta ? 'correcta' : 'incorrecta'}">
@@ -2311,6 +2346,29 @@
         document.getElementById('btnLanzarDadoA16').disabled = false;
       }
     });
+  }
+
+  // Repaso de las preguntas ya respondidas en tiradas anteriores (solo lectura)
+  function pintarHistorialDadoA16(){
+    const cont = document.getElementById('historialDadoA16');
+    if(respuestasDadoA16.length === 0){ cont.innerHTML = ''; return; }
+    cont.innerHTML = `
+      <details class="historial-repaso">
+        <summary><i class="fa-solid fa-clock-rotate-left"></i> Repasar mis respuestas anteriores (${respuestasDadoA16.length})</summary>
+        <div class="historial-repaso-lista">
+          ${respuestasDadoA16.map((r, i) => `
+            <div class="esquema-zona ${r.correcta ? 'correcto' : 'incorrecto'}">
+              <div style="flex:1;">
+                <div class="esquema-zona-tag">${i + 1}. ${r.pregunta}</div>
+                <div class="esquema-zona-slot">
+                  <span class="esquema-zona-etiqueta">Tu respuesta: ${r.tuRespuesta}</span>
+                  ${!r.correcta ? `<div style="margin-top:6px; font-size:12.5px; opacity:.8;">Correcta: ${r.respuestaCorrecta}</div>` : ''}
+                </div>
+              </div>
+              <i class="fa-solid ${r.correcta ? 'fa-check' : 'fa-xmark'}"></i>
+            </div>`).join('')}
+        </div>
+      </details>`;
   }
 
   // ---------- Apareo con líneas trazadas ----------
@@ -2612,6 +2670,8 @@
   ];
 
   let pasoCaminoA17 = 0;
+  let vistaCaminoA17 = null; // paso que se está repasando (null = el paso actual)
+  let navegadorIniciadoA17 = false;
   let respuestasCaminoA17 = [];
   let intentosCaminoA17 = [];
   let intentosSitioA17 = 0;
@@ -2667,6 +2727,8 @@
 
   document.getElementById('btnComenzarA17').addEventListener('click', () => {
     pasoCaminoA17 = 0;
+    vistaCaminoA17 = null;
+    navegadorIniciadoA17 = false;
     respuestasCaminoA17 = [];
     intentosCaminoA17 = [];
     intentosSitioA17 = 0;
@@ -2704,7 +2766,12 @@
       return `<div class="camino-nodo ${claseNodo}">${i < pasoCaminoA17 ? '<i class="fa-solid fa-check" style="color:var(--dark-green-accent);"></i>' : p.avatar}</div>${linea}`;
     }).join('');
 
-    if(pasoCaminoA17 >= PERSONAJES_A17.length){
+    // Paso que se muestra: el actual, o uno anterior si el estudiante está repasando
+    let idxVista = (vistaCaminoA17 === null || vistaCaminoA17 > pasoCaminoA17) ? pasoCaminoA17 : vistaCaminoA17;
+    if(idxVista < 0) idxVista = 0;
+    const repasando = idxVista < pasoCaminoA17;
+
+    if(idxVista >= PERSONAJES_A17.length){
       cont.innerHTML = `
         <div class="camino-wrap">
           <div class="camino-progreso">${nodosHtml}</div>
@@ -2712,16 +2779,25 @@
             <div class="camino-avatar">🎉</div>
             <div style="flex:1;">
               <div class="camino-completa-msg"><i class="fa-solid fa-circle-check"></i> ¡Completaste el repaso! Ya puedes continuar con la Sección 2.</div>
+              ${htmlNavPasos_('navCaminoA17', true, false)}
             </div>
           </div>
         </div>`;
+      document.getElementById('navCaminoA17Anterior').addEventListener('click', () => {
+        vistaCaminoA17 = PERSONAJES_A17.length - 1;
+        pintarCaminoA17();
+      });
       document.getElementById('seccionNavegadorA17').classList.remove('hidden');
-      pintarBuscadorA17();
+      // El buscador se dibuja una sola vez, para no reiniciarlo si el estudiante vuelve a repasar
+      if(!navegadorIniciadoA17){
+        navegadorIniciadoA17 = true;
+        pintarBuscadorA17();
+      }
       return;
     }
 
-    const p = PERSONAJES_A17[pasoCaminoA17];
-    const yaResuelto = respuestasCaminoA17[pasoCaminoA17] !== undefined;
+    const p = PERSONAJES_A17[idxVista];
+    const yaResuelto = respuestasCaminoA17[idxVista] !== undefined;
 
     cont.innerHTML = `
       <div class="camino-wrap">
@@ -2729,6 +2805,7 @@
         <div class="camino-tarjeta">
           <div class="camino-avatar">${p.avatar}</div>
           <div style="flex:1;">
+            ${repasando ? HTML_AVISO_REPASO_ : ''}
             <div class="camino-nombre-personaje">${p.nombre}</div>
             <div class="camino-burbuja">${p.pregunta}</div>
             <div class="asistente-opciones">
@@ -2737,7 +2814,12 @@
               `).join('')}
             </div>
             <div id="caminoFeedbackA17"></div>
-            ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePersonajeA17" style="width:auto; padding:10px 22px; margin-top:14px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+            ${repasando
+              ? htmlNavPasos_('navCaminoA17', idxVista > 0, true)
+              : `<div class="nav-pasos">
+                  ${idxVista > 0 ? '<button type="button" class="btn-nav-paso" id="navCaminoA17Anterior"><i class="fa-solid fa-arrow-left"></i> Anterior</button>' : ''}
+                  ${yaResuelto ? '<button type="button" class="btn btn-primary" id="btnSiguientePersonajeA17" style="width:auto; padding:10px 22px;">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+                </div>`}
           </div>
         </div>
       </div>`;
@@ -2748,13 +2830,28 @@
       if(btnCorrecta) btnCorrecta.classList.add('correcta-marcada');
       document.getElementById('caminoFeedbackA17').innerHTML =
         `<div class="asistente-feedback"><i class="fa-solid fa-circle-check"></i> ¡Correcto! ${p.opciones[idxCorrecta]}</div>`;
-      document.getElementById('btnSiguientePersonajeA17').addEventListener('click', () => {
-        pasoCaminoA17++;
-        pintarCaminoA17();
-      });
     } else {
       document.querySelectorAll('#caminoA17 .camino-opcion').forEach(btn => {
         btn.addEventListener('click', () => manejarOpcionCaminoA17(Number(btn.dataset.opcion), btn));
+      });
+    }
+
+    const btnAnterior = document.getElementById('navCaminoA17Anterior');
+    if(btnAnterior) btnAnterior.addEventListener('click', () => {
+      vistaCaminoA17 = idxVista - 1;
+      pintarCaminoA17();
+    });
+
+    if(repasando){
+      document.getElementById('navCaminoA17Siguiente').addEventListener('click', () => {
+        vistaCaminoA17 = (idxVista + 1 >= pasoCaminoA17) ? null : idxVista + 1;
+        pintarCaminoA17();
+      });
+    } else if(yaResuelto){
+      document.getElementById('btnSiguientePersonajeA17').addEventListener('click', () => {
+        pasoCaminoA17++;
+        vistaCaminoA17 = null;
+        pintarCaminoA17();
       });
     }
   }
@@ -3191,8 +3288,10 @@
         <p><strong>Bienvenido al asistente de instalación de NexaReport</strong></p>
         <p>Este asistente te guiará durante la instalación del programa.</p>
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA18">‹ Atrás</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA18">Siguiente ›</button>
         </div>`);
+      document.getElementById('btnAtrasA18').addEventListener('click', () => pintarPasoA18(1));
       document.getElementById('btnPasoA18').addEventListener('click', () => pintarPasoA18(3));
     }
 
@@ -3200,11 +3299,13 @@
       pintarVentanaInstaladorSimulado('ventanaInstaladorA18', 'Acuerdo de licencia', `
         <div class="instalador-ruta" style="max-height:70px; overflow:hidden;">Términos de uso de NexaReport... Este software se proporciona "tal cual", sin garantías de ningún tipo...</div>
         <div class="instalador-checkbox" id="checkboxTerminosA18">
-          <span class="caja" id="cajaTerminosA18"></span> Acepto los términos y condiciones
+          <span class="caja ${terminosAceptadosA18 ? 'marcada' : ''}" id="cajaTerminosA18"></span> Acepto los términos y condiciones
         </div>
         <div class="instalador-botones">
-          <button type="button" class="instalador-btn primario" id="btnPasoA18" disabled>Siguiente ›</button>
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA18">‹ Atrás</button>
+          <button type="button" class="instalador-btn primario" id="btnPasoA18" ${terminosAceptadosA18 ? '' : 'disabled'}>Siguiente ›</button>
         </div>`);
+      document.getElementById('btnAtrasA18').addEventListener('click', () => pintarPasoA18(2));
       document.getElementById('checkboxTerminosA18').addEventListener('click', () => {
         terminosAceptadosA18 = !terminosAceptadosA18;
         document.getElementById('cajaTerminosA18').classList.toggle('marcada', terminosAceptadosA18);
@@ -3218,9 +3319,11 @@
         <p>NexaReport se instalará en:</p>
         <div class="instalador-ruta">C:\\Archivos de programa\\NexaReport\\</div>
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA18">‹ Atrás</button>
           <button type="button" class="instalador-btn secundario">Examinar...</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA18">Siguiente ›</button>
         </div>`);
+      document.getElementById('btnAtrasA18').addEventListener('click', () => pintarPasoA18(3));
       document.getElementById('btnPasoA18').addEventListener('click', () => pintarPasoA18(5));
     }
 
@@ -3233,8 +3336,10 @@
           <span class="caja marcada" id="cajaTurboA18"></span> Instalar también <b>BuscadorTurbo</b> — tu nueva barra de herramientas gratis
         </div>
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA18">‹ Atrás</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA18">Instalar</button>
         </div>`);
+      document.getElementById('btnAtrasA18').addEventListener('click', () => pintarPasoA18(4));
       let accesoMarcado = true;
       let turboMarcado = true;
       document.getElementById('checkboxAccesoA18').addEventListener('click', () => {
@@ -3573,8 +3678,10 @@
         <p>Escribe un nombre para tu proyecto:</p>
         <input type="text" id="inputNombreProyectoA19" class="instalador-ruta" style="width:100%; border:1px solid #cbd5e1; font-family:inherit;" placeholder="Ej. Reporte de Ventas TECNOVENTAS" value="${nombreProyectoA19}">
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA19">‹ Atrás</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA19" disabled>Crear proyecto</button>
         </div>`);
+      document.getElementById('btnAtrasA19').addEventListener('click', () => pintarEscritorioA19(1));
       const input = document.getElementById('inputNombreProyectoA19');
       const btn = document.getElementById('btnPasoA19');
       btn.disabled = input.value.trim().length === 0;
@@ -3590,8 +3697,10 @@
         <p><strong>Proyecto "${nombreProyectoA19}" creado.</strong></p>
         <p>Este proyecto todavía no tiene ninguna fuente de datos. Conéctalo a una base de datos para poder construir reportes.</p>
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA19">‹ Atrás</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA19"><i class="fa-solid fa-database"></i> Conectar base de datos</button>
         </div>`);
+      document.getElementById('btnAtrasA19').addEventListener('click', () => pintarEscritorioA19(2));
       document.getElementById('btnPasoA19').addEventListener('click', () => pintarEscritorioA19(4));
     }
 
@@ -3606,8 +3715,10 @@
         <p style="font-size:12.5px; margin-bottom:2px;">Contraseña</p>
         <input type="password" id="inputPasswordA19" class="instalador-ruta" style="width:100%; border:1px solid #cbd5e1; font-family:inherit;" placeholder="Escribe la contraseña...">
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA19">‹ Atrás</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA19" disabled>Conectar</button>
         </div>`);
+      document.getElementById('btnAtrasA19').addEventListener('click', () => pintarEscritorioA19(3));
       const inputPass = document.getElementById('inputPasswordA19');
       const btn = document.getElementById('btnPasoA19');
       inputPass.addEventListener('input', () => { btn.disabled = inputPass.value.trim().length === 0; });
@@ -3628,8 +3739,15 @@
             </div>`).join('')}
         </div>
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA19">‹ Atrás</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA19" disabled>Usar esta tabla</button>
         </div>`);
+      document.getElementById('btnAtrasA19').addEventListener('click', () => pintarEscritorioA19(4));
+      // Si ya había elegido una tabla (por ejemplo al volver con "Atrás"), se conserva la selección
+      if(tablaSeleccionadaA19){
+        const previa = document.querySelector(`#tablasDisponiblesA19 .tabla-opcion-a19[data-codigo="${tablaSeleccionadaA19}"] .caja`);
+        if(previa){ previa.classList.add('marcada'); document.getElementById('btnPasoA19').disabled = false; }
+      }
       document.querySelectorAll('#tablasDisponiblesA19 .tabla-opcion-a19').forEach(el => {
         el.addEventListener('click', () => {
           document.querySelectorAll('#tablasDisponiblesA19 .tabla-opcion-a19 .caja').forEach(c => c.classList.remove('marcada'));
@@ -3650,8 +3768,10 @@
           <p style="margin-top:6px;">Tu proyecto ya está listo para que empieces a construir reportes.</p>
         </div>
         <div class="instalador-botones">
+          <button type="button" class="instalador-btn secundario" id="btnAtrasA19">‹ Atrás</button>
           <button type="button" class="instalador-btn primario" id="btnPasoA19">Finalizar</button>
         </div>`);
+      document.getElementById('btnAtrasA19').addEventListener('click', () => pintarEscritorioA19(5));
       document.getElementById('btnPasoA19').addEventListener('click', () => {
         proyectoCreadoA19 = true;
         document.getElementById('seccionFinalA19').classList.remove('hidden');
@@ -3804,6 +3924,8 @@
   ];
 
   let pasoCasoA110 = 0;
+  let vistaCasoA110 = null; // caso que se está repasando (null = el caso actual)
+  let casoExtendidoIniciadoA110 = false;
   let respuestasCasosA110 = [];
   let respuestasFactoresA110 = {};
   let metodoFinalElegidoA110 = null;
@@ -3857,6 +3979,8 @@
 
   document.getElementById('btnComenzarA110').addEventListener('click', () => {
     pasoCasoA110 = 0;
+    vistaCasoA110 = null;
+    casoExtendidoIniciadoA110 = false;
     respuestasCasosA110 = [];
     respuestasFactoresA110 = {};
     metodoFinalElegidoA110 = null;
@@ -3883,32 +4007,76 @@
     const cont = document.getElementById('casosA110');
     actualizarBarraProgreso('progresoA110', pasoCasoA110, CASOS_A110_BASE.length);
 
-    if(pasoCasoA110 >= CASOS_A110_BASE.length){
-      cont.innerHTML = `<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste los 5 casos cortos! Ahora sigue un caso más a fondo.</div>`;
+    // Caso que se muestra: el actual, o uno anterior si el estudiante está repasando
+    let idxVista = (vistaCasoA110 === null || vistaCasoA110 > pasoCasoA110) ? pasoCasoA110 : vistaCasoA110;
+    if(idxVista < 0) idxVista = 0;
+    const repasando = idxVista < pasoCasoA110;
+
+    if(idxVista >= CASOS_A110_BASE.length){
+      cont.innerHTML = `<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste los 5 casos cortos! Ahora sigue un caso más a fondo.</div>
+        ${htmlNavPasos_('navCasoA110', true, false)}`;
+      document.getElementById('navCasoA110Anterior').addEventListener('click', () => {
+        vistaCasoA110 = CASOS_A110_BASE.length - 1;
+        pintarCasoA110();
+      });
       document.getElementById('seccionCasoExtendidoA110').classList.remove('hidden');
-      pintarCasoExtendidoA110();
+      // El caso extenso se dibuja una sola vez, para no reiniciarlo si el estudiante vuelve a repasar
+      if(!casoExtendidoIniciadoA110){
+        casoExtendidoIniciadoA110 = true;
+        pintarCasoExtendidoA110();
+      }
       return;
     }
 
-    const caso = CASOS_A110_BASE[pasoCasoA110];
+    const caso = CASOS_A110_BASE[idxVista];
     cont.innerHTML = `
       <div class="caso-a110-card">
-        <div class="caso-a110-titulo">Caso ${pasoCasoA110 + 1} de ${CASOS_A110_BASE.length}</div>
+        ${repasando ? HTML_AVISO_REPASO_ : ''}
+        <div class="caso-a110-titulo">Caso ${idxVista + 1} de ${CASOS_A110_BASE.length}</div>
         <div class="caso-a110-escenario">${caso.escenario}</div>
         <div class="metodos-a110-opciones">
           ${METODOS_A110.map(m => `
-            <button type="button" class="metodo-a110-btn" data-id="${m.id}">
+            <button type="button" class="metodo-a110-btn" data-id="${m.id}" ${repasando ? 'disabled' : ''}>
               <span class="metodo-a110-icono">${m.icono}</span>
               <span>${m.nombre}</span>
             </button>
           `).join('')}
         </div>
         <div id="feedbackCasoA110"></div>
+        <div class="nav-pasos" id="navCasoA110">
+          ${idxVista > 0 ? '<button type="button" class="btn-nav-paso" id="navCasoA110Anterior"><i class="fa-solid fa-arrow-left"></i> Anterior</button>' : ''}
+          ${repasando ? '<button type="button" class="btn-nav-paso btn-nav-paso-primario" id="navCasoA110Siguiente">Siguiente <i class="fa-solid fa-arrow-right"></i></button>' : ''}
+        </div>
       </div>`;
 
-    document.querySelectorAll('#casosA110 .metodo-a110-btn').forEach(btn => {
-      btn.addEventListener('click', () => manejarRespuestaCasoA110(btn.dataset.id, caso));
+    const btnAnterior = document.getElementById('navCasoA110Anterior');
+    if(btnAnterior) btnAnterior.addEventListener('click', () => {
+      vistaCasoA110 = idxVista - 1;
+      pintarCasoA110();
     });
+
+    if(repasando){
+      // Se muestra el caso ya respondido, bloqueado, con su retroalimentación
+      const resp = respuestasCasosA110[idxVista];
+      const elegido = METODOS_A110.find(m => m.nombre === resp.tuRespuesta);
+      document.querySelectorAll('#casosA110 .metodo-a110-btn').forEach(btn => {
+        if(btn.dataset.id === caso.correcto) btn.classList.add('correcta-marcada');
+        else if(elegido && btn.dataset.id === elegido.id) btn.classList.add('incorrecta-marcada');
+      });
+      document.getElementById('feedbackCasoA110').innerHTML = `
+        <div class="asistente-feedback ${resp.correcta ? '' : 'feedback-incorrecto'}">
+          <i class="fa-solid ${resp.correcta ? 'fa-circle-check' : 'fa-circle-info'}"></i>
+          ${resp.correcta ? '¡Correcto!' : 'No exactamente.'} ${caso.explicacion}
+        </div>`;
+      document.getElementById('navCasoA110Siguiente').addEventListener('click', () => {
+        vistaCasoA110 = (idxVista + 1 >= pasoCasoA110) ? null : idxVista + 1;
+        pintarCasoA110();
+      });
+    } else {
+      document.querySelectorAll('#casosA110 .metodo-a110-btn').forEach(btn => {
+        btn.addEventListener('click', () => manejarRespuestaCasoA110(btn.dataset.id, caso));
+      });
+    }
   }
 
   function manejarRespuestaCasoA110(elegido, caso){
@@ -3930,13 +4098,20 @@
       <div class="asistente-feedback ${correcta ? '' : 'feedback-incorrecto'}">
         <i class="fa-solid ${correcta ? 'fa-circle-check' : 'fa-circle-info'}"></i>
         ${correcta ? '¡Correcto!' : 'No exactamente.'} ${caso.explicacion}
-      </div>
-      <button type="button" class="btn btn-primary" id="btnSiguienteCasoA110" style="width:auto; padding:10px 22px; margin-top:14px;">
-        Siguiente caso <i class="fa-solid fa-arrow-right"></i>
-      </button>`;
+      </div>`;
 
-    document.getElementById('btnSiguienteCasoA110').addEventListener('click', () => {
+    // El botón "Siguiente caso" se agrega junto al "Anterior" (si existe)
+    const nav = document.getElementById('navCasoA110');
+    const btnSig = document.createElement('button');
+    btnSig.type = 'button';
+    btnSig.className = 'btn btn-primary';
+    btnSig.id = 'btnSiguienteCasoA110';
+    btnSig.style.cssText = 'width:auto; padding:10px 22px;';
+    btnSig.innerHTML = 'Siguiente caso <i class="fa-solid fa-arrow-right"></i>';
+    nav.appendChild(btnSig);
+    btnSig.addEventListener('click', () => {
       pasoCasoA110++;
+      vistaCasoA110 = null;
       pintarCasoA110();
     });
   }
@@ -4558,13 +4733,38 @@
     }
 
     document.getElementById('disenadorReporteA21').classList.add('hidden');
-    pintarIdentificarSeccionesA21();
+    mostrarIdentificarA21_();
+  }
+
+  // Si ya había completado la identificación y vuelve a avanzar, se muestra su estado final;
+  // si no, se dibuja el ejercicio (restaurando lo que ya había escrito).
+  function mostrarIdentificarA21_(){
+    if(identificarSeccionesCompletoA21) mostrarCompletoIdentificarA21_();
+    else pintarIdentificarSeccionesA21();
+  }
+
+  function mostrarCompletoIdentificarA21_(){
+    const cont = document.getElementById('identificarSeccionesA21');
+    cont.classList.remove('hidden');
+    cont.innerHTML = htmlBotonVolverA_('btnVolverDisenoA21', 'Volver al diseño') +
+      '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la identificación de las 3 secciones!</div>';
+    conectarVolverDisenoA21_();
+    document.getElementById('seccionFinalA21').classList.remove('hidden');
+  }
+
+  // Vuelve a la Vista de Diseño sin perder nada de lo hecho; con "Siguiente" regresa a este punto.
+  function conectarVolverDisenoA21_(){
+    document.getElementById('btnVolverDisenoA21').addEventListener('click', () => {
+      document.getElementById('identificarSeccionesA21').classList.add('hidden');
+      document.getElementById('seccionFinalA21').classList.add('hidden');
+      document.getElementById('disenadorReporteA21').classList.remove('hidden');
+    });
   }
 
   // ---------- Identifica y define las secciones del reporte ya construido ----------
   function pintarIdentificarSeccionesA21(){
     document.getElementById('identificarSeccionesA21').classList.remove('hidden');
-    ordenSeccionesIdentificarA21 = barajar(SECCIONES_IDENTIFICAR_A21_BASE);
+    if(!ordenSeccionesIdentificarA21 || ordenSeccionesIdentificarA21.length === 0) ordenSeccionesIdentificarA21 = barajar(SECCIONES_IDENTIFICAR_A21_BASE);
 
     const nombreEmpresa = nombreEmpresaValorA21 || 'TECNOVENTAS RD, S.R.L.';
     const tituloReporte = tituloReporteValorA21 || 'Reporte de Ventas';
@@ -4587,6 +4787,7 @@
 
     const cont = document.getElementById('identificarSeccionesA21');
     cont.innerHTML = `
+      ${htmlBotonVolverA_('btnVolverDisenoA21', 'Volver al diseño')}
       <div class="section-heading" style="font-size:18px;">Identifica y define las secciones de tu reporte</div>
       <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Para cada recuadro, identifica qué sección del reporte es y explica en tus propias palabras qué función cumple.</div>
 
@@ -4624,6 +4825,17 @@
     });
 
     document.getElementById('btnConfirmarIdentificarA21').addEventListener('click', verificarIdentificarSeccionesA21);
+
+    // Si el estudiante vuelve de la Vista de Diseño, se restauran sus respuestas anteriores
+    cont.querySelectorAll('.select-identificar-a21').forEach(sel => {
+      const r = respuestasIdentificarA21[sel.dataset.seccion];
+      if(r && r.identificacion) sel.value = r.identificacion;
+    });
+    cont.querySelectorAll('.textarea-definir-a21').forEach(ta => {
+      const r = respuestasIdentificarA21[ta.dataset.seccion];
+      if(r && r.definicion) ta.value = r.definicion;
+    });
+    conectarVolverDisenoA21_();
   }
 
   function verificarIdentificarSeccionesA21(){
@@ -4643,8 +4855,7 @@
     }
 
     identificarSeccionesCompletoA21 = true;
-    document.getElementById('identificarSeccionesA21').innerHTML = '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la identificación de las 3 secciones!</div>';
-    document.getElementById('seccionFinalA21').classList.remove('hidden');
+    mostrarCompletoIdentificarA21_();
   }
 
   document.getElementById('btnFinalizarA21').addEventListener('click', async () => {
@@ -4787,6 +4998,7 @@
   }
 
   let indiceReporteActualA22 = 0;
+  let comparacionCompletaA22 = false;
   let estadoReportesA22 = [estadoReporteVacioA22(), estadoReporteVacioA22()];
   let campoSeleccionadoA22 = null;
   let respuestasComparacionA22 = {};
@@ -4841,6 +5053,7 @@
 
   document.getElementById('btnComenzarA22').addEventListener('click', () => {
     indiceReporteActualA22 = 0;
+    comparacionCompletaA22 = false;
     estadoReportesA22 = [estadoReporteVacioA22(), estadoReporteVacioA22()];
     campoSeleccionadoA22 = null;
     respuestasComparacionA22 = {};
@@ -4871,8 +5084,14 @@
 
     const cont = document.getElementById('disenadorReporteA22');
     cont.innerHTML = `
+      ${indiceReporteActualA22 === 1 ? htmlBotonVolverA_('btnVolverReporte1A22', 'Volver al reporte 1') : ''}
       <div class="vistas-tabs" id="vistasTabsA22"></div>
       <div id="vistaContenidoA22"></div>`;
+    const btnVolverReporte1 = document.getElementById('btnVolverReporte1A22');
+    if(btnVolverReporte1) btnVolverReporte1.addEventListener('click', () => {
+      indiceReporteActualA22 = 0;
+      pintarSeccionDisenoYVistasA22();
+    });
     pintarTabsVistasA22();
     const estado = estadoReportesA22[indiceReporteActualA22];
     cambiarVistaA22(estado.vistaActual || 'diseno');
@@ -5137,7 +5356,7 @@
     } else {
       document.getElementById('disenadorReporteA22').classList.add('hidden');
       document.getElementById('consignaGeneralA22').classList.add('hidden');
-      pintarComparacionA22();
+      mostrarComparacionA22_();
     }
   }
 
@@ -5150,6 +5369,32 @@
       const valor = f[c];
       return (c === 'PrecioUnitario' && typeof valor === 'number') ? 'RD$' + valor.toLocaleString('es-DO', {minimumFractionDigits:2}) : formatearValorCeldaReporte_(valor);
     }).join(' | ')}</div>`).join('');
+  }
+
+  // Si ya había completado la comparación y vuelve a avanzar, se muestra su estado final;
+  // si no, se dibuja el ejercicio (restaurando lo que ya había escrito).
+  function mostrarComparacionA22_(){
+    if(comparacionCompletaA22) mostrarCompletoComparacionA22_();
+    else pintarComparacionA22();
+  }
+
+  function mostrarCompletoComparacionA22_(){
+    const cont = document.getElementById('comparacionSeccionesA22');
+    cont.classList.remove('hidden');
+    cont.innerHTML = htmlBotonVolverA_('btnVolverReporte2A22', 'Volver al reporte 2') +
+      '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la comparación de los 2 reportes!</div>';
+    conectarVolverReporte2A22_();
+    document.getElementById('seccionFinalA22').classList.remove('hidden');
+  }
+
+  // Regresa al diseño del reporte 2 sin perder nada; con "Siguiente" vuelve a este punto.
+  function conectarVolverReporte2A22_(){
+    document.getElementById('btnVolverReporte2A22').addEventListener('click', () => {
+      document.getElementById('comparacionSeccionesA22').classList.add('hidden');
+      document.getElementById('seccionFinalA22').classList.add('hidden');
+      document.getElementById('consignaGeneralA22').classList.remove('hidden');
+      document.getElementById('disenadorReporteA22').classList.remove('hidden');
+    });
   }
 
   // ---------- Parte 2: comparación de las 3 secciones entre ambos reportes ----------
@@ -5175,6 +5420,7 @@
 
     const cont = document.getElementById('comparacionSeccionesA22');
     cont.innerHTML = `
+      ${htmlBotonVolverA_('btnVolverReporte2A22', 'Volver al reporte 2')}
       <div class="section-heading" style="font-size:18px;">Compara los 2 reportes</div>
       <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-comments"></i> Coméntalo con tu pareja de trabajo, y luego escribe en tus propias palabras en qué se diferencia cada sección entre el ${specInv.nombre} y el ${specAsi.nombre}.</div>
 
@@ -5200,6 +5446,12 @@
     });
 
     document.getElementById('btnConfirmarComparacionA22').addEventListener('click', verificarComparacionA22);
+
+    // Si el estudiante vuelve de la Vista de Diseño, se restauran sus respuestas anteriores
+    cont.querySelectorAll('.textarea-comparar-a22').forEach(ta => {
+      if(respuestasComparacionA22[ta.dataset.seccion]) ta.value = respuestasComparacionA22[ta.dataset.seccion];
+    });
+    conectarVolverReporte2A22_();
   }
 
   function verificarComparacionA22(){
@@ -5214,8 +5466,8 @@
       return;
     }
 
-    document.getElementById('comparacionSeccionesA22').innerHTML = '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la comparación de los 2 reportes!</div>';
-    document.getElementById('seccionFinalA22').classList.remove('hidden');
+    comparacionCompletaA22 = true;
+    mostrarCompletoComparacionA22_();
   }
 
   document.getElementById('btnFinalizarA22').addEventListener('click', async () => {
@@ -5792,13 +6044,38 @@
     }
 
     document.getElementById('disenadorReporteA23').classList.add('hidden');
-    pintarIdentificarSeccionesA23();
+    mostrarIdentificarA23_();
+  }
+
+  // Si ya había completado la identificación y vuelve a avanzar, se muestra su estado final;
+  // si no, se dibuja el ejercicio (restaurando lo que ya había escrito).
+  function mostrarIdentificarA23_(){
+    if(identificarSeccionesCompletoA23) mostrarCompletoIdentificarA23_();
+    else pintarIdentificarSeccionesA23();
+  }
+
+  function mostrarCompletoIdentificarA23_(){
+    const cont = document.getElementById('identificarSeccionesA23');
+    cont.classList.remove('hidden');
+    cont.innerHTML = htmlBotonVolverA_('btnVolverDisenoA23', 'Volver al diseño') +
+      '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la identificación de las 3 partes del grupo!</div>';
+    conectarVolverDisenoA23_();
+    document.getElementById('seccionFinalA23').classList.remove('hidden');
+  }
+
+  // Vuelve a la Vista de Diseño sin perder nada de lo hecho; con "Siguiente" regresa a este punto.
+  function conectarVolverDisenoA23_(){
+    document.getElementById('btnVolverDisenoA23').addEventListener('click', () => {
+      document.getElementById('identificarSeccionesA23').classList.add('hidden');
+      document.getElementById('seccionFinalA23').classList.add('hidden');
+      document.getElementById('disenadorReporteA23').classList.remove('hidden');
+    });
   }
 
   // ---------- Identifica y define las partes del grupo del reporte ya construido ----------
   function pintarIdentificarSeccionesA23(){
     document.getElementById('identificarSeccionesA23').classList.remove('hidden');
-    ordenSeccionesIdentificarA23 = barajar(SECCIONES_IDENTIFICAR_A23_BASE);
+    if(!ordenSeccionesIdentificarA23 || ordenSeccionesIdentificarA23.length === 0) ordenSeccionesIdentificarA23 = barajar(SECCIONES_IDENTIFICAR_A23_BASE);
 
     const grupos = agruparDatosA23_((datosTablaSeleccionadaA23 && datosTablaSeleccionadaA23.datos) || [], campoAgruparA23);
     const primerGrupo = grupos[0] || { clave:'', filas:[], total:0, cantidad:0 };
@@ -5823,6 +6100,7 @@
 
     const cont = document.getElementById('identificarSeccionesA23');
     cont.innerHTML = `
+      ${htmlBotonVolverA_('btnVolverDisenoA23', 'Volver al diseño')}
       <div class="section-heading" style="font-size:18px;">Identifica y define las partes del grupo</div>
       <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Para cada recuadro, identifica qué parte del grupo es y explica en tus propias palabras qué función cumple.</div>
 
@@ -5860,6 +6138,17 @@
     });
 
     document.getElementById('btnConfirmarIdentificarA23').addEventListener('click', verificarIdentificarSeccionesA23);
+
+    // Si el estudiante vuelve de la Vista de Diseño, se restauran sus respuestas anteriores
+    cont.querySelectorAll('.select-identificar-a21').forEach(sel => {
+      const r = respuestasIdentificarA23[sel.dataset.seccion];
+      if(r && r.identificacion) sel.value = r.identificacion;
+    });
+    cont.querySelectorAll('.textarea-definir-a21').forEach(ta => {
+      const r = respuestasIdentificarA23[ta.dataset.seccion];
+      if(r && r.definicion) ta.value = r.definicion;
+    });
+    conectarVolverDisenoA23_();
   }
 
   function verificarIdentificarSeccionesA23(){
@@ -5879,8 +6168,7 @@
     }
 
     identificarSeccionesCompletoA23 = true;
-    document.getElementById('identificarSeccionesA23').innerHTML = '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la identificación de las 3 partes del grupo!</div>';
-    document.getElementById('seccionFinalA23').classList.remove('hidden');
+    mostrarCompletoIdentificarA23_();
   }
 
   document.getElementById('btnFinalizarA23').addEventListener('click', async () => {
