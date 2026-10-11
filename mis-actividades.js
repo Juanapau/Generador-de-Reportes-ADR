@@ -1,5 +1,5 @@
 // ================= MIS ACTIVIDADES (vista estudiante) =================
-  const RAS_DISPONIBLES_ESTUDIANTE = ['RA1', 'RA2']; // RA3-RA5 se habilitan cuando se construyan sus actividades
+  const RAS_DISPONIBLES_ESTUDIANTE = ['RA1']; // RA2-RA5 se habilitan cuando se construyan sus actividades
   let raActualEstudiante = 'RA1';
 
   document.getElementById('cardMisActividades').addEventListener('click', () => {
@@ -68,9 +68,9 @@
         const esInteractiva = !!actividadesInteractivas[act.codigo];
 
         // Ventana de disponibilidad (si el docente la configuró)
-        const ahora = new Date();
-        const inicio = act.fechaInicio ? new Date(act.fechaInicio) : null;
-        const fin = act.fechaFin ? new Date(act.fechaFin) : null;
+        const ahora = ahoraSeguro_();
+        const inicio = fechaVentana_(act.inicioMs, act.fechaInicio);
+        const fin = fechaVentana_(act.finMs, act.fechaFin);
         const aunNoInicia = inicio && ahora < inicio;
         const yaVencio = fin && ahora > fin;
         const fueraDeVentana = (aunNoInicia || yaVencio) && !completada && !modoPreviewDocente;
@@ -117,7 +117,21 @@
       wrap.querySelectorAll('.abrir-actividad-btn').forEach(btn => {
         const act = habilitadas.find(a => a.codigo === btn.dataset.codigo);
         const funcionAbrir = actividadesInteractivas[act.codigo];
-        btn.addEventListener('click', () => funcionAbrir(act.puntaje, act.tiempoEstimado, act.enunciado));
+        btn.addEventListener('click', async () => {
+          // Antes de abrir una actividad pendiente se confirma con el servidor que siga disponible
+          // (la hora de la computadora del estudiante no cuenta).
+          if(!calificacionesPorCodigo[act.codigo] && !modoPreviewDocente){
+            try{
+              const v = await apiGet({ action:'verificarDisponibilidad', codigo: act.codigo });
+              if(v.success && v.disponible === false){
+                mostrarNotificacion(v.motivo || 'Esta actividad no está disponible en este momento.', 'error');
+                cargarMisActividades();
+                return;
+              }
+            }catch(err){ /* sin conexión: el servidor igual validará al guardar */ }
+          }
+          funcionAbrir(act.puntaje, act.tiempoEstimado, act.enunciado);
+        });
       });
     }catch(err){
       wrap.innerHTML = '<div class="empty-table-msg">Error de conexión con el servidor.</div>';
