@@ -39,7 +39,31 @@
     // devolviendo datos desactualizados como el estado de "primer acceso".
     const allParams = { ...params, _t: Date.now() };
     const url = CONFIG.API_URL + '?' + new URLSearchParams(allParams).toString();
-    return fetchConReintentos_(url, { cache: 'no-store' }, 3);
+    const respuesta = await fetchConReintentos_(url, { cache: 'no-store' }, 3);
+    if(respuesta && respuesta.ahoraServidor) sincronizarRelojServidor_(respuesta.ahoraServidor);
+    return respuesta;
+  }
+
+  // ---------- Reloj del servidor (a prueba de cambios de fecha en la computadora) ----------
+  // La hora de la computadora del estudiante NO es confiable (se puede cambiar). Por eso, cada
+  // vez que el servidor responde con su hora (ahoraServidor), se guarda esa hora junto con
+  // performance.now() (un cronómetro interno que NO cambia aunque el estudiante modifique la
+  // fecha del sistema). Con eso, ahoraSeguro_() da la hora real aunque la PC esté adelantada
+  // o atrasada. Además, el servidor vuelve a validar la fecha al guardar (la defensa final).
+  let relojServidor_ = null;
+  function sincronizarRelojServidor_(ahoraServidorMs){
+    const ms = Number(ahoraServidorMs);
+    if(!isFinite(ms) || ms <= 0) return;
+    relojServidor_ = { servidorMs: ms, cronometro: performance.now() };
+  }
+  function ahoraSeguro_(){
+    if(relojServidor_) return new Date(relojServidor_.servidorMs + (performance.now() - relojServidor_.cronometro));
+    return new Date(); // aún sin hora del servidor (ej. servidor sin actualizar): se usa la de la PC
+  }
+  // Fecha de inicio/fin de una actividad: se prefiere la que calcula el servidor (en milisegundos)
+  function fechaVentana_(ms, texto){
+    if(ms) return new Date(Number(ms));
+    return texto ? new Date(texto) : null;
   }
   const ACCIONES_BLOQUEADAS_EN_PREVIEW = ['guardarCalificacion', 'enviarRespuestaExtra', 'calificarRespuestaExtra'];
   async function apiPost(data){
@@ -48,7 +72,15 @@
       console.log('[Vista previa de administrador] No se guardó en el servidor:', data.action);
       return { success:true };
     }
-    return fetchConReintentos_(CONFIG.API_URL, { method:'POST', body: JSON.stringify(data) }, 3);
+    const respuesta = await fetchConReintentos_(CONFIG.API_URL, { method:'POST', body: JSON.stringify(data) }, 3);
+    if(respuesta && respuesta.codigoError === 'FUERA_DE_VENTANA'){
+      // El servidor rechazó el guardado porque la actividad está cerrada o aún no abre.
+      mostrarNotificacion(respuesta.error || 'Esta actividad no está disponible en este momento.', 'error');
+      document.querySelectorAll('.panel-actividad-interactiva').forEach(p => p.classList.add('hidden'));
+      const pm = document.getElementById('panelMisActividades');
+      if(pm){ pm.classList.remove('hidden'); if(typeof cargarMisActividades === 'function') cargarMisActividades(); }
+    }
+    return respuesta;
   }
 
   // ---------- Registro de actividades interactivas ----------
