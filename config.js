@@ -614,3 +614,98 @@
       cont.innerHTML = '<div style="font-size:14px; opacity:.6;">No se pudieron cargar los recursos.</div>';
     }
   }
+
+  // ---------- Consultar enunciado y recursos DESPUÉS de completar una actividad ----------
+  // Al terminar una actividad (o al abrirla con "Ver resultado"), el estudiante veía solo su
+  // resultado. Ahora la vista de resultado de cada actividad (vistaResultadoA11, A12, ... A23)
+  // tiene dos pestañas: "Resultado" y "Enunciado y recursos". Los recursos se cargan de nuevo
+  // cada vez, así que también aparecen los que el docente agregó después de que terminó
+  // (por ejemplo, una evaluación posterior).
+  function codigoDesdeSufijoActividad_(sufijo){
+    const m = sufijo.match(/^A(\d)(\d+)$/); // A110 -> A.1.10, A21 -> A.2.1
+    return m ? `A.${m[1]}.${m[2]}` : null;
+  }
+
+  async function prepararConsultaActividadCompletada_(sufijo){
+    const vista = document.getElementById('vistaResultado' + sufijo);
+    const codigo = codigoDesdeSufijoActividad_(sufijo);
+    if(!vista || !codigo) return;
+
+    let barra = vista.querySelector(':scope > .barra-consulta');
+    if(!barra){
+      // Se agrupa lo que ya había en la vista de resultado para poder mostrarlo/ocultarlo en bloque
+      const envoltura = document.createElement('div');
+      envoltura.className = 'panel-resultado-original';
+      while(vista.firstChild) envoltura.appendChild(vista.firstChild);
+
+      barra = document.createElement('div');
+      barra.className = 'vistas-tabs barra-consulta';
+      barra.innerHTML = `
+        <button type="button" class="vista-tab-btn activa" data-v="resultado"><i class="fa-solid fa-chart-simple"></i> Resultado</button>
+        <button type="button" class="vista-tab-btn" data-v="consulta"><i class="fa-solid fa-book-open"></i> Enunciado y recursos <span class="consulta-contador"></span></button>`;
+
+      const consulta = document.createElement('div');
+      consulta.className = 'panel-consulta hidden';
+
+      vista.appendChild(barra);
+      vista.appendChild(envoltura);
+      vista.appendChild(consulta);
+
+      barra.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const verConsulta = btn.dataset.v === 'consulta';
+          barra.querySelectorAll('button').forEach(b => b.classList.toggle('activa', b === btn));
+          envoltura.classList.toggle('hidden', verConsulta);
+          consulta.classList.toggle('hidden', !verConsulta);
+        });
+      });
+    }
+
+    // Cada vez que se muestra el resultado se vuelve a la pestaña "Resultado" y se refrescan los recursos
+    barra.querySelector('[data-v="resultado"]').click();
+
+    const consulta = vista.querySelector(':scope > .panel-consulta');
+    const enunciado = (document.getElementById('enunciadoActivo' + sufijo) || {}).innerHTML || '';
+    consulta.innerHTML = `
+      <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+      <div class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6;">${enunciado}</div>
+      <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+      <div id="recursosConsulta${sufijo}" class="recursos-lista">
+        <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+      </div>`;
+
+    const contador = barra.querySelector('.consulta-contador');
+    contador.textContent = '';
+    await cargarRecursosActividad(codigo, 'recursosConsulta' + sufijo);
+    const cantidad = consulta.querySelectorAll('a.recurso-item').length;
+    contador.textContent = cantidad > 0 ? `(${cantidad})` : '';
+  }
+
+  (function instalarConsultaEnResultados_(){
+    document.querySelectorAll('[id^="vistaResultadoA"]').forEach(vista => {
+      const sufijo = vista.id.replace('vistaResultado', '');
+      if(!codigoDesdeSufijoActividad_(sufijo)) return;
+      new MutationObserver(() => {
+        if(!vista.classList.contains('hidden')) prepararConsultaActividadCompletada_(sufijo);
+      }).observe(vista, { attributes:true, attributeFilter:['class'] });
+    });
+  })();
+
+  // ---------- Navegación "Anterior / Siguiente" para actividades paso a paso ----------
+  // Permite al estudiante volver a un paso que ya terminó para repasarlo y luego avanzar de
+  // nuevo. Es solo de repaso: el paso se ve bloqueado con su respuesta correcta, no se puede
+  // cambiar la respuesta y no afecta la calificación.
+  function htmlNavPasos_(prefijo, mostrarAnterior, mostrarSiguiente, textoSiguiente){
+    if(!mostrarAnterior && !mostrarSiguiente) return '';
+    return `
+      <div class="nav-pasos">
+        ${mostrarAnterior ? `<button type="button" class="btn-nav-paso" id="${prefijo}Anterior"><i class="fa-solid fa-arrow-left"></i> Anterior</button>` : ''}
+        ${mostrarSiguiente ? `<button type="button" class="btn-nav-paso btn-nav-paso-primario" id="${prefijo}Siguiente">${textoSiguiente || 'Siguiente'} <i class="fa-solid fa-arrow-right"></i></button>` : ''}
+      </div>`;
+  }
+
+  const HTML_AVISO_REPASO_ = '<div class="aviso-repaso"><i class="fa-solid fa-clock-rotate-left"></i> Estás repasando un paso que ya respondiste. Solo puedes verlo; usa "Siguiente" para volver a donde ibas.</div>';
+
+  function htmlBotonVolverA_(id, texto){
+    return `<div class="nav-pasos" style="margin:0 0 14px;"><button type="button" class="btn-nav-paso" id="${id}"><i class="fa-solid fa-arrow-left"></i> ${texto}</button></div>`;
+  }
