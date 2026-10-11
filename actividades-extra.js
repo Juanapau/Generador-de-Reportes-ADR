@@ -581,9 +581,9 @@
 
       wrap.innerHTML = habilitadas.map(act => {
         const miRespuesta = respuestasPorCodigo[act.codigo];
-        const ahora = new Date();
-        const inicio = act.fechaInicio ? new Date(act.fechaInicio) : null;
-        const fin = act.fechaFin ? new Date(act.fechaFin) : null;
+        const ahora = ahoraSeguro_();
+        const inicio = fechaVentana_(act.inicioMs, act.fechaInicio);
+        const fin = fechaVentana_(act.finMs, act.fechaFin);
         const aunNoInicia = inicio && ahora < inicio;
         const yaVencio = fin && ahora > fin;
         const fueraDeVentana = (aunNoInicia || yaVencio) && !miRespuesta && !modoPreviewDocente;
