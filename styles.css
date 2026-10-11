@@ -657,6 +657,12 @@
   body.light .recurso-item{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
   .recurso-item i.fa-link{ color: var(--dark-blue-accent); }
   .recurso-item .recurso-del{ margin-left:auto; color:#ef4444; cursor:pointer; }
+  .recurso-acciones{ margin-left:auto; display:flex; align-items:center; gap:16px; }
+  .recurso-acciones .recurso-del{ margin-left:0; }
+  .recurso-item .recurso-edit{ color:var(--dark-gold-accent); cursor:pointer; }
+  .recurso-item .recurso-edit:hover, .recurso-item .recurso-del:hover{ filter:brightness(1.25); }
+  .recurso-editor{ margin:-2px 0 6px; padding:6px 14px 12px; border:1px dashed var(--dark-border); border-radius:10px; }
+  .recurso-editor .form-msg{ margin-top:8px; }
   .recurso-form{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; align-items:flex-end; }
   .recurso-form .field{ margin-bottom:0; flex:1; min-width:150px; }
 
@@ -1628,3 +1634,24 @@
      tema de la app — por eso el texto de las opciones necesita color oscuro explícito
      en TODOS los <select> del sistema, no solo en uno en particular. */
   select option{ color:#1a1a1a; background:#ffffff; }
+
+  /* ============ NAVEGACIÓN ANTERIOR / SIGUIENTE EN ACTIVIDADES PASO A PASO ============ */
+  .nav-pasos{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+  .btn-nav-paso{
+    background:transparent; color:var(--dark-text); border:1.5px solid var(--dark-border); border-radius:10px;
+    padding:9px 18px; font-family:inherit; font-size:14.5px; font-weight:700; cursor:pointer;
+    display:inline-flex; align-items:center; gap:8px; transition:.15s;
+  }
+  .btn-nav-paso:hover{ border-color:var(--dark-blue-accent); color:var(--dark-blue-accent); }
+  .btn-nav-paso-primario{ background:var(--dark-blue-accent); border-color:var(--dark-blue-accent); color:#06182f; }
+  .btn-nav-paso-primario:hover{ filter:brightness(1.1); color:#06182f; }
+  body.light .btn-nav-paso{ color:var(--light-text); border-color:#c9d6f0; }
+  body.light .btn-nav-paso-primario{ color:#fff; }
+  .aviso-repaso{
+    display:flex; align-items:center; gap:8px; margin:10px 0 4px; padding:8px 12px; border-radius:8px;
+    font-size:13.5px; font-weight:600; color:var(--dark-gold-accent);
+    background:rgba(201,162,39,.12); border:1px dashed rgba(201,162,39,.5);
+  }
+  .historial-repaso{ margin-top:14px; border:1px dashed var(--dark-border); border-radius:10px; padding:10px 14px; }
+  .historial-repaso summary{ cursor:pointer; font-weight:700; font-size:14.5px; color:var(--dark-blue-accent); }
+  .historial-repaso-lista{ margin-top:10px; display:flex; flex-direction:column; gap:8px; }
