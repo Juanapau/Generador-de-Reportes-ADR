@@ -6265,3 +6265,877 @@
   });
 
   registrarActividadInteractiva('A.2.3', abrirActividadA23);
+
+// ============================================================================
+// A.2.4 — REPORTE DE GASTOS COMPLETO: PIE DE PÁGINA vs PIE DE REPORTE
+// ============================================================================
+  // Individual. El estudiante completa el Diseñador de Reportes con las 5 secciones:
+  // encabezado de reporte, encabezado de página, línea de detalle, PIE DE PÁGINA y
+  // PIE DE REPORTE (las dos últimas son nuevas en el diseñador), y debe establecer la
+  // diferencia entre ambos pies. Se apoya en el recurso "Pie_de_Pagina_y_Pie_de_Reporte_A24.pdf".
+  //
+  // Novedades del diseñador respecto a A.2.1–A.2.3:
+  //  • Ubicar elementos (títulos de columna, número de página, fecha de impresión, total
+  //    general, cantidad de registros...) en la sección correcta, y ver el resultado.
+  //  • La Vista de Ejecución muestra el reporte PAGINADO (varias hojas): así se ve que el
+  //    pie de página se repite en cada hoja y el pie de reporte sale una sola vez al final.
+  //  • El PDF descargable respeta ese mismo diseño (pie de página en cada hoja, pie de
+  //    reporte al final).
+
+  const FILAS_POR_HOJA_A24 = 5;
+  const CAMPOS_CORRECTOS_DETALLE_A24 = ['Fecha', 'Descripcion', 'Departamento', 'Monto'];
+  const ETIQUETAS_CAMPOS_A24 = { Descripcion:'Descripción', Categoria:'Categoría', AprobadoPor:'Aprobado por' };
+  const etiquetaCampoA24_ = (c) => ETIQUETAS_CAMPOS_A24[c] || c;
+
+  // Datos de respaldo: se usan si la tabla DB_Gastos del Sheet aún no tiene datos reales
+  // (ver sembrarDBGastosA24 en Code.gs). Mismos campos que la tabla real.
+  const CAMPOS_GASTOS_A24 = ['Fecha', 'Categoria', 'Descripcion', 'Monto', 'Departamento', 'AprobadoPor'];
+  const DATOS_GASTOS_RESPALDO_A24 = [
+    ['2026-01-05','Servicios','Pago de energía eléctrica',21350,'Administración','Rosa Jiménez'],
+    ['2026-01-07','Suministros','Compra de papel y tóner',6480,'Administración','Rosa Jiménez'],
+    ['2026-01-09','Transporte','Combustible camión de reparto',8900,'Almacén','Miguel Santos'],
+    ['2026-01-12','Mantenimiento','Reparación de aire acondicionado',14200,'Administración','Rosa Jiménez'],
+    ['2026-01-14','Publicidad','Anuncios en redes sociales',11500,'Ventas','Ana Ramírez'],
+    ['2026-01-16','Servicios','Servicio de internet',4950,'Administración','Rosa Jiménez'],
+    ['2026-01-19','Suministros','Cajas y material de empaque',5320,'Almacén','Carmen Reyes'],
+    ['2026-01-21','Capacitación','Taller de atención al cliente',9800,'Ventas','Carlos Fernández'],
+    ['2026-01-23','Transporte','Mantenimiento de motocicletas',7450,'Almacén','Miguel Santos'],
+    ['2026-01-26','Servicios','Agua potable y recolección',2380,'Administración','Rosa Jiménez'],
+    ['2026-01-28','Publicidad','Impresión de volantes',3900,'Ventas','Ana Ramírez'],
+    ['2026-01-30','Mantenimiento','Limpieza de oficinas y almacén',6100,'Almacén','Carmen Reyes']
+  ].map(fila => { const o = {}; CAMPOS_GASTOS_A24.forEach((c, i) => { o[c] = fila[i]; }); return o; });
+
+  // La tabla real se considera válida si trae los campos y suficientes gastos con monto numérico.
+  function tablaGastosValidaA24_(t){
+    if(!t || !t.campos || !t.datos) return false;
+    if(!['Fecha', 'Descripcion', 'Departamento', 'Monto'].every(c => t.campos.includes(c))) return false;
+    const buenas = t.datos.filter(f => String(f.Descripcion || '').trim().length > 3 && isFinite(Number(f.Monto)) && Number(f.Monto) > 0);
+    return buenas.length >= 8;
+  }
+  async function cargarTablaA24_(codigoTabla){
+    const t = await cargarTablaDatos(codigoTabla);
+    if(codigoTabla === 'DB_Gastos' && !tablaGastosValidaA24_(t)){
+      return { campos: [...CAMPOS_GASTOS_A24], datos: DATOS_GASTOS_RESPALDO_A24.map(f => ({ ...f })) };
+    }
+    return t;
+  }
+
+  // Elementos que el estudiante ubica en las secciones. "zona" es la sección correcta;
+  // "Subtotal por grupo" es un distractor: este reporte NO está agrupado, no va en ninguna.
+  const ELEMENTOS_A24 = [
+    { id:'titulosColumna', nombre:'Títulos de columna', zona:'encPagina', pista:'Los títulos de columna se repiten arriba de cada hoja: van en el <b>encabezado de página</b>.' },
+    { id:'numeroPagina', nombre:'Número de página', zona:'piePagina', pista:'El número de página es información de cada hoja y se repite en todas: va en el <b>pie de página</b>.' },
+    { id:'fechaImpresion', nombre:'Fecha de impresión', zona:'piePagina', pista:'La fecha de impresión se repite en cada hoja: va en el <b>pie de página</b>.' },
+    { id:'totalGeneral', nombre:'Total general de gastos', zona:'pieReporte', pista:'El total general resume <b>todos</b> los gastos y sale una sola vez, al final: va en el <b>pie de reporte</b>.' },
+    { id:'cantidadGastos', nombre:'Cantidad de gastos registrados', zona:'pieReporte', pista:'La cantidad de gastos resume todo el reporte y sale una sola vez, al final: va en el <b>pie de reporte</b>.' },
+    { id:'subtotalGrupo', nombre:'Subtotal por grupo', zona:null, pista:'Este reporte no está agrupado, así que no tiene pies de grupo: deja <b>"Subtotal por grupo"</b> fuera de las tres secciones.' }
+  ];
+  const ZONAS_A24 = [
+    { id:'encPagina', nombre:'Encabezado de página', icono:'fa-heading', clase:'caja-zona-encpag', desc:'Parte superior de cada hoja.' },
+    { id:'piePagina', nombre:'Pie de página', icono:'fa-shoe-prints', clase:'caja-zona-piepag', desc:'Parte inferior de cada hoja: se repite en todas.' },
+    { id:'pieReporte', nombre:'Pie de reporte', icono:'fa-flag-checkered', clase:'caja-zona-piereporte', desc:'Una sola vez, al final, tras el último gasto.' }
+  ];
+  const SECCIONES_IDENTIFICAR_A24_BASE = [
+    { id:'encReporte', nombre:'Encabezado de reporte' },
+    { id:'encPagina', nombre:'Encabezado de página' },
+    { id:'detalle', nombre:'Línea de detalle' },
+    { id:'piePagina', nombre:'Pie de página' },
+    { id:'pieReporte', nombre:'Pie de reporte' }
+  ];
+  const AFIRMACIONES_A24 = [
+    { id:'f1', texto:'Aparece una sola vez, al final de todo el reporte.', correcta:'pieReporte' },
+    { id:'f2', texto:'Se repite en la parte inferior de cada hoja.', correcta:'piePagina' },
+    { id:'f3', texto:'Muestra el total general de todos los gastos.', correcta:'pieReporte' },
+    { id:'f4', texto:'Muestra textos como «Página 2 de 3».', correcta:'piePagina' },
+    { id:'f5', texto:'Si el reporte tiene 3 hojas, aparece 3 veces.', correcta:'piePagina' },
+    { id:'f6', texto:'Su contenido se calcula con todos los registros del reporte.', correcta:'pieReporte' }
+  ];
+
+  const CRITERIOS_BASE_A24 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
+    { key:'encReporte', nombre:'2. Encabezado de reporte', descripcion:'Escribe correctamente el nombre de la empresa y el título del reporte de gastos.' },
+    { key:'detalle', nombre:'3. Línea de detalle', descripcion:'Selecciona la tabla correcta y arrastra exactamente los campos correctos hacia la línea de detalle.' },
+    { key:'encPagina', nombre:'4. Encabezado de página', descripcion:'Ubica los títulos de columna en el encabezado de página.' },
+    { key:'piePagina', nombre:'5. Pie de página', descripcion:'Ubica en el pie de página los elementos que se repiten en cada hoja (número de página y fecha de impresión).' },
+    { key:'pieReporte', nombre:'6. Pie de reporte', descripcion:'Ubica en el pie de reporte los resúmenes de todo el reporte (total general y cantidad de gastos).' },
+    { key:'vistas', nombre:'7. Recorrido de las 3 vistas', descripcion:'Recorre las vistas de Diseño, Previsualización y Ejecución del reporte ya construido.' },
+    { key:'identificar', nombre:'8. Identifica y define las 5 secciones', descripcion:'Identifica correctamente cada sección del reporte y explica en sus propias palabras la función que cumple.' },
+    { key:'diferencia', nombre:'9. Diferencia entre pie de página y pie de reporte', descripcion:'Distingue cuándo aparece y qué contiene cada pie, y lo explica con sus propias palabras.' },
+    { key:'tiempo', nombre:'10. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'11. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let tablaSeleccionadaDetalleA24 = '';
+  let datosTablaSeleccionadaA24 = null;
+  let nombreEmpresaValorA24 = '';
+  let tituloReporteValorA24 = '';
+  let camposColocadosDetalleA24 = [];
+  let campoSeleccionadoA24 = null;
+  let ubicacionesA24 = {};            // idElemento -> id de sección donde lo colocó
+  let elementoSeleccionadoA24 = null;
+  let estadoSeccionesA24 = { encReporte:false, detalle:false, encPagina:false, piePagina:false, pieReporte:false };
+  let intentosPorSeccionA24 = { encReporte:0, detalle:0, encPagina:0, piePagina:0, pieReporte:0 };
+  let vistaActualA24 = 'diseno';
+  let vistasVisitadasA24 = new Set();
+  let ordenSeccionesIdentificarA24 = [];
+  let respuestasIdentificarA24 = {};
+  let intentosIdentificarGeneralA24 = 0;
+  let identificarSeccionesCompletoA24 = false;
+  let respuestasDiferenciaA24 = { afirmaciones:{}, vecesPie:'', vecesPieReporte:'', explicacion:'' };
+  let intentosDiferenciaA24 = 0;
+  let diferenciaCompletaA24 = false;
+  let ultimoResultadoA24 = null;
+  let puntajeMaxA24 = 0;
+  let tiempoEstimadoA24 = 10;
+  let inicioTiempoA24 = null;
+  let timerIntervalA24 = null;
+
+  const formatoMontoA24_ = (v) => 'RD$' + (Number(v) || 0).toLocaleString('es-DO', { minimumFractionDigits:2 });
+  const escaparAttrA24_ = (t) => String(t || '').replace(/"/g, '&quot;');
+
+  function filasGastosA24_(){ return (datosTablaSeleccionadaA24 && datosTablaSeleccionadaA24.datos) || []; }
+  function totalGastosA24_(){ return filasGastosA24_().reduce((s, f) => s + (Number(f.Monto) || 0), 0); }
+  function hojasA24_(){
+    const filas = filasGastosA24_();
+    const hojas = [];
+    for(let i = 0; i < filas.length; i += FILAS_POR_HOJA_A24) hojas.push(filas.slice(i, i + FILAS_POR_HOJA_A24));
+    return hojas.length ? hojas : [[]];
+  }
+  function elementosEnZonaA24_(zona){ return ELEMENTOS_A24.filter(e => ubicacionesA24[e.id] === zona); }
+  // La Fecha puede venir como texto 'aaaa-mm-dd' o como fecha real de Sheets (llega como texto ISO con
+  // hora UTC, p. ej. 2026-01-05T04:00:00.000Z, que en República Dominicana es el 5 de enero a medianoche).
+  // Se muestra siempre como dd/mm/aaaa, sin hora y sin correrse de día.
+  function formatoFechaA24_(v){
+    if(v === null || v === undefined || v === '') return '';
+    const txt = String(v);
+    const simple = txt.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(simple) return `${simple[3]}/${simple[2]}/${simple[1]}`;
+    const d = new Date(v);
+    if(isNaN(d.getTime())) return txt;
+    return d.toLocaleDateString('es-DO', { timeZone:'America/Santo_Domingo', day:'2-digit', month:'2-digit', year:'numeric' });
+  }
+  function valorCeldaA24_(campo, fila){
+    if(campo === 'Monto') return formatoMontoA24_(fila[campo]);
+    if(campo === 'Fecha') return formatoFechaA24_(fila[campo]);
+    return formatearValorCeldaReporte_(fila[campo]);
+  }
+  // Texto con el que se muestra un elemento ya ubicado (en la hoja número "n" de "total")
+  function textoElementoA24_(id, n, total){
+    switch(id){
+      case 'numeroPagina': return `Página ${n} de ${total}`;
+      case 'fechaImpresion': return 'Impreso: ' + formatearFechaCortaSinHora_(new Date());
+      case 'totalGeneral': return `Total general de gastos: ${formatoMontoA24_(totalGastosA24_())}`;
+      case 'cantidadGastos': return `Cantidad de gastos registrados: ${filasGastosA24_().length}`;
+      case 'subtotalGrupo': return 'Subtotal por grupo: —';
+      default: return '';
+    }
+  }
+
+  async function abrirActividadA24(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA24 = puntajeMaximo;
+    tiempoEstimadoA24 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA24').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA24').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.4') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA24').classList.add('hidden');
+        document.getElementById('vistaEjercicioA24').classList.add('hidden');
+        document.getElementById('vistaResultadoA24').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA24', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA24', previa.detalle);
+        ultimoResultadoA24 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA24').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA24').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA24').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA24').classList.add('hidden');
+    document.getElementById('vistaResultadoA24').classList.add('hidden');
+
+    document.getElementById('tiempoEstimadoAvisoA24').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA24} minutos</b> para completar esta actividad una vez que la inicies.`;
+
+    cargarRecursosActividad('A.2.4', 'recursosEstudianteA24');
+
+    const criteriosPrevios = CRITERIOS_BASE_A24.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
+    renderRubrica('instrumentoPrevioA24', criteriosPrevios, puntajeMaxA24, null);
+  }
+
+  document.getElementById('btnBackFromActividadA24').addEventListener('click', () => {
+    clearInterval(timerIntervalA24);
+    document.getElementById('panelActividadA24').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA24').addEventListener('click', () => {
+    nombreEmpresaValorA24 = '';
+    tituloReporteValorA24 = '';
+    tablaSeleccionadaDetalleA24 = '';
+    datosTablaSeleccionadaA24 = null;
+    camposColocadosDetalleA24 = [];
+    campoSeleccionadoA24 = null;
+    ubicacionesA24 = {};
+    elementoSeleccionadoA24 = null;
+    estadoSeccionesA24 = { encReporte:false, detalle:false, encPagina:false, piePagina:false, pieReporte:false };
+    intentosPorSeccionA24 = { encReporte:0, detalle:0, encPagina:0, piePagina:0, pieReporte:0 };
+    vistaActualA24 = 'diseno';
+    vistasVisitadasA24 = new Set();
+    ordenSeccionesIdentificarA24 = [];
+    respuestasIdentificarA24 = {};
+    intentosIdentificarGeneralA24 = 0;
+    identificarSeccionesCompletoA24 = false;
+    respuestasDiferenciaA24 = { afirmaciones:{}, vecesPie:'', vecesPieReporte:'', explicacion:'' };
+    intentosDiferenciaA24 = 0;
+    diferenciaCompletaA24 = false;
+    document.getElementById('vistaInstrumentoA24').classList.add('hidden');
+    document.getElementById('vistaEjercicioA24').classList.remove('hidden');
+    pintarSeccionDisenoYVistasA24();
+    mostrarPasoA24_('diseno');
+
+    inicioTiempoA24 = Date.now();
+    clearInterval(timerIntervalA24);
+    timerIntervalA24 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA24) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA24').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA24} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Pasos de la actividad: diseño → identificar secciones → diferencia entre pies ----------
+  function mostrarPasoA24_(paso){
+    ['disenadorReporteA24', 'identificarSeccionesA24', 'diferenciaPiesA24', 'seccionFinalA24'].forEach(id => document.getElementById(id).classList.add('hidden'));
+    if(paso === 'diseno'){
+      document.getElementById('disenadorReporteA24').classList.remove('hidden');
+    } else if(paso === 'identificar'){
+      if(identificarSeccionesCompletoA24) mostrarCompletoIdentificarA24_(); else pintarIdentificarSeccionesA24();
+    } else if(paso === 'diferencia'){
+      if(diferenciaCompletaA24) mostrarCompletoDiferenciaA24_(); else pintarDiferenciaA24();
+    }
+  }
+
+  // ---------- Sección de diseño + 3 vistas, todo en una sola pantalla con pestañas ----------
+  function pintarSeccionDisenoYVistasA24(){
+    const cont = document.getElementById('disenadorReporteA24');
+    cont.innerHTML = `
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Diseña tu reporte en la pestaña "Vista de Diseño". Puedes volver a esa pestaña en cualquier momento para hacer cambios.</div>
+      <div class="vistas-tabs" id="vistasTabsA24"></div>
+      <div id="vistaContenidoA24"></div>`;
+    pintarTabsVistasA24();
+    cambiarVistaA24(vistaActualA24 || 'diseno');
+  }
+
+  function pintarTabsVistasA24(){
+    const cont = document.getElementById('vistasTabsA24');
+    cont.innerHTML = ['diseno', 'previsualizacion', 'ejecucion'].map(v => {
+      const info = COLOR_VISTA_A14[v];
+      const visitada = vistasVisitadasA24.has(v);
+      const activa = vistaActualA24 === v;
+      return `
+        <button type="button" class="vista-tab-btn ${activa ? 'activa' : ''} ${visitada ? 'visitada' : ''}" data-vista="${v}">
+          <i class="fa-solid ${info.icono}"></i> ${info.nombre}
+          ${visitada ? '<i class="fa-solid fa-check check-visitada"></i>' : ''}
+        </button>`;
+    }).join('');
+    cont.querySelectorAll('.vista-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => cambiarVistaA24(btn.dataset.vista));
+    });
+  }
+
+  function cambiarVistaA24(vista){
+    vistaActualA24 = vista;
+    vistasVisitadasA24.add(vista);
+    pintarTabsVistasA24();
+    pintarContenidoVistaA24(vista);
+  }
+
+  // Recalcula en vivo (sin contar intentos) si cada sección luce correcta
+  function actualizarEstadoVisualA24(){
+    const empresaOk = normalizarTextoA15_(nombreEmpresaValorA24).includes('tecnoventas');
+    const tituloOk = normalizarTextoA15_(tituloReporteValorA24).includes('gasto');
+    estadoSeccionesA24.encReporte = empresaOk && tituloOk;
+
+    const seleccion = [...camposColocadosDetalleA24].sort();
+    const esperado = [...CAMPOS_CORRECTOS_DETALLE_A24].sort();
+    estadoSeccionesA24.detalle = tablaSeleccionadaDetalleA24 === 'DB_Gastos' && seleccion.length === esperado.length && seleccion.every((c, i) => c === esperado[i]);
+
+    ['encPagina', 'piePagina', 'pieReporte'].forEach(z => {
+      const esperados = ELEMENTOS_A24.filter(e => e.zona === z).map(e => e.id).sort();
+      const puestos = elementosEnZonaA24_(z).map(e => e.id).sort();
+      estadoSeccionesA24[z] = esperados.length === puestos.length && esperados.every((id, i) => id === puestos[i]);
+    });
+  }
+
+  function pintarContenidoVistaA24(vista){
+    const cont = document.getElementById('vistaContenidoA24');
+    const info = COLOR_VISTA_A14[vista];
+    const etiquetaVista = `<span class="simulador-etiqueta-vista" style="background:${info.bg}; color:${info.color}; display:inline-flex; margin-bottom:14px;"><i class="fa-solid ${info.icono}"></i> ${info.nombre}</span>`;
+
+    // ---- Vista de Diseño: el lienzo editable ----
+    if(vista === 'diseno'){
+      actualizarEstadoVisualA24();
+      const campos = (datosTablaSeleccionadaA24 && datosTablaSeleccionadaA24.campos) || [];
+      const camposDisponibles = campos.filter(c => !camposColocadosDetalleA24.includes(c));
+      const elementosLibres = ELEMENTOS_A24.filter(e => !ubicacionesA24[e.id]);
+
+      cont.innerHTML = `
+        ${etiquetaVista}
+        <div class="lienzo-diseno-a21">
+          <div class="caja-diseno-a21 ${estadoSeccionesA24.encReporte ? 'correcta' : ''}" id="cajaEncReporteA24">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-heading"></i> Encabezado de reporte</div>
+            <input type="text" id="inputNombreEmpresaA24" class="input-generico" placeholder="Nombre de la empresa..." value="${escaparAttrA24_(nombreEmpresaValorA24)}">
+            <input type="text" id="inputTituloReporteA24" class="input-generico" placeholder="Título del reporte..." style="margin-top:8px;" value="${escaparAttrA24_(tituloReporteValorA24)}">
+            <p class="descripcion-seccion-a21">Debe contener el nombre de la empresa y el título del reporte. Aparece una sola vez, al principio de todo el documento.</p>
+          </div>
+
+          <div style="display:flex; gap:16px; flex-wrap:wrap;">
+            <div class="caja-diseno-a21 ${estadoSeccionesA24.detalle ? 'correcta' : ''}" id="cajaDetalleA24" style="flex:1.3; min-width:260px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-table-list"></i> Línea de detalle</div>
+              <div class="zona-arrastre-a21" id="zonaDetalleA24">
+                ${camposColocadosDetalleA24.length === 0 ? 'Arrastra aquí los campos que debe mostrar cada gasto' :
+                  camposColocadosDetalleA24.map(c => `<span class="campo-chip-a21 colocado" data-id="${c}">${etiquetaCampoA24_(c)} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+              </div>
+              <p class="descripcion-seccion-a21">Debes arrastrar exactamente estos 4 campos: <b>Fecha</b>, <b>Descripción</b>, <b>Departamento</b> y <b>Monto</b>. Se repite una vez por cada gasto.</p>
+            </div>
+
+            <div class="caja-diseno-a21" id="cajaCamposDisponiblesA24" style="flex:1; min-width:220px;">
+              <div class="caja-diseno-titulo"><i class="fa-solid fa-database"></i> Campos disponibles</div>
+              <label style="display:block; font-size:12px; font-weight:700; color:var(--dark-text-dim); margin-bottom:6px;">Tabla de datos</label>
+              <select id="selectTablaDetalleA24" class="input-generico">
+                <option value="" ${tablaSeleccionadaDetalleA24 ? '' : 'selected disabled'}>Selecciona una tabla...</option>
+                ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${tablaSeleccionadaDetalleA24 === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
+              </select>
+              ${camposDisponibles.length > 0 ? `
+                <p style="margin:10px 0 6px; font-size:11.5px; opacity:.75;">Arrastra o toca para agregar:</p>
+                <div class="pool-campos-a21" id="poolCamposA24">
+                  ${camposDisponibles.map(c => `<span class="campo-chip-a21 ${campoSeleccionadoA24 === c ? 'seleccionado' : ''}" draggable="true" data-id="${c}">${etiquetaCampoA24_(c)}</span>`).join('')}
+                </div>` : ''}
+            </div>
+          </div>
+
+          <div class="caja-diseno-a21" id="cajaElementosA24">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-shapes"></i> Elementos del reporte</div>
+            <p class="descripcion-seccion-a21" style="margin-top:0; margin-bottom:10px;">Ubica cada elemento en la sección donde corresponde: arrástralo o tócalo y luego toca la sección. Ojo: algún elemento puede no corresponder a ninguna de estas tres secciones en este reporte.</p>
+            <div class="pool-campos-a21" id="poolElementosA24">
+              ${elementosLibres.length ? elementosLibres.map(e => `<span class="campo-chip-a21 ${elementoSeleccionadoA24 === e.id ? 'seleccionado' : ''}" draggable="true" data-id="${e.id}">${e.nombre}</span>`).join('') : '<span style="font-size:12.5px; opacity:.7;">Todos los elementos están ubicados (puedes tocarlos en su sección para moverlos).</span>'}
+            </div>
+          </div>
+
+          <div class="zonas-secciones-a24">
+            ${ZONAS_A24.map(z => `
+              <div class="caja-diseno-a21 ${z.clase} ${estadoSeccionesA24[z.id] ? 'correcta' : ''}" id="caja_${z.id}_A24">
+                <div class="caja-diseno-titulo"><i class="fa-solid ${z.icono}"></i> ${z.nombre}</div>
+                <div class="zona-arrastre-a21 zona-elementos-a24" data-zona="${z.id}">
+                  ${elementosEnZonaA24_(z.id).length === 0 ? 'Suelta aquí' :
+                    elementosEnZonaA24_(z.id).map(e => `<span class="campo-chip-a21 colocado" data-id="${e.id}">${e.nombre} <i class="fa-solid fa-xmark"></i></span>`).join('')}
+                </div>
+                <p class="descripcion-seccion-a21">${z.desc}</p>
+              </div>`).join('')}
+          </div>
+        </div>`;
+
+      document.getElementById('inputNombreEmpresaA24').addEventListener('input', (e) => {
+        nombreEmpresaValorA24 = e.target.value;
+        actualizarEstadoVisualA24();
+        document.getElementById('cajaEncReporteA24').classList.toggle('correcta', estadoSeccionesA24.encReporte);
+      });
+      document.getElementById('inputTituloReporteA24').addEventListener('input', (e) => {
+        tituloReporteValorA24 = e.target.value;
+        actualizarEstadoVisualA24();
+        document.getElementById('cajaEncReporteA24').classList.toggle('correcta', estadoSeccionesA24.encReporte);
+      });
+
+      document.getElementById('selectTablaDetalleA24').addEventListener('change', async (e) => {
+        tablaSeleccionadaDetalleA24 = e.target.value;
+        camposColocadosDetalleA24 = [];
+        campoSeleccionadoA24 = null;
+        cont.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando campos de la tabla...</div>';
+        datosTablaSeleccionadaA24 = tablaSeleccionadaDetalleA24 ? await cargarTablaA24_(tablaSeleccionadaDetalleA24) : null;
+        pintarContenidoVistaA24('diseno');
+      });
+
+      // Campos de la línea de detalle (clic o arrastre)
+      document.querySelectorAll('#poolCamposA24 .campo-chip-a21').forEach(chip => {
+        chip.addEventListener('click', () => {
+          campoSeleccionadoA24 = campoSeleccionadoA24 === chip.dataset.id ? null : chip.dataset.id;
+          elementoSeleccionadoA24 = null;
+          pintarContenidoVistaA24('diseno');
+        });
+      });
+      document.querySelectorAll('#zonaDetalleA24 .campo-chip-a21.colocado').forEach(chip => {
+        chip.addEventListener('click', () => {
+          if(campoSeleccionadoA24) return;   // hay un campo seleccionado: el clic es para colocarlo (lo maneja la zona), no para quitar
+          camposColocadosDetalleA24 = camposColocadosDetalleA24.filter(c => c !== chip.dataset.id);
+          pintarContenidoVistaA24('diseno');
+        });
+      });
+      const zonaDetalle = document.getElementById('zonaDetalleA24');
+      zonaDetalle.addEventListener('click', () => {
+        if(campoSeleccionadoA24 && !camposColocadosDetalleA24.includes(campoSeleccionadoA24)){
+          camposColocadosDetalleA24.push(campoSeleccionadoA24);
+          campoSeleccionadoA24 = null;
+          pintarContenidoVistaA24('diseno');
+        }
+      });
+      habilitarArrastre(document.querySelectorAll('#poolCamposA24 .campo-chip-a21[draggable="true"]'), [zonaDetalle], (campo) => {
+        if(!camposColocadosDetalleA24.includes(campo)){
+          camposColocadosDetalleA24.push(campo);
+          campoSeleccionadoA24 = null;
+          pintarContenidoVistaA24('diseno');
+        }
+      });
+
+      // Elementos del reporte: clic en el elemento y luego en la sección, o arrastre directo
+      document.querySelectorAll('#poolElementosA24 .campo-chip-a21').forEach(chip => {
+        chip.addEventListener('click', () => {
+          elementoSeleccionadoA24 = elementoSeleccionadoA24 === chip.dataset.id ? null : chip.dataset.id;
+          campoSeleccionadoA24 = null;
+          pintarContenidoVistaA24('diseno');
+        });
+      });
+      const zonasElementos = [...document.querySelectorAll('.zona-elementos-a24')];
+      zonasElementos.forEach(zona => {
+        zona.addEventListener('click', (ev) => {
+          if(elementoSeleccionadoA24){
+            // hay un elemento seleccionado: el clic (incluso sobre otro chip ya ubicado) lo coloca en esta sección
+            ubicacionesA24[elementoSeleccionadoA24] = zona.dataset.zona;
+            elementoSeleccionadoA24 = null;
+            pintarContenidoVistaA24('diseno');
+            return;
+          }
+          const chipColocado = ev.target.closest('.campo-chip-a21.colocado');
+          if(chipColocado){
+            delete ubicacionesA24[chipColocado.dataset.id];   // clic sobre uno ya ubicado: lo devuelve a la lista
+            pintarContenidoVistaA24('diseno');
+          }
+        });
+      });
+      habilitarArrastre(document.querySelectorAll('#poolElementosA24 .campo-chip-a21[draggable="true"]'), zonasElementos, (idElemento, zonaEl) => {
+        if(ELEMENTOS_A24.some(e => e.id === idElemento)){
+          ubicacionesA24[idElemento] = zonaEl.dataset.zona;
+          elementoSeleccionadoA24 = null;
+          pintarContenidoVistaA24('diseno');
+        }
+      });
+      return;
+    }
+
+    // ---- Previsualización y Ejecución ----
+    if(camposColocadosDetalleA24.length === 0){
+      cont.innerHTML = `${etiquetaVista}<div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-circle-info"></i> Todavía no has agregado campos a la línea de detalle en la Vista de Diseño. Vuelve a esa pestaña para completarlo.</div>`;
+      return;
+    }
+
+    const nombreEmpresa = nombreEmpresaValorA24 || 'TECNOVENTAS RD, S.R.L.';
+    const tituloReporte = tituloReporteValorA24 || 'Reporte de Gastos';
+    const columnasHtml = `<div class="hoja-cols-a24">${camposColocadosDetalleA24.map(c => `<span>${etiquetaCampoA24_(c)}</span>`).join('')}</div>`;
+    const esEjecucion = vista === 'ejecucion';
+    const hojas = esEjecucion ? hojasA24_() : [[null, null]];   // previsualización: una hoja de muestra con 2 filas
+    const totalHojas = esEjecucion ? hojas.length : 2;
+
+    // Contenido de una zona: cada elemento ubicado (excepto títulos de columna, que se dibujan como
+    // columnas) se muestra como un texto; en la previsualización, como [marcador].
+    function itemsZonaHtml(zona, n, etiquetaHtml){
+      return elementosEnZonaA24_(zona).filter(e => e.id !== 'titulosColumna')
+        .map(e => `<${etiquetaHtml}>${esEjecucion ? textoElementoA24_(e.id, n, totalHojas) : '[' + e.nombre + ']'}</${etiquetaHtml}>`).join('');
+    }
+    function hojaHtml(filasHoja, n, esUltima){
+      const encPag = elementosEnZonaA24_('encPagina');
+      const piePag = elementosEnZonaA24_('piePagina');
+      const pieRep = elementosEnZonaA24_('pieReporte');
+      return `
+        <div class="hoja-etiqueta-a24">${esEjecucion ? `Hoja ${n} de ${totalHojas}` : 'Hoja de muestra'}</div>
+        <div class="hoja-reporte-a24">
+          ${n === 1 ? `<div class="hoja-enc-reporte-a24"><div class="emp">${nombreEmpresa}</div><div class="tit">${tituloReporte}</div></div>` : ''}
+          <div class="hoja-enc-pagina-a24">
+            ${encPag.some(e => e.id === 'titulosColumna') ? columnasHtml : ''}
+            ${itemsZonaHtml('encPagina', n, 'div')}
+            ${encPag.length === 0 ? '<div class="hoja-vacio-a24" style="padding:0;">(encabezado de página vacío)</div>' : ''}
+          </div>
+          ${filasHoja.map(f => f ? `<div class="hoja-fila-a24">${camposColocadosDetalleA24.map(c => `<span>${valorCeldaA24_(c, f)}</span>`).join('')}</div>`
+            : `<div class="hoja-fila-a24" style="opacity:.55;">${camposColocadosDetalleA24.map(() => '<span>[muestra]</span>').join('')}</div>`).join('')}
+          ${esUltima ? itemsZonaHtml('pieReporte', n, 'div').replace(/<div>/g, '<div class="hoja-pie-reporte-a24">') : ''}
+          ${piePag.length ? `<div class="hoja-pie-pagina-a24">${itemsZonaHtml('piePagina', n, 'span')}</div>` : '<div class="hoja-vacio-a24">(pie de página vacío)</div>'}
+        </div>`;
+    }
+
+    const hojasHtml = hojas.map((h, i) => hojaHtml(h, i + 1, i === hojas.length - 1)).join('');
+    const leyenda = `
+      <div class="leyenda-hoja-a24">
+        <span><i style="background:#12294a"></i>encabezado de reporte</span>
+        <span><i style="background:#8fb0e0"></i>encabezado de página</span>
+        <span><i style="background:#e9a850"></i>pie de página</span>
+        <span><i style="background:#2e8b57"></i>pie de reporte</span>
+      </div>`;
+    const notaPrev = !esEjecucion ? `<div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-circle-info"></i> Así quedaría la estructura de tus hojas, con datos de muestra. En la <b>Vista de Ejecución</b> verás el reporte completo con los gastos reales, repartido en varias hojas.</div>` : '';
+
+    cont.innerHTML = `
+      ${etiquetaVista}
+      ${notaPrev}
+      ${leyenda}
+      ${hojasHtml}
+      ${esEjecucion ? `
+        <div class="empty-note"><i class="fa-solid fa-magnifying-glass"></i> Observa cuántas veces aparece cada pie: ¿en cuántas hojas se repite el pie de página? ¿cuántas veces sale el pie de reporte?</div>
+        <div id="feedbackEjecucionA24"></div>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:16px; flex-wrap:wrap;">
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarReportePdfA24">
+            <i class="fa-solid fa-file-pdf"></i> Descargar reporte en PDF
+          </button>
+          <button type="button" class="btn btn-primary" id="btnSiguienteEjecucionA24" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-right"></i> Siguiente
+          </button>
+        </div>` : ''}`;
+
+    if(esEjecucion){
+      document.getElementById('btnDescargarReportePdfA24').addEventListener('click', () => {
+        const enZona = (z, id) => elementosEnZonaA24_(z).some(e => e.id === id);
+        const lineasPieReporte = [];
+        if(enZona('pieReporte', 'totalGeneral')) lineasPieReporte.push({ etiqueta:'TOTAL GENERAL DE GASTOS', valor: formatoMontoA24_(totalGastosA24_()) });
+        if(enZona('pieReporte', 'cantidadGastos')) lineasPieReporte.push({ etiqueta:'CANTIDAD DE GASTOS REGISTRADOS', valor: String(filasGastosA24_().length) });
+        generarPdfReporteDisenado({
+          nombreEmpresa, tituloReporte,
+          columnas: camposColocadosDetalleA24.map(etiquetaCampoA24_),
+          filas: filasGastosA24_().map(f => camposColocadosDetalleA24.map(c => valorCeldaA24_(c, f))),
+          mostrarTitulosColumna: enZona('encPagina', 'titulosColumna'),
+          piePagina: { numero: enZona('piePagina', 'numeroPagina'), fecha: enZona('piePagina', 'fechaImpresion') },
+          pieReporte: lineasPieReporte,
+          filasPorHoja: FILAS_POR_HOJA_A24,
+          nombreArchivo: 'reporte_de_gastos'
+        });
+      });
+      document.getElementById('btnSiguienteEjecucionA24').addEventListener('click', intentarAvanzarDesdeEjecucionA24);
+    }
+  }
+
+  // Valida el diseño completo; cada sección fallida suma un intento y recibe una pista específica.
+  function intentarAvanzarDesdeEjecucionA24(){
+    actualizarEstadoVisualA24();
+    const mensajes = [];
+
+    if(!estadoSeccionesA24.encReporte){
+      intentosPorSeccionA24.encReporte++;
+      mensajes.push('El <b>encabezado de reporte</b> todavía no está completo: debe incluir el nombre de la empresa (TECNOVENTAS RD) y un título que mencione que es un reporte de gastos. Vuelve a la Vista de Diseño para completarlo.');
+    }
+    if(!estadoSeccionesA24.detalle){
+      intentosPorSeccionA24.detalle++;
+      mensajes.push('La <b>línea de detalle</b> no está correcta: selecciona la tabla <b>Gastos</b> y arrastra exactamente Fecha, Descripción, Departamento y Monto.');
+    }
+
+    const nombresZona = { encPagina:'encabezado de página', piePagina:'pie de página', pieReporte:'pie de reporte' };
+    ['encPagina', 'piePagina', 'pieReporte'].forEach(z => {
+      if(estadoSeccionesA24[z]) return;
+      intentosPorSeccionA24[z]++;
+      const pistas = [];
+      ELEMENTOS_A24.forEach(e => {
+        const donde = ubicacionesA24[e.id] || null;
+        const debeEstarAqui = e.zona === z;
+        if(donde === z && !debeEstarAqui) pistas.push(e.pista);          // está aquí y no debería
+        else if(debeEstarAqui && !donde) pistas.push(`Falta ubicar <b>${e.nombre}</b>.`);   // falta y nadie lo puso
+      });
+      mensajes.push(`El <b>${nombresZona[z]}</b> todavía no está correcto. ${pistas.length ? pistas.join(' ') : 'Revisa qué elementos le corresponden.'}`);
+    });
+
+    if(mensajes.length > 0){
+      document.getElementById('feedbackEjecucionA24').innerHTML = mensajes.map(m =>
+        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`
+      ).join('');
+      return;
+    }
+    mostrarPasoA24_('identificar');
+  }
+
+  // ---------- Paso 2: identificar y definir las 5 secciones ----------
+  function mostrarCompletoIdentificarA24_(){
+    const cont = document.getElementById('identificarSeccionesA24');
+    cont.classList.remove('hidden');
+    cont.innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 14px;">
+        <button type="button" class="btn-nav-paso" id="btnVolverDisenoA24"><i class="fa-solid fa-arrow-left"></i> Volver al diseño</button>
+        <button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSiguienteDiferenciaA24">Siguiente <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+      <div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste la identificación de las 5 secciones!</div>`;
+    document.getElementById('btnVolverDisenoA24').addEventListener('click', () => mostrarPasoA24_('diseno'));
+    document.getElementById('btnSiguienteDiferenciaA24').addEventListener('click', () => mostrarPasoA24_('diferencia'));
+  }
+
+  function pintarIdentificarSeccionesA24(){
+    const cont = document.getElementById('identificarSeccionesA24');
+    cont.classList.remove('hidden');
+    if(!ordenSeccionesIdentificarA24 || ordenSeccionesIdentificarA24.length === 0) ordenSeccionesIdentificarA24 = barajar(SECCIONES_IDENTIFICAR_A24_BASE);
+
+    const nombreEmpresa = nombreEmpresaValorA24 || 'TECNOVENTAS RD, S.R.L.';
+    const tituloReporte = tituloReporteValorA24 || 'Reporte de Gastos';
+    const filas = filasGastosA24_();
+    const hojas = hojasA24_().length;
+    const textos = (z, n) => elementosEnZonaA24_(z).filter(e => e.id !== 'titulosColumna').map(e => textoElementoA24_(e.id, n, hojas)).join(' · ');
+
+    const contenidoPorSeccion = {
+      encReporte: `<div style="font-weight:800;">${nombreEmpresa}</div><div style="opacity:.85;">${tituloReporte}</div>`,
+      encPagina: `<div style="font-weight:800; font-size:13px;">${camposColocadosDetalleA24.map(etiquetaCampoA24_).join(' | ')}</div>`,
+      detalle: `<div style="font-size:13px; line-height:1.7;">${filas.slice(0, 3).map(f => `<div>${camposColocadosDetalleA24.map(c => valorCeldaA24_(c, f)).join(' | ')}</div>`).join('')}<div style="opacity:.6;">… (una línea por cada uno de los ${filas.length} gastos)</div></div>`,
+      piePagina: `<div style="font-size:13px; font-weight:700;">${textos('piePagina', 2)}</div>`,
+      pieReporte: `<div style="font-size:13px; font-weight:700;">${elementosEnZonaA24_('pieReporte').map(e => textoElementoA24_(e.id, 1, hojas)).join('<br>')}</div>`
+    };
+    const estiloCaja = {
+      encReporte: 'background:#12294a; color:#fff; border-left:4px solid #C9A227;',
+      encPagina: 'background:#dbe7f7; color:#12294a; border-left:4px solid #8fb0e0;',
+      detalle: 'background: rgba(255,255,255,0.04); border-left:4px solid var(--dark-border);',
+      piePagina: 'background:#fdf0d6; color:#78350f; border-left:4px solid #e9a850;',
+      pieReporte: 'background:#dff3e6; color:#166534; border-left:4px solid #2e8b57;'
+    };
+
+    cont.innerHTML = `
+      ${htmlBotonVolverA_('btnVolverDisenoA24', 'Volver al diseño')}
+      <div class="section-heading" style="font-size:18px;">Identifica y define las secciones de tu reporte</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-hand-pointer"></i> Para cada recuadro, identifica qué sección del reporte es y explica en tus propias palabras qué función cumple. Los colores te ayudan, pero no bastan: piensa dónde aparece y cuántas veces.</div>
+
+      ${ordenSeccionesIdentificarA24.map(s => `
+        <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+          <div style="${estiloCaja[s.id]} padding:10px 14px; border-radius:8px; margin-bottom:12px;">${contenidoPorSeccion[s.id]}</div>
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿Qué sección del reporte es esta?</label>
+          <select class="input-generico select-identificar-a21" data-seccion="${s.id}" style="margin-bottom:12px;">
+            <option value="">Selecciona...</option>
+            ${barajar(SECCIONES_IDENTIFICAR_A24_BASE).map(op => `<option value="${op.id}">${op.nombre}</option>`).join('')}
+          </select>
+          <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">En tus palabras, ¿qué función cumple esta sección?</label>
+          <textarea class="input-generico celda-respuesta-a15 textarea-definir-a21" data-seccion="${s.id}" rows="2" placeholder="Escribe tu definición..."></textarea>
+        </div>
+      `).join('')}
+
+      <div id="feedbackIdentificarA24"></div>
+      <button type="button" class="btn btn-primary" id="btnConfirmarIdentificarA24" style="width:auto; padding:12px 28px;">
+        <i class="fa-solid fa-check"></i> Confirmar
+      </button>`;
+
+    cont.querySelectorAll('.select-identificar-a21').forEach(sel => {
+      const r = respuestasIdentificarA24[sel.dataset.seccion];
+      if(r && r.identificacion) sel.value = r.identificacion;
+      sel.addEventListener('change', () => {
+        const s = sel.dataset.seccion;
+        if(!respuestasIdentificarA24[s]) respuestasIdentificarA24[s] = {};
+        respuestasIdentificarA24[s].identificacion = sel.value;
+      });
+    });
+    cont.querySelectorAll('.textarea-definir-a21').forEach(ta => {
+      const r = respuestasIdentificarA24[ta.dataset.seccion];
+      if(r && r.definicion) ta.value = r.definicion;
+      ta.addEventListener('input', () => {
+        const s = ta.dataset.seccion;
+        if(!respuestasIdentificarA24[s]) respuestasIdentificarA24[s] = {};
+        respuestasIdentificarA24[s].definicion = ta.value;
+      });
+    });
+    document.getElementById('btnConfirmarIdentificarA24').addEventListener('click', verificarIdentificarSeccionesA24);
+    document.getElementById('btnVolverDisenoA24').addEventListener('click', () => mostrarPasoA24_('diseno'));
+  }
+
+  function verificarIdentificarSeccionesA24(){
+    intentosIdentificarGeneralA24++;
+    let todoCorrecto = true;
+    SECCIONES_IDENTIFICAR_A24_BASE.forEach(s => {
+      const resp = respuestasIdentificarA24[s.id] || {};
+      if(resp.identificacion !== s.id || contarPalabrasRealesA15_(resp.definicion || '') < 4) todoCorrecto = false;
+    });
+    if(!todoCorrecto){
+      document.getElementById('feedbackIdentificarA24').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Revisa: alguna identificación o definición todavía no está completa. La definición debe tener varias palabras propias, no solo repetir el nombre de la sección. Si dudas entre el pie de página y el pie de reporte, recuerda cuántas veces aparece cada uno.</div></div>`;
+      return;
+    }
+    identificarSeccionesCompletoA24 = true;
+    mostrarPasoA24_('diferencia');
+  }
+
+  // ---------- Paso 3: diferencia entre pie de página y pie de reporte ----------
+  function mostrarCompletoDiferenciaA24_(){
+    const cont = document.getElementById('diferenciaPiesA24');
+    cont.classList.remove('hidden');
+    cont.innerHTML = `
+      ${htmlBotonVolverA_('btnVolverIdentificarA24', 'Volver a la identificación')}
+      <div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Estableciste correctamente la diferencia entre el pie de página y el pie de reporte!</div>`;
+    document.getElementById('btnVolverIdentificarA24').addEventListener('click', () => mostrarPasoA24_('identificar'));
+    document.getElementById('seccionFinalA24').classList.remove('hidden');
+  }
+
+  function pintarDiferenciaA24(){
+    const cont = document.getElementById('diferenciaPiesA24');
+    cont.classList.remove('hidden');
+    const hojas = hojasA24_().length;
+    const opcionesNumero = (sel) => '<option value="">Selecciona...</option>' + [1, 2, 3, 4, 5, 6].map(n => `<option value="${n}" ${String(sel) === String(n) ? 'selected' : ''}>${n}</option>`).join('');
+    const r = respuestasDiferenciaA24;
+
+    cont.innerHTML = `
+      ${htmlBotonVolverA_('btnVolverIdentificarA24', 'Volver a la identificación')}
+      <div class="section-heading" style="font-size:18px;">Pie de página vs. pie de reporte</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-scale-balanced"></i> Establece la diferencia entre ambos pies. Apóyate en tu reporte y en el recurso de apoyo.</div>
+
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">1. ¿A qué pie corresponde cada afirmación?</div>
+        ${AFIRMACIONES_A24.map(a => `
+          <div class="afirmacion-a24">
+            <span>${a.texto}</span>
+            <select class="input-generico select-afirmacion-a24" data-id="${a.id}">
+              <option value="">Selecciona...</option>
+              <option value="piePagina" ${r.afirmaciones[a.id] === 'piePagina' ? 'selected' : ''}>Pie de página</option>
+              <option value="pieReporte" ${r.afirmaciones[a.id] === 'pieReporte' ? 'selected' : ''}>Pie de reporte</option>
+            </select>
+          </div>`).join('')}
+      </div>
+
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">2. Cuenta en tu propio reporte</div>
+        <p style="font-size:14px; margin:0 0 12px;">Tu reporte de gastos quedó repartido en <b>${hojas} hojas</b> (en la Vista de Ejecución puedes comprobarlo).</p>
+        <div class="afirmacion-a24"><span>¿Cuántas veces aparece el <b>pie de página</b> en todo el reporte?</span>
+          <select class="input-generico" id="selVecesPieA24">${opcionesNumero(r.vecesPie)}</select></div>
+        <div class="afirmacion-a24" style="border-bottom:none;"><span>¿Cuántas veces aparece el <b>pie de reporte</b> en todo el reporte?</span>
+          <select class="input-generico" id="selVecesPieReporteA24">${opcionesNumero(r.vecesPieReporte)}</select></div>
+      </div>
+
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">3. Explícalo con tus palabras</div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿En qué se diferencian el pie de página y el pie de reporte? (dónde aparecen, cuántas veces y qué contienen)</label>
+        <textarea class="input-generico celda-respuesta-a15" id="txtExplicacionPiesA24" rows="4" placeholder="Escribe tu explicación...">${(r.explicacion || '').replace(/</g, '&lt;')}</textarea>
+      </div>
+
+      <div id="feedbackDiferenciaA24"></div>
+      <button type="button" class="btn btn-primary" id="btnConfirmarDiferenciaA24" style="width:auto; padding:12px 28px;">
+        <i class="fa-solid fa-check"></i> Confirmar
+      </button>`;
+
+    cont.querySelectorAll('.select-afirmacion-a24').forEach(sel => sel.addEventListener('change', () => { respuestasDiferenciaA24.afirmaciones[sel.dataset.id] = sel.value; }));
+    document.getElementById('selVecesPieA24').addEventListener('change', (e) => { respuestasDiferenciaA24.vecesPie = e.target.value; });
+    document.getElementById('selVecesPieReporteA24').addEventListener('change', (e) => { respuestasDiferenciaA24.vecesPieReporte = e.target.value; });
+    document.getElementById('txtExplicacionPiesA24').addEventListener('input', (e) => { respuestasDiferenciaA24.explicacion = e.target.value; });
+    document.getElementById('btnVolverIdentificarA24').addEventListener('click', () => mostrarPasoA24_('identificar'));
+    document.getElementById('btnConfirmarDiferenciaA24').addEventListener('click', verificarDiferenciaA24);
+  }
+
+  function verificarDiferenciaA24(){
+    intentosDiferenciaA24++;
+    const r = respuestasDiferenciaA24;
+    const hojas = hojasA24_().length;
+    const malas = AFIRMACIONES_A24.filter(a => r.afirmaciones[a.id] !== a.correcta).length;
+    const vecesOk = String(r.vecesPie) === String(hojas) && String(r.vecesPieReporte) === '1';
+    const texto = normalizarTextoA15_(r.explicacion || '');
+    const explicacionOk = contarPalabrasRealesA15_(r.explicacion || '') >= 12 && texto.includes('pagina') && texto.includes('reporte');
+
+    const mensajes = [];
+    if(malas > 0) mensajes.push(`${malas} de las 6 afirmaciones no corresponden al pie que elegiste. Piensa: ¿se repite en cada hoja o sale una sola vez al final?`);
+    if(!vecesOk) mensajes.push(`Revisa cuántas veces aparece cada pie: fíjate en la Vista de Ejecución de tu reporte (el pie de página sale una vez por hoja; el pie de reporte, solo al final).`);
+    if(!explicacionOk) mensajes.push('Tu explicación necesita más detalle: usa al menos 12 palabras y menciona tanto el <b>pie de página</b> como el <b>pie de reporte</b>, indicando dónde aparecen, cuántas veces y qué contienen.');
+
+    if(mensajes.length){
+      document.getElementById('feedbackDiferenciaA24').innerHTML = mensajes.map(m =>
+        `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`).join('');
+      return;
+    }
+    diferenciaCompletaA24 = true;
+    mostrarPasoA24_('diferencia');
+  }
+
+  document.getElementById('btnFinalizarA24').addEventListener('click', async () => {
+    clearInterval(timerIntervalA24);
+
+    const minutosTranscurridos = (Date.now() - inicioTiempoA24) / 60000;
+    const nivelPorIntentos = (intentos) => intentos <= 1 ? 'logrado' : (intentos <= 2 ? 'proceso' : 'no_logrado');
+    const C = CRITERIOS_BASE_A24;
+    const crit = (i, nivel) => ({ nombre: C[i].nombre, descripcion: C[i].descripcion, nivel });
+
+    const criterios = [
+      crit(0, 'logrado'),
+      crit(1, nivelPorIntentos(intentosPorSeccionA24.encReporte || 1)),
+      crit(2, nivelPorIntentos(intentosPorSeccionA24.detalle || 1)),
+      crit(3, nivelPorIntentos(intentosPorSeccionA24.encPagina || 1)),
+      crit(4, nivelPorIntentos(intentosPorSeccionA24.piePagina || 1)),
+      crit(5, nivelPorIntentos(intentosPorSeccionA24.pieReporte || 1)),
+      crit(6, 'logrado'),
+      crit(7, nivelPorIntentos(intentosIdentificarGeneralA24 || 1)),
+      crit(8, nivelPorIntentos(intentosDiferenciaA24 || 1)),
+      crit(9, minutosTranscurridos <= tiempoEstimadoA24 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA24 * 2 ? 'proceso' : 'no_logrado')),
+      crit(10, 'logrado')
+    ];
+
+    const pesoUnidad = puntajeMaxA24 / criterios.length;
+    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    let notaCalculada = 0;
+    criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
+    notaCalculada = Math.round(notaCalculada * 100) / 100;
+
+    document.getElementById('vistaEjercicioA24').classList.add('hidden');
+    document.getElementById('vistaResultadoA24').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA24').classList.add('hidden');
+    renderRubrica('rubricaResultadoA24', criterios, puntajeMaxA24, notaCalculada);
+    ultimoResultadoA24 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA24 };
+
+    const proporcionFinal = puntajeMaxA24 > 0 ? notaCalculada / puntajeMaxA24 : 0;
+    mostrarLogro(proporcionFinal >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcionFinal >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcionFinal >= 0.8) dispararConfeti();
+
+    const nombreZona = { encPagina:'Encabezado de página', piePagina:'Pie de página', pieReporte:'Pie de reporte' };
+    const detalleA24 = [
+      {
+        titulo: 'Diseño del reporte de gastos',
+        items: [
+          { pregunta:'Encabezado de reporte', tuRespuesta: `Completado en ${intentosPorSeccionA24.encReporte || 1} intento(s)`, correcta: (intentosPorSeccionA24.encReporte || 1) <= 1 },
+          { pregunta:'Línea de detalle', tuRespuesta: camposColocadosDetalleA24.map(etiquetaCampoA24_).join(', '), correcta: (intentosPorSeccionA24.detalle || 1) <= 1 },
+          ...['encPagina', 'piePagina', 'pieReporte'].map(z => ({
+            pregunta: nombreZona[z],
+            tuRespuesta: elementosEnZonaA24_(z).map(e => e.nombre).join(', ') || 'Vacío',
+            correcta: (intentosPorSeccionA24[z] || 1) <= 1
+          }))
+        ]
+      },
+      {
+        titulo: 'Recorrido de vistas, identificación de secciones y diferencia entre pies',
+        items: [
+          { pregunta:'¿Recorrió las 3 vistas (Diseño, Previsualización, Ejecución)?', tuRespuesta: `${vistasVisitadasA24.size} de 3`, correcta: vistasVisitadasA24.size >= 3 },
+          ...SECCIONES_IDENTIFICAR_A24_BASE.map(s => {
+            const resp = respuestasIdentificarA24[s.id] || {};
+            const nombreIdentificado = (SECCIONES_IDENTIFICAR_A24_BASE.find(x => x.id === resp.identificacion) || {}).nombre || 'Sin responder';
+            return {
+              pregunta: `¿Qué es "${s.nombre}" y qué función cumple?`,
+              tuRespuesta: `Identificó: ${nombreIdentificado}. Definición: ${resp.definicion || 'Sin responder'}`,
+              correcta: resp.identificacion === s.id && contarPalabrasRealesA15_(resp.definicion || '') >= 4
+            };
+          }),
+          { pregunta:'Veces que aparece cada pie en su reporte', tuRespuesta: `Pie de página: ${respuestasDiferenciaA24.vecesPie}; pie de reporte: ${respuestasDiferenciaA24.vecesPieReporte}`, correcta: (intentosDiferenciaA24 || 1) <= 1 },
+          { pregunta:'Diferencia entre pie de página y pie de reporte', tuRespuesta: respuestasDiferenciaA24.explicacion || 'Sin responder', correcta: (intentosDiferenciaA24 || 1) <= 1 }
+        ]
+      }
+    ];
+    ultimoResultadoA24.detalle = detalleA24;
+    renderDesgloseColoreado('resultadoDesgloseA24', detalleA24);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.2.4',
+        ra:'RA2',
+        ec:'EC6.2.2',
+        nota: notaCalculada,
+        puntajeMaximo: puntajeMaxA24,
+        criterios: criterios,
+        detalle: detalleA24
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA24').addEventListener('click', () => {
+    if(!ultimoResultadoA24) return;
+    generarPdfResultado('A.2.4', ultimoResultadoA24.criterios, ultimoResultadoA24.nota, ultimoResultadoA24.puntajeMaximo, 'EC6.2.2', 'RA2', ultimoResultadoA24.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA24').addEventListener('click', () => {
+    document.getElementById('panelActividadA24').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.4', abrirActividadA24);
