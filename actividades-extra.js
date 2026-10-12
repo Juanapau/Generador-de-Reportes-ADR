@@ -122,6 +122,7 @@
             </div>
           </div>
         </div>
+        <div class="prorrogas-section"></div>
 
         <label style="display:block; font-size:14.5px; font-weight:700; color:var(--dark-text-dim); margin:16px 0 8px;">
           <i class="fa-solid fa-reply"></i> ¿Cómo responderá el estudiante?
@@ -216,6 +217,7 @@
       conectarEditorEnunciado(card);
       cargarRecursosAdmin(codigo, card);
       wireRecursosExtra(card, codigo);
+      if(typeof montarPanelProrrogas_ === 'function') montarPanelProrrogas_(card, codigo, 'extra');
 
       // Tabs de tipo de respuesta
       card.querySelectorAll('.tipo-respuesta-tab').forEach(tab => {
@@ -558,7 +560,7 @@
     wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
     try{
       const [dataAct, dataResp] = await Promise.all([
-        apiGet({ action:'listarActividadesExtra' }),
+        apiGet({ action:'listarActividadesExtra', usuario: currentUser.usuario }),
         apiGet({ action:'listarRespuestasExtra', usuario: currentUser.usuario })
       ]);
       if(!dataAct.success){
@@ -621,6 +623,7 @@
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <span class="puntaje-pill"><i class="fa-solid fa-star"></i> ${act.puntajeMaximo} pts</span>
+              ${act.prorroga && !miRespuesta ? '<span class="prorroga-pill"><i class="fa-solid fa-user-clock"></i> Fecha especial</span>' : ''}
               ${estadoBadge}
             </div>
           </div>
