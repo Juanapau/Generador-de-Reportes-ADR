@@ -424,6 +424,7 @@
             Si dejas estos campos vacíos, la actividad estará disponible sin límite de fecha mientras esté habilitada.
           </div>
         </div>
+        <div class="prorrogas-section"></div>
 
         <div class="recursos-section">
           <div style="font-weight:800; font-size:15px; margin-top:16px; margin-bottom:8px;">
@@ -661,6 +662,7 @@
       });
 
       cargarRecursosAdmin(codigo, card);
+      if(typeof montarPanelProrrogas_ === 'function') montarPanelProrrogas_(card, codigo, 'normal');
 
       // Toggle entre "Enlace" y "Archivo"
       card.querySelectorAll('.recurso-tipo-tab').forEach(tab => {
