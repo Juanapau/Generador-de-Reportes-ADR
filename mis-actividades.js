@@ -39,7 +39,7 @@
     const wrap = document.getElementById('listaMisActividadesWrap');
     wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
     try{
-      const data = await apiGet({ action:'listarActividades', ra: raActualEstudiante });
+      const data = await apiGet({ action:'listarActividades', ra: raActualEstudiante, usuario: currentUser.usuario });
       if(!data.success){
         wrap.innerHTML = '<div class="empty-table-msg">No se pudieron cargar las actividades.</div>';
         return;
@@ -101,6 +101,7 @@
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
               <span class="puntaje-pill"><i class="fa-solid fa-star"></i> ${act.puntaje} pts</span>
+              ${act.prorroga && !completada ? '<span class="prorroga-pill"><i class="fa-solid fa-user-clock"></i> Fecha especial</span>' : ''}
               ${estadoBadge}
             </div>
           </div>
@@ -122,7 +123,7 @@
           // (la hora de la computadora del estudiante no cuenta).
           if(!calificacionesPorCodigo[act.codigo] && !modoPreviewDocente){
             try{
-              const v = await apiGet({ action:'verificarDisponibilidad', codigo: act.codigo });
+              const v = await apiGet({ action:'verificarDisponibilidad', codigo: act.codigo, usuario: currentUser.usuario });
               if(v.success && v.disponible === false){
                 mostrarNotificacion(v.motivo || 'Esta actividad no está disponible en este momento.', 'error');
                 cargarMisActividades();
