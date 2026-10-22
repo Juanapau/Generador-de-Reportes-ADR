@@ -689,6 +689,73 @@
         document.getElementById('inputDocenteResponsable').value = data.config.docenteResponsable || '';
       }
     }catch(err){ /* si falla, se dejan los campos vacíos para que los llene de nuevo */ }
+    pintarConfigRA_();
+  });
+
+  // ---------- Valor de cada RA y mínimo aprobatorio ----------
+  async function pintarConfigRA_(){
+    const wrap = document.getElementById('configRaWrap');
+    wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando...</div>';
+    const config = await cargarConfigRA_(true);
+    // suma de puntos de las actividades habilitadas de cada RA (para avisar si no coincide con el valor)
+    const sumas = {};
+    try{
+      const d = await apiGet({ action:'listarActividades' });
+      if(d.success) d.actividades.filter(a => a.habilitada === 'Si').forEach(a => { sumas[a.ra] = (sumas[a.ra] || 0) + (Number(a.puntaje) || 0); });
+    }catch(err){ /* sin la suma simplemente no se muestra el aviso */ }
+
+    wrap.innerHTML = Object.keys(RA_INFO).map(ra => {
+      const c = config[ra];
+      return `
+        <div class="config-ra-fila" data-ra="${ra}">
+          <div class="config-ra-nombre"><i class="fa-solid ${RA_INFO[ra].icono}"></i> ${ra}</div>
+          <div class="field"><label>Valor del RA (pts)</label><input type="number" class="cfg-valor" min="0" step="0.5" value="${c ? c.valor : ''}" placeholder="Ej. 15"></div>
+          <div class="field"><label>% mínimo para aprobar</label><input type="number" class="cfg-pct" min="1" max="100" step="1" value="${c ? c.porcentaje : 70}"></div>
+          <div class="config-ra-minimo"><span>Mínimo aprobatorio</span><b class="cfg-minimo">—</b></div>
+          <div class="config-ra-aviso" data-suma="${sumas[ra] || 0}"></div>
+        </div>`;
+    }).join('');
+
+    wrap.querySelectorAll('.config-ra-fila').forEach(fila => {
+      const actualizar = () => {
+        const valor = Number(fila.querySelector('.cfg-valor').value) || 0;
+        const pct = Number(fila.querySelector('.cfg-pct').value) || 70;
+        fila.querySelector('.cfg-minimo').textContent = valor > 0 ? `${calcularMinimoRA_(valor, pct)} pts` : '—';
+        const aviso = fila.querySelector('.config-ra-aviso');
+        const suma = Number(aviso.dataset.suma) || 0;
+        if(suma > 0 && valor > 0 && Math.abs(suma - valor) > 1e-9){
+          aviso.className = 'config-ra-aviso config-ra-aviso-alerta';
+          aviso.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Las actividades habilitadas suman ${fmtPts_(suma)} pts y el RA vale ${fmtPts_(valor)}.`;
+        } else if(suma > 0){
+          aviso.className = 'config-ra-aviso';
+          aviso.innerHTML = `<i class="fa-solid fa-circle-check"></i> Las actividades habilitadas suman ${fmtPts_(suma)} pts.`;
+        } else {
+          aviso.className = 'config-ra-aviso';
+          aviso.textContent = '';
+        }
+      };
+      fila.querySelectorAll('input').forEach(i => i.addEventListener('input', actualizar));
+      actualizar();
+    });
+  }
+
+  document.getElementById('btnGuardarConfigRA').addEventListener('click', async () => {
+    const ras = {};
+    document.querySelectorAll('#configRaWrap .config-ra-fila').forEach(fila => {
+      const valor = Number(fila.querySelector('.cfg-valor').value) || 0;
+      const porcentaje = Number(fila.querySelector('.cfg-pct').value) || 70;
+      if(valor > 0) ras[fila.dataset.ra] = { valor, porcentaje };
+    });
+    if(Object.keys(ras).length === 0){ mostrarNotificacion('Indica el valor de al menos un RA.', 'error'); return; }
+    const btn = document.getElementById('btnGuardarConfigRA');
+    btn.disabled = true;
+    try{
+      const resp = await apiPost({ action:'guardarConfiguracionRA', ras });
+      if(resp.success){ mostrarNotificacion('Valores de los RA guardados.', 'success'); configRACache = null; }
+      else mostrarNotificacion(resp.error || 'No se pudo guardar.', 'error');
+    }catch(err){
+      mostrarNotificacion('Error de conexión con el servidor.', 'error');
+    }finally{ btn.disabled = false; }
   });
 
   document.getElementById('btnBackFromConfiguracion').addEventListener('click', () => {
