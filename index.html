@@ -411,11 +411,6 @@
       </div>
       <div class="config-col-der">
       <div class="section-heading" style="margin-top:0; font-size:20px;">Valor de cada RA y mínimo aprobatorio</div>
-      <div class="empty-note" style="margin-top:0; margin-bottom:16px;">
-        <i class="fa-solid fa-circle-info"></i>
-        Define cuántos puntos vale cada RA. El mínimo aprobatorio se calcula con el porcentaje indicado y se redondea hacia arriba, sin decimales
-        (por ejemplo, 70 % de 15 = 10.5, queda en 11). Los estudiantes lo verán al entrar al RA y en Mi progreso. Las actividades extra no cuentan para el RA.
-      </div>
       <div id="configRaWrap"></div>
       <button type="button" class="btn btn-primary" id="btnGuardarConfigRA" style="width:auto; padding:12px 28px; margin-top:14px;">
         <i class="fa-solid fa-floppy-disk"></i> Guardar valores de los RA
@@ -533,8 +528,10 @@
       <!-- Vista 2: lista de actividades del RA seleccionado -->
       <div id="vistaListaMisActividades" class="hidden">
         <button type="button" class="back-btn" id="btnBackToRaCardsEstudiante"><i class="fa-solid fa-arrow-left"></i> Volver a mis RA</button>
-        <div class="section-heading" id="tituloListaMisActividades" style="font-size:22px;">RA1</div>
-        <div id="bannerValorRA"></div>
+        <div class="ra-titulo-fila">
+          <div class="section-heading" id="tituloListaMisActividades" style="font-size:22px; margin:0;">RA1</div>
+          <div id="bannerValorRA"></div>
+        </div>
         <div id="listaMisActividadesWrap"></div>
       </div>
     </div>
