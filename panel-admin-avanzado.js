@@ -709,8 +709,7 @@
       return `
         <div class="config-ra-fila" data-ra="${ra}">
           <div class="config-ra-nombre"><i class="fa-solid ${RA_INFO[ra].icono}"></i> ${ra}</div>
-          <div class="field"><label>Valor del RA (pts)</label><input type="number" class="cfg-valor" min="0" step="0.5" value="${c ? c.valor : ''}" placeholder="Ej. 15"></div>
-          <div class="field"><label>% mínimo para aprobar</label><input type="number" class="cfg-pct" min="1" max="100" step="1" value="${c ? c.porcentaje : 70}"></div>
+          <div class="field"><label>Valor del RA (pts)</label><input type="number" class="cfg-valor" min="0" step="1" value="${c ? c.valor : ''}" placeholder="Ej. 15"></div>
           <div class="config-ra-minimo"><span>Mínimo aprobatorio</span><b class="cfg-minimo">—</b></div>
           <div class="config-ra-aviso" data-suma="${sumas[ra] || 0}"></div>
         </div>`;
@@ -719,7 +718,7 @@
     wrap.querySelectorAll('.config-ra-fila').forEach(fila => {
       const actualizar = () => {
         const valor = Number(fila.querySelector('.cfg-valor').value) || 0;
-        const pct = Number(fila.querySelector('.cfg-pct').value) || 70;
+        const pct = 70;
         fila.querySelector('.cfg-minimo').textContent = valor > 0 ? `${calcularMinimoRA_(valor, pct)} pts` : '—';
         const aviso = fila.querySelector('.config-ra-aviso');
         const suma = Number(aviso.dataset.suma) || 0;
@@ -742,8 +741,8 @@
   document.getElementById('btnGuardarConfigRA').addEventListener('click', async () => {
     const ras = {};
     document.querySelectorAll('#configRaWrap .config-ra-fila').forEach(fila => {
-      const valor = Number(fila.querySelector('.cfg-valor').value) || 0;
-      const porcentaje = Number(fila.querySelector('.cfg-pct').value) || 70;
+      const valor = Math.round(Number(fila.querySelector('.cfg-valor').value) || 0);
+      const porcentaje = 70;
       if(valor > 0) ras[fila.dataset.ra] = { valor, porcentaje };
     });
     if(Object.keys(ras).length === 0){ mostrarNotificacion('Indica el valor de al menos un RA.', 'error'); return; }
