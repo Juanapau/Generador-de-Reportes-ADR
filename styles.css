@@ -1737,3 +1737,18 @@
 .resultado-celda-aprobado span{ color:#22c55e; }
 .resultado-celda-no-aprobado span{ color:#ef4444; }
 .resultado-celda-en-proceso span{ color:#f59e0b; }
+
+/* Configuración en dos columnas: datos generales a la izquierda, valor de los RA a la derecha */
+.config-columnas{ display:grid; grid-template-columns:minmax(260px, 1fr) minmax(340px, 1.3fr); gap:28px; align-items:start; }
+.config-col-izq .config-form{ max-width:none; }
+.config-col-der .empty-note{ font-size:12.5px; padding:10px 14px; margin-bottom:12px; }
+.config-col-der .config-ra-fila{ display:grid; grid-template-columns:56px 1fr 1fr 1fr; gap:10px; align-items:end; padding:10px 12px; margin-bottom:8px; }
+.config-col-der .config-ra-nombre{ font-size:22px; min-width:0; align-self:center; }
+.config-col-der .config-ra-fila .field{ min-width:0; }
+.config-col-der .config-ra-fila .field label{ font-size:10.5px; }
+.config-col-der .config-ra-fila input{ padding:8px 10px; }
+.config-col-der .config-ra-minimo{ min-width:0; }
+.config-col-der .config-ra-minimo b{ font-size:18px; }
+.config-col-der .config-ra-aviso{ grid-column:2 / -1; font-size:12px; }
+.config-col-der .config-ra-aviso:empty{ display:none; }
+@media (max-width: 900px){ .config-columnas{ grid-template-columns:1fr; } }
