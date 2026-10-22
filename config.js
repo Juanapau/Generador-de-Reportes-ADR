@@ -96,6 +96,50 @@
     RA5: { icono:'fa-robot',          color:'gold',  descripcion:'Integrar repositorios de tableros con algoritmos de Big Data o Inteligencia Artificial para descubrir patrones y tendencias.' }
   };
 
+  // ---------- Valor del RA y mínimo aprobatorio ----------
+  // El docente define en Configuración el valor de cada RA y el % mínimo (70 por defecto).
+  // El mínimo aprobatorio NUNCA lleva decimales: se redondea hacia arriba (así nunca queda por debajo del %).
+  let configRACache = null;
+
+  function calcularMinimoRA_(valor, porcentaje){
+    const v = Number(valor) || 0, p = Number(porcentaje) || 70;
+    if(v <= 0) return 0;
+    return Math.ceil(v * p / 100 - 1e-9);
+  }
+
+  // Devuelve { RA1:{valor, porcentaje, minimo}, ... } solo para los RA que el docente ya configuró
+  async function cargarConfigRA_(forzar){
+    if(configRACache && !forzar) return configRACache;
+    const res = {};
+    try{
+      const data = await apiGet({ action:'listarConfiguracion' });
+      if(data.success){
+        Object.keys(RA_INFO).forEach(ra => {
+          const valor = Number(data.config['valorRA_' + ra]);
+          if(valor > 0){
+            const porcentaje = Number(data.config['porcentajeRA_' + ra]) || 70;
+            res[ra] = { valor, porcentaje, minimo: calcularMinimoRA_(valor, porcentaje) };
+          }
+        });
+        configRACache = res;
+      }
+    }catch(err){ /* sin conexión: simplemente no se muestra el valor del RA */ }
+    return res;
+  }
+
+  function fmtPts_(n){
+    const x = Math.round((Number(n) || 0) * 100) / 100;
+    return Number.isInteger(x) ? String(x) : x.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  }
+
+  // estado: 'aprobado' | 'no-aprobado' | 'en-proceso'
+  // obtenidos: puntos que lleva; disponibles: puntos que aún puede ganar (actividades pendientes todavía abiertas)
+  function evaluarResultadoRA_(info, obtenidos, disponibles){
+    if(obtenidos >= info.minimo - 1e-9) return { estado:'aprobado', faltan:0 };
+    if(obtenidos + disponibles < info.minimo - 1e-9) return { estado:'no-aprobado', faltan: info.minimo - obtenidos };
+    return { estado:'en-proceso', faltan: info.minimo - obtenidos };
+  }
+
   // ---------- Notificaciones tipo toast (reemplaza alert() nativo) ----------
   function mostrarNotificacion(mensaje, tipo){
     tipo = tipo || 'info'; // 'success' | 'error' | 'info'
