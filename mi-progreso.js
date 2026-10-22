@@ -72,7 +72,7 @@
         <div class="resumen-progreso-card">
           <div class="resumen-progreso-top">
             <div>
-              <div class="resumen-progreso-numero">${puntosObtenidos.toFixed(2)} <span>/ ${puntosPosibles.toFixed(2)} pts</span></div>
+              <div class="resumen-progreso-numero">${fmtTotal_(puntosObtenidos)} <span>/ ${fmtTotal_(puntosPosibles)} pts</span></div>
               <div class="resumen-progreso-sub">${completadas} de ${totalActividades} actividades completadas</div>
             </div>
             <div class="resumen-progreso-porcentaje">${porcentaje}%</div>
@@ -140,15 +140,15 @@
             marcaHtml = `<div class="barra-marca-minimo" style="left:${pctMin}%" title="Mínimo para aprobar: ${cfgRA.minimo} pts"></div>`;
             const textos = {
               'aprobado': `<i class="fa-solid fa-circle-check"></i> ¡Aprobado! Alcanzaste el mínimo de ${cfgRA.minimo} pts.`,
-              'no-aprobado': `<i class="fa-solid fa-circle-xmark"></i> No aprobado: obtuviste ${fmtPts_(puntosRA)} pts y el mínimo era ${cfgRA.minimo} pts.`,
-              'en-proceso': `<i class="fa-solid fa-hourglass-half"></i> En proceso: te faltan ${fmtPts_(ev.faltan)} pts para el mínimo de ${cfgRA.minimo} pts.`
+              'no-aprobado': `<i class="fa-solid fa-circle-xmark"></i> No aprobado: obtuviste ${fmtTotal_(puntosRA)} pts y el mínimo era ${cfgRA.minimo} pts.`,
+              'en-proceso': `<i class="fa-solid fa-hourglass-half"></i> En proceso: te faltan ${ev.faltan} pts para el mínimo de ${cfgRA.minimo} pts.`
             };
             resultadoHtml = `
               <div class="resultado-ra resultado-ra-${ev.estado}">
                 <div class="resultado-ra-datos">
                   <span>Valor del RA: <b>${fmtPts_(cfgRA.valor)} pts</b></span>
                   <span>Mínimo para aprobar (${fmtPts_(cfgRA.porcentaje)} %): <b>${cfgRA.minimo} pts</b></span>
-                  <span>Obtuviste: <b>${fmtPts_(puntosRA)} pts</b></span>
+                  <span>Obtuviste: <b>${fmtTotal_(puntosRA)} pts</b></span>
                 </div>
                 <div class="resultado-ra-estado">${textos[ev.estado]}</div>
               </div>`;
@@ -161,7 +161,7 @@
               </div>
               ${itemsHtml}
               <div class="progreso-ra-barra-wrap">
-                <div class="progreso-ra-barra-texto">${completadasRA} de ${actividadesDelRA.length} actividades de ${ra} · ${puntosRA.toFixed(2)}/${cfgRA ? fmtPts_(cfgRA.valor) : posiblesRA.toFixed(2)} pts</div>
+                <div class="progreso-ra-barra-texto">${completadasRA} de ${actividadesDelRA.length} actividades de ${ra} · ${fmtTotal_(puntosRA)}/${cfgRA ? fmtPts_(cfgRA.valor) : fmtTotal_(posiblesRA)} pts</div>
                 <div class="progreso-barra-wrap" style="margin-bottom:0; position:relative;">
                   <div class="progreso-barra-fill" style="width:${porcentajeRA}%"></div>
                   ${marcaHtml}
