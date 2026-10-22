@@ -27,11 +27,12 @@
     document.getElementById('bloqueProgresoExtra').classList.add('hidden');
 
     try{
-      const [dataAct, dataCal, dataActExtra, dataRespExtra] = await Promise.all([
-        apiGet({ action:'listarActividades' }),
+      const [dataAct, dataCal, dataActExtra, dataRespExtra, configRA] = await Promise.all([
+        apiGet({ action:'listarActividades', usuario: currentUser.usuario }),
         apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario }),
-        apiGet({ action:'listarActividadesExtra' }),
-        apiGet({ action:'listarRespuestasExtra', usuario: currentUser.usuario })
+        apiGet({ action:'listarActividadesExtra', usuario: currentUser.usuario }),
+        apiGet({ action:'listarRespuestasExtra', usuario: currentUser.usuario }),
+        cargarConfigRA_()
       ]);
 
       const actividadesRA = (dataAct.success ? dataAct.actividades : []).filter(a => a.habilitada === 'Si');
@@ -99,12 +100,18 @@
           const actividadesDelRA = gruposPorRA[ra];
           const infoRA = RA_INFO[ra];
 
-          let puntosRA = 0, posiblesRA = 0, completadasRA = 0;
+          let puntosRA = 0, posiblesRA = 0, completadasRA = 0, disponiblesRA = 0;
+          const ahoraSeg = ahoraSeguro_();
           const itemsHtml = actividadesDelRA.map(a => {
             const cal = califPorCodigo[a.codigo];
             const nombre = a.titulo || NOMBRES_ACTIVIDADES_RA[a.codigo] || a.codigo;
             posiblesRA += Number(a.puntaje) || 0;
             if(cal){ completadasRA++; puntosRA += Number(cal.nota) || 0; }
+            else {
+              // Pendiente: sigue "abierta" si aún no cerró (según la hora del servidor)
+              const fin = fechaVentana_(a.finMs, a.fechaFin);
+              if(!fin || ahoraSeg <= fin) disponiblesRA += Number(a.puntaje) || 0;
+            }
             return `
               <div class="progreso-item-card">
                 <div class="progreso-item-info">
@@ -122,7 +129,30 @@
               </div>`;
           }).join('');
 
-          const porcentajeRA = posiblesRA > 0 ? Math.round((puntosRA / posiblesRA) * 100) : 0;
+          const cfgRA = configRA[ra];
+          const baseRA = cfgRA ? cfgRA.valor : posiblesRA;
+          const porcentajeRA = baseRA > 0 ? Math.min(100, Math.round((puntosRA / baseRA) * 100)) : 0;
+          let resultadoHtml = '';
+          let marcaHtml = '';
+          if(cfgRA){
+            const ev = evaluarResultadoRA_(cfgRA, puntosRA, disponiblesRA);
+            const pctMin = Math.min(100, (cfgRA.minimo / cfgRA.valor) * 100);
+            marcaHtml = `<div class="barra-marca-minimo" style="left:${pctMin}%" title="Mínimo para aprobar: ${cfgRA.minimo} pts"></div>`;
+            const textos = {
+              'aprobado': `<i class="fa-solid fa-circle-check"></i> ¡Aprobado! Alcanzaste el mínimo de ${cfgRA.minimo} pts.`,
+              'no-aprobado': `<i class="fa-solid fa-circle-xmark"></i> No aprobado: obtuviste ${fmtPts_(puntosRA)} pts y el mínimo era ${cfgRA.minimo} pts.`,
+              'en-proceso': `<i class="fa-solid fa-hourglass-half"></i> En proceso: te faltan ${fmtPts_(ev.faltan)} pts para el mínimo de ${cfgRA.minimo} pts.`
+            };
+            resultadoHtml = `
+              <div class="resultado-ra resultado-ra-${ev.estado}">
+                <div class="resultado-ra-datos">
+                  <span>Valor del RA: <b>${fmtPts_(cfgRA.valor)} pts</b></span>
+                  <span>Mínimo para aprobar (${fmtPts_(cfgRA.porcentaje)} %): <b>${cfgRA.minimo} pts</b></span>
+                  <span>Obtuviste: <b>${fmtPts_(puntosRA)} pts</b></span>
+                </div>
+                <div class="resultado-ra-estado">${textos[ev.estado]}</div>
+              </div>`;
+          }
 
           return `
             <div class="progreso-ra-grupo">
@@ -131,10 +161,12 @@
               </div>
               ${itemsHtml}
               <div class="progreso-ra-barra-wrap">
-                <div class="progreso-ra-barra-texto">${completadasRA} de ${actividadesDelRA.length} actividades de ${ra} · ${puntosRA.toFixed(2)}/${posiblesRA.toFixed(2)} pts</div>
-                <div class="progreso-barra-wrap" style="margin-bottom:0;">
+                <div class="progreso-ra-barra-texto">${completadasRA} de ${actividadesDelRA.length} actividades de ${ra} · ${puntosRA.toFixed(2)}/${cfgRA ? fmtPts_(cfgRA.valor) : posiblesRA.toFixed(2)} pts</div>
+                <div class="progreso-barra-wrap" style="margin-bottom:0; position:relative;">
                   <div class="progreso-barra-fill" style="width:${porcentajeRA}%"></div>
+                  ${marcaHtml}
                 </div>
+                ${resultadoHtml}
               </div>
             </div>`;
         }).join('');
