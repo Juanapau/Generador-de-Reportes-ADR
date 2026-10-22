@@ -36,15 +36,24 @@
   }
 
   // Encabezado del RA: valor, mínimo aprobatorio y puntos que lleva el estudiante
-  async function pintarBannerRA_(llevaPts){
+  async function pintarBannerRA_(progreso){
     const el = document.getElementById('bannerValorRA');
     if(!el) return;
     const cfg = (await cargarConfigRA_())[raActualEstudiante];
     if(!cfg){ el.innerHTML = ''; return; }
+    let extra = '';
+    if(progreso){
+      const ev = evaluarResultadoRA_(cfg, progreso.obtenidos, progreso.disponibles);
+      const etiqueta = { 'aprobado':'<i class="fa-solid fa-circle-check"></i> Aprobado', 'no-aprobado':'<i class="fa-solid fa-circle-xmark"></i> No aprobado', 'en-proceso':'<i class="fa-solid fa-hourglass-half"></i> En proceso' }[ev.estado];
+      extra = `
+        <span class="ra-chip">Obtenido <b>${ev.total} pts</b></span>
+        <span class="ra-chip ra-chip-estado ra-chip-${ev.estado}">${etiqueta}</span>`;
+    }
     el.innerHTML = `
       <div class="banner-ra">
         <span class="ra-chip">Valor <b>${fmtPts_(cfg.valor)} pts</b></span>
         <span class="ra-chip" title="${fmtPts_(cfg.porcentaje)} % del valor del RA">Mínimo <b>${cfg.minimo} pts</b></span>
+        ${extra}
       </div>`;
   }
 
@@ -77,9 +86,17 @@
         }
       }catch(err){ /* si falla, simplemente no se muestra el estado de completada */ }
       if(!modoPreviewDocente){
-        let llevaPts = 0;
-        habilitadas.forEach(a => { const c = calificacionesPorCodigo[a.codigo]; if(c) llevaPts += Number(c.nota) || 0; });
-        pintarBannerRA_(llevaPts);
+        let obtenidos = 0, disponibles = 0;
+        const ahoraSeg = ahoraSeguro_();
+        habilitadas.forEach(a => {
+          const c = calificacionesPorCodigo[a.codigo];
+          if(c){ obtenidos += Number(c.nota) || 0; }
+          else {
+            const fin = fechaVentana_(a.finMs, a.fechaFin);
+            if(!fin || ahoraSeg <= fin) disponibles += Number(a.puntaje) || 0;
+          }
+        });
+        pintarBannerRA_({ obtenidos, disponibles });
       }
 
       wrap.innerHTML = habilitadas.map(act => {
