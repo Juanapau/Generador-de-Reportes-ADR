@@ -914,6 +914,7 @@
         apiGet({ action:'listarEstudiantes' }),
         apiGet({ action:'listarCalificacionesPorRA', ra: raActual })
       ]);
+      const cfgRA = (await cargarConfigRA_(true))[raActual];
 
       if(!dataEst.success){
         wrap.innerHTML = '<div class="empty-table-msg">No se pudo cargar la lista de estudiantes.</div>';
@@ -938,6 +939,23 @@
         dataCal.calificaciones.forEach(c => completadas.add(`${c.usuario}|${c.codigo}`));
       }
 
+      // Resultado del RA por estudiante (solo si el docente configuró el valor del RA)
+      const habilitadasRA = actividadesDelRA.filter(a => a.habilitada === 'Si');
+      const notasPor = {};
+      if(dataCal.success) dataCal.calificaciones.forEach(c => { notasPor[`${c.usuario}|${c.codigo}`] = Number(c.nota) || 0; });
+      const ahoraSeg = ahoraSeguro_();
+      function resultadoDe(est){
+        let obt = 0, disp = 0;
+        habilitadasRA.forEach(a => {
+          const k = `${est.usuario}|${a.codigo}`;
+          if(completadas.has(k)) obt += notasPor[k] || 0;
+          else { const fin = fechaVentana_(a.finMs, a.fechaFin); if(!fin || ahoraSeg <= fin) disp += Number(a.puntaje) || 0; }
+        });
+        const ev = evaluarResultadoRA_(cfgRA, obt, disp);
+        const etiqueta = { 'aprobado':'Aprobó', 'no-aprobado':'No aprobó', 'en-proceso':'En proceso' }[ev.estado];
+        return `<td class="celda-resultado-ra resultado-celda-${ev.estado}"><b>${fmtPts_(obt)}</b> / ${fmtPts_(cfgRA.valor)}<br><span>${etiqueta}</span></td>`;
+      }
+
       wrap.innerHTML = `
         <div class="tabla-cumplimiento-scroll">
           <table class="tabla-cumplimiento">
@@ -945,6 +963,7 @@
               <tr>
                 <th class="col-estudiante">Estudiante</th>
                 ${actividadesDelRA.map(a => `<th>${a.codigo}</th>`).join('')}
+                ${cfgRA ? `<th>Resultado (mín. ${cfgRA.minimo})</th>` : ''}
               </tr>
             </thead>
             <tbody>
@@ -957,6 +976,7 @@
                       ? '<i class="fa-solid fa-check cumple-icono"></i>'
                       : '<i class="fa-solid fa-xmark no-cumple-icono"></i>'}</td>`;
                   }).join('')}
+                  ${cfgRA ? resultadoDe(est) : ''}
                 </tr>
               `).join('')}
             </tbody>
