@@ -43,9 +43,8 @@
     if(!cfg){ el.innerHTML = ''; return; }
     el.innerHTML = `
       <div class="banner-ra">
-        <div class="banner-ra-item"><span>Valor del RA</span><b>${fmtPts_(cfg.valor)} pts</b></div>
-        <div class="banner-ra-item"><span>Mínimo para aprobar (${fmtPts_(cfg.porcentaje)} %)</span><b>${cfg.minimo} pts</b></div>
-        ${llevaPts == null ? '' : `<div class="banner-ra-item"><span>Llevas</span><b>${fmtPts_(llevaPts)} pts</b></div>`}
+        <span class="ra-chip">Valor <b>${fmtPts_(cfg.valor)} pts</b></span>
+        <span class="ra-chip" title="${fmtPts_(cfg.porcentaje)} % del valor del RA">Mínimo <b>${cfg.minimo} pts</b></span>
       </div>`;
   }
 
