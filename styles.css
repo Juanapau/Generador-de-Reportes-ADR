@@ -1758,3 +1758,7 @@
 .ra-titulo-fila .banner-ra{ margin:0; gap:8px; flex-wrap:nowrap; }
 .ra-chip{ font-size:12.5px; padding:3px 11px; border-radius:8px; border:1px solid rgba(232,184,59,.3); background:rgba(232,184,59,.06); opacity:.9; white-space:nowrap; }
 .ra-chip b{ color:#e8b83b; margin-left:3px; }
+.ra-chip-estado{ font-weight:800; }
+.ra-chip-aprobado{ color:#22c55e; border-color:rgba(34,197,94,.5); background:rgba(34,197,94,.1); }
+.ra-chip-no-aprobado{ color:#ef4444; border-color:rgba(239,68,68,.5); background:rgba(239,68,68,.1); }
+.ra-chip-en-proceso{ color:#f59e0b; border-color:rgba(245,158,11,.5); background:rgba(245,158,11,.1); }
