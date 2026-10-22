@@ -953,7 +953,7 @@
         });
         const ev = evaluarResultadoRA_(cfgRA, obt, disp);
         const etiqueta = { 'aprobado':'Aprobó', 'no-aprobado':'No aprobó', 'en-proceso':'En proceso' }[ev.estado];
-        return `<td class="celda-resultado-ra resultado-celda-${ev.estado}"><b>${fmtPts_(obt)}</b> / ${fmtPts_(cfgRA.valor)}<br><span>${etiqueta}</span></td>`;
+        return `<td class="celda-resultado-ra resultado-celda-${ev.estado}"><b>${ev.total}</b> / ${fmtPts_(cfgRA.valor)}<br><span>${etiqueta}</span></td>`;
       }
 
       wrap.innerHTML = `
