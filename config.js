@@ -132,12 +132,19 @@
     return Number.isInteger(x) ? String(x) : x.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
   }
 
+  // Los totales de puntos se muestran siempre como números enteros
+  function fmtTotal_(n){ return String(Math.round((Number(n) || 0) + 1e-9)); }
+
   // estado: 'aprobado' | 'no-aprobado' | 'en-proceso'
   // obtenidos: puntos que lleva; disponibles: puntos que aún puede ganar (actividades pendientes todavía abiertas)
+  // El total del estudiante se redondea al entero más cercano ANTES de compararlo con el mínimo
+  // (así lo que ve en pantalla es exactamente lo que se usa para decidir). Devuelve también ese total entero.
   function evaluarResultadoRA_(info, obtenidos, disponibles){
-    if(obtenidos >= info.minimo - 1e-9) return { estado:'aprobado', faltan:0 };
-    if(obtenidos + disponibles < info.minimo - 1e-9) return { estado:'no-aprobado', faltan: info.minimo - obtenidos };
-    return { estado:'en-proceso', faltan: info.minimo - obtenidos };
+    const total = Math.round(obtenidos + 1e-9);
+    const potencial = Math.round(obtenidos + disponibles + 1e-9);
+    if(total >= info.minimo) return { estado:'aprobado', faltan:0, total };
+    if(potencial < info.minimo) return { estado:'no-aprobado', faltan: info.minimo - total, total };
+    return { estado:'en-proceso', faltan: info.minimo - total, total };
   }
 
   // ---------- Notificaciones tipo toast (reemplaza alert() nativo) ----------
