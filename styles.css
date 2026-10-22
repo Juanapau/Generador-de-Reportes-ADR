@@ -1742,7 +1742,7 @@
 .config-columnas{ display:grid; grid-template-columns:minmax(260px, 1fr) minmax(340px, 1.3fr); gap:28px; align-items:start; }
 .config-col-izq .config-form{ max-width:none; }
 .config-col-der .empty-note{ font-size:12.5px; padding:10px 14px; margin-bottom:12px; }
-.config-col-der .config-ra-fila{ display:grid; grid-template-columns:56px 1fr 1fr 1fr; gap:10px; align-items:end; padding:10px 12px; margin-bottom:8px; }
+.config-col-der .config-ra-fila{ display:grid; grid-template-columns:70px 1fr 1fr; gap:10px; align-items:end; padding:10px 12px; margin-bottom:8px; }
 .config-col-der .config-ra-nombre{ font-size:22px; min-width:0; align-self:center; }
 .config-col-der .config-ra-fila .field{ min-width:0; }
 .config-col-der .config-ra-fila .field label{ font-size:10.5px; }
@@ -1752,3 +1752,9 @@
 .config-col-der .config-ra-aviso{ grid-column:2 / -1; font-size:12px; }
 .config-col-der .config-ra-aviso:empty{ display:none; }
 @media (max-width: 900px){ .config-columnas{ grid-template-columns:1fr; } }
+
+/* Valor y mínimo del RA: chips sutiles junto al título */
+.ra-titulo-fila{ display:flex; align-items:center; flex-wrap:wrap; gap:8px 14px; margin-bottom:14px; }
+.ra-titulo-fila .banner-ra{ margin:0; gap:8px; flex-wrap:nowrap; }
+.ra-chip{ font-size:12.5px; padding:3px 11px; border-radius:8px; border:1px solid rgba(232,184,59,.3); background:rgba(232,184,59,.06); opacity:.9; white-space:nowrap; }
+.ra-chip b{ color:#e8b83b; margin-left:3px; }
