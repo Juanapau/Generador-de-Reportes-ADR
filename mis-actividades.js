@@ -35,8 +35,23 @@
     });
   }
 
+  // Encabezado del RA: valor, mínimo aprobatorio y puntos que lleva el estudiante
+  async function pintarBannerRA_(llevaPts){
+    const el = document.getElementById('bannerValorRA');
+    if(!el) return;
+    const cfg = (await cargarConfigRA_())[raActualEstudiante];
+    if(!cfg){ el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <div class="banner-ra">
+        <div class="banner-ra-item"><span>Valor del RA</span><b>${fmtPts_(cfg.valor)} pts</b></div>
+        <div class="banner-ra-item"><span>Mínimo para aprobar (${fmtPts_(cfg.porcentaje)} %)</span><b>${cfg.minimo} pts</b></div>
+        ${llevaPts == null ? '' : `<div class="banner-ra-item"><span>Llevas</span><b>${fmtPts_(llevaPts)} pts</b></div>`}
+      </div>`;
+  }
+
   async function cargarMisActividades(){
     const wrap = document.getElementById('listaMisActividadesWrap');
+    pintarBannerRA_(null);
     wrap.innerHTML = '<div class="loading-note"><i class="fa-solid fa-spinner fa-spin"></i> Cargando actividades...</div>';
     try{
       const data = await apiGet({ action:'listarActividades', ra: raActualEstudiante, usuario: currentUser.usuario });
@@ -62,6 +77,11 @@
           califs.calificaciones.forEach(c => { calificacionesPorCodigo[c.codigo] = c; });
         }
       }catch(err){ /* si falla, simplemente no se muestra el estado de completada */ }
+      if(!modoPreviewDocente){
+        let llevaPts = 0;
+        habilitadas.forEach(a => { const c = calificacionesPorCodigo[a.codigo]; if(c) llevaPts += Number(c.nota) || 0; });
+        pintarBannerRA_(llevaPts);
+      }
 
       wrap.innerHTML = habilitadas.map(act => {
         const completada = calificacionesPorCodigo[act.codigo];
