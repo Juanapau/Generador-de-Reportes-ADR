@@ -8501,3 +8501,564 @@
   });
 
   registrarActividadInteractiva('A.2.6', abrirActividadA26);
+
+
+// ============================================================================
+// A.2.7 — DISEÑA UN REPORTE AGRUPADO (ENCABEZADOS Y PIES DE GRUPO)
+// ============================================================================
+  // Individual. Caso: la nómina de TECNOVENTAS RD agrupada por departamento. El estudiante elige
+  // el campo de agrupación, diseña las 7 secciones (incluidos el encabezado y el pie de grupo),
+  // ejecuta el reporte y analiza cuántas veces aparece cada sección. Los datos van incluidos
+  // aquí (reutiliza los empleados de la A.2.5), así que no se necesita ninguna hoja nueva.
+  // Se apoya en "Reporte_Agrupado_Encabezados_y_Pies_de_Grupo_A27.pdf".
+
+  const EC_A27 = 'EC6.2.2';
+  const LINEAS_POR_HOJA_A27 = 8;
+  const CAMPOS_DETALLE_A27 = ['Nombre', 'Cargo', 'Salario'];
+  const CAMPOS_AGRUPACION_A27 = ['Departamento', 'Cargo', 'Salario', 'Nombre', 'FechaContratacion'];
+  const ORDENES_A27 = [
+    { id:'Departamento', texto:'Ordenados por Departamento' },
+    { id:'sinOrden', texto:'Tal como están en la tabla (sin ordenar)' },
+    { id:'Salario', texto:'Ordenados por Salario' }
+  ];
+
+  const ELEMENTOS_A27 = [
+    { id:'titulosColumna', nombre:'Títulos de columna', zona:'encPagina', pista:'<b>Títulos de columna</b> va en el encabezado de página: se repite arriba de cada hoja.' },
+    { id:'nombreGrupo', nombre:'Nombre del departamento', zona:'encGrupo', pista:'<b>Nombre del departamento</b> identifica a cada grupo: va en el encabezado de grupo.' },
+    { id:'subtotalSalarios', nombre:'Subtotal de salarios del departamento', zona:'pieGrupo', pista:'<b>Subtotal de salarios del departamento</b> resume un solo grupo: va en el pie de grupo.' },
+    { id:'cantidadGrupo', nombre:'Cantidad de empleados del departamento', zona:'pieGrupo', pista:'<b>Cantidad de empleados del departamento</b> resume un solo grupo: va en el pie de grupo.' },
+    { id:'totalNomina', nombre:'Total general de la nómina', zona:'pieReporte', pista:'<b>Total general de la nómina</b> suma todos los grupos y sale una sola vez: va en el pie de reporte.' },
+    { id:'totalEmpleados', nombre:'Total de empleados', zona:'pieReporte', pista:'<b>Total de empleados</b> cuenta todo el reporte y sale una sola vez: va en el pie de reporte.' },
+    { id:'numeroPagina', nombre:'Número de página', zona:'piePagina', pista:'<b>Número de página</b> es información de cada hoja: va en el pie de página.' },
+    { id:'fechaImpresion', nombre:'Fecha de impresión', zona:'piePagina', pista:'<b>Fecha de impresión</b> se repite en cada hoja: va en el pie de página.' }
+  ];
+  const NOMBRES_ZONA_A27 = { encPagina:'encabezado de página', encGrupo:'encabezado de grupo', pieGrupo:'pie de grupo', piePagina:'pie de página', pieReporte:'pie de reporte' };
+
+  const PASOS_A27 = [
+    { id:'agrupacion', corto:'Agrupación', icono:'fa-layer-group', titulo:'elige cómo agrupar el reporte' },
+    { id:'encabezados', corto:'Encabezados', icono:'fa-heading', titulo:'diseña los encabezados de reporte y de página' },
+    { id:'grupos', corto:'Grupos', icono:'fa-object-group', titulo:'diseña el encabezado y el pie de grupo' },
+    { id:'detalle', corto:'Detalle', icono:'fa-table-list', titulo:'elige la línea de detalle' },
+    { id:'pies', corto:'Pies', icono:'fa-shoe-prints', titulo:'diseña el pie de página y el pie de reporte' },
+    { id:'ejecucion', corto:'Ejecutar', icono:'fa-play', titulo:'' },
+    { id:'analisis', corto:'Analizar', icono:'fa-magnifying-glass-chart', titulo:'' }
+  ];
+  const PASO_EJEC_A27 = 5, PASO_ANAL_A27 = 6;
+
+  const SECCIONES_FREC_A27 = [
+    { id:'encReporte', nombre:'Encabezado de reporte', correcta:'unaVezInicio' },
+    { id:'encPagina', nombre:'Encabezado de página', correcta:'arribaCadaHoja' },
+    { id:'encGrupo', nombre:'Encabezado de grupo', correcta:'comenzarGrupo' },
+    { id:'detalle', nombre:'Línea de detalle', correcta:'cadaRegistro' },
+    { id:'pieGrupo', nombre:'Pie de grupo', correcta:'terminarGrupo' },
+    { id:'piePagina', nombre:'Pie de página', correcta:'abajoCadaHoja' },
+    { id:'pieReporte', nombre:'Pie de reporte', correcta:'unaVezFinal' }
+  ];
+  const OPCIONES_FREC_A27 = [
+    { id:'unaVezInicio', texto:'Una sola vez, al inicio del reporte' },
+    { id:'arribaCadaHoja', texto:'En la parte de arriba de cada hoja' },
+    { id:'comenzarGrupo', texto:'Al comenzar cada grupo' },
+    { id:'cadaRegistro', texto:'Una vez por cada empleado' },
+    { id:'terminarGrupo', texto:'Al terminar cada grupo' },
+    { id:'abajoCadaHoja', texto:'En la parte de abajo de cada hoja' },
+    { id:'unaVezFinal', texto:'Una sola vez, al final del reporte' }
+  ];
+
+  const CRITERIOS_BASE_A27 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio y trabaja con orden.' },
+    { key:'agrupacion', nombre:'2. Agrupación del reporte', descripcion:'Elige el campo por el que se agrupa el reporte y ordena los datos por ese campo.' },
+    { key:'encabezados', nombre:'3. Encabezados de reporte y de página', descripcion:'Diseña un encabezado de reporte claro y coloca los títulos de columna en el encabezado de página.' },
+    { key:'grupos', nombre:'4. Encabezado y pie de grupo', descripcion:'Coloca en el encabezado de grupo lo que identifica al grupo y en el pie de grupo su resumen.' },
+    { key:'detalle', nombre:'5. Línea de detalle', descripcion:'Elige solo los campos que cada línea necesita, sin repetir el campo de agrupación.' },
+    { key:'pies', nombre:'6. Pie de página y pie de reporte', descripcion:'Distingue lo que se repite en cada hoja de lo que resume todo el reporte.' },
+    { key:'ejecucion', nombre:'7. Ejecución y revisión del reporte', descripcion:'Ejecuta el reporte completo y lo revisa hoja por hoja.' },
+    { key:'frecuencia', nombre:'8. Cuántas veces aparece cada sección', descripcion:'Reconoce cuántas veces y en qué lugar aparece cada una de las 7 secciones.' },
+    { key:'reflexion', nombre:'9. Diferencia entre pie de grupo y pie de reporte', descripcion:'Explica con sus palabras la diferencia entre ambos pies usando su reporte como ejemplo.' },
+    { key:'tiempo', nombre:'10. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'11. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let cfgA27 = {};
+  let okA27 = {};
+  let fallosA27 = {};
+  let pasoA27 = 0;
+  let ejecVistaA27 = false;
+  let analisisA27 = { frec:{}, nGrupos:'', nPies:'', nPieRep:'', reflexion:'' };
+  let frecOkA27 = false, reflexOkA27 = false;
+  let ordenOpcionesA27 = [], ordenCamposAgrA27 = [], ordenElemA27 = [];
+  let ultimoResultadoA27 = null;
+  let puntajeMaxA27 = 0, tiempoEstimadoA27 = 10, inicioTiempoA27 = null, timerIntervalA27 = null;
+
+  const fmtMontoA27_ = (v) => 'RD$' + (Number(v) || 0).toLocaleString('es-DO', { minimumFractionDigits:2 });
+  const escA27_ = (t) => String(t === null || t === undefined ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const escAttrA27_ = (t) => escA27_(t).replace(/"/g, '&quot;');
+  const nombreElemA27_ = (id) => (ELEMENTOS_A27.find(e => e.id === id) || {}).nombre || id;
+  const etiquetaCampoA27_ = (c) => ({ FechaContratacion:'Fecha de contratación' }[c] || c);
+
+  // ---------- Datos agrupados por departamento ----------
+  function gruposA27_(){
+    const orden = [...DATOS_EMPLEADOS_RESPALDO_A25].sort((a, b) => String(a.Departamento).localeCompare(String(b.Departamento), 'es') || a.Id - b.Id);
+    const mapa = new Map();
+    orden.forEach(f => { if(!mapa.has(f.Departamento)) mapa.set(f.Departamento, []); mapa.get(f.Departamento).push(f); });
+    return [...mapa.entries()].map(([nombre, filas]) => ({ nombre, filas, subtotal: filas.reduce((s, f) => s + f.Salario, 0) }));
+  }
+  const totalNominaA27_ = () => DATOS_EMPLEADOS_RESPALDO_A25.reduce((s, f) => s + f.Salario, 0);
+  const campoDetalleOrdenadoA27_ = () => CAMPOS_DETALLE_A27.filter(c => cfgA27.detalle.includes(c));
+  function hojasA27_(){
+    const lineas = [];
+    gruposA27_().forEach(g => {
+      lineas.push({ t:'encGrupo', g });
+      g.filas.forEach(f => lineas.push({ t:'det', f }));
+      lineas.push({ t:'pieGrupo', g });
+    });
+    const hojas = [];
+    for(let i = 0; i < lineas.length; i += LINEAS_POR_HOJA_A27) hojas.push(lineas.slice(i, i + LINEAS_POR_HOJA_A27));
+    return hojas;
+  }
+  function textoElemA27_(id, g, n, total){
+    switch(id){
+      case 'nombreGrupo': return `Departamento: ${g.nombre}`;
+      case 'subtotalSalarios': return `Subtotal de salarios: ${fmtMontoA27_(g.subtotal)}`;
+      case 'cantidadGrupo': return `Empleados del departamento: ${g.filas.length}`;
+      case 'totalNomina': return `Total general de la nómina: ${fmtMontoA27_(totalNominaA27_())}`;
+      case 'totalEmpleados': return `Total de empleados: ${DATOS_EMPLEADOS_RESPALDO_A25.length}`;
+      case 'numeroPagina': return `Página ${n} de ${total}`;
+      case 'fechaImpresion': return 'Impreso: ' + formatearFechaCortaSinHora_(new Date());
+      default: return '';
+    }
+  }
+
+  function reiniciarEstadoA27_(){
+    cfgA27 = { campoAgr:'', orden:'', empresa:'', titulo:'', encPagina:[], encGrupo:[], pieGrupo:[], detalle:[], piePagina:[], pieReporte:[] };
+    okA27 = {}; fallosA27 = { agrupacion:0, encabezados:0, grupos:0, detalle:0, pies:0, frecuencia:0, reflexion:0 };
+    pasoA27 = 0; ejecVistaA27 = false;
+    analisisA27 = { frec:{}, nGrupos:'', nPies:'', nPieRep:'', reflexion:'' };
+    frecOkA27 = false; reflexOkA27 = false;
+    ordenOpcionesA27 = barajar([...OPCIONES_FREC_A27]);
+    ordenCamposAgrA27 = barajar([...CAMPOS_AGRUPACION_A27]);
+    ordenElemA27 = barajar([...ELEMENTOS_A27]);
+  }
+
+  function limiteA27_(){
+    const i = PASOS_A27.slice(0, 5).findIndex(p => !okA27[p.id]);
+    if(i !== -1) return i;
+    return ejecVistaA27 ? PASO_ANAL_A27 : PASO_EJEC_A27;
+  }
+
+  // ---------- Validación ----------
+  function validarZonasA27_(zonas){
+    const msgs = [];
+    zonas.forEach(z => {
+      ELEMENTOS_A27.forEach(e => {
+        const puesto = cfgA27[z].includes(e.id);
+        if(puesto && e.zona !== z) msgs.push(`En el ${NOMBRES_ZONA_A27[z]}: ${e.pista}`);
+        else if(!puesto && e.zona === z) msgs.push(`Falta agregar <b>${e.nombre}</b> al ${NOMBRES_ZONA_A27[z]}.`);
+      });
+    });
+    return msgs;
+  }
+  function validarPasoA27_(id){
+    let msgs = [];
+    if(id === 'agrupacion'){
+      if(!cfgA27.campoAgr) msgs.push('Elige el campo por el que se agrupará el reporte.');
+      else if(cfgA27.campoAgr !== 'Departamento') msgs.push(`El cliente pidió ver la nómina <b>por departamento</b>. Agrupar por <b>${etiquetaCampoA27_(cfgA27.campoAgr)}</b> no responde a ese pedido.`);
+      if(!cfgA27.orden) msgs.push('Indica cómo deben estar los datos antes de agrupar.');
+      else if(cfgA27.orden !== 'Departamento') msgs.push('Para que cada departamento forme <b>un solo bloque</b>, los registros deben estar <b>ordenados por el campo de agrupación</b>. Si no, el mismo departamento aparecería varias veces.');
+    } else if(id === 'encabezados'){
+      if(!normalizarTextoA15_(cfgA27.empresa).includes('tecnoventas')) msgs.push('Escribe el nombre de la empresa: <b>TECNOVENTAS RD</b>.');
+      const tit = normalizarTextoA15_(cfgA27.titulo);
+      if(!(tit.includes('nomina') && (tit.includes('departamento') || tit.includes('agrupad')))) msgs.push('El título debe decir que es la <b>nómina</b> y cómo está organizada: <b>por departamento</b>.');
+      msgs = msgs.concat(validarZonasA27_(['encPagina']));
+    } else if(id === 'grupos'){
+      msgs = validarZonasA27_(['encGrupo', 'pieGrupo']);
+    } else if(id === 'detalle'){
+      const sel = [...cfgA27.detalle].sort(), esp = [...CAMPOS_DETALLE_A27].sort();
+      if(!(sel.length === esp.length && sel.every((c, i) => c === esp[i]))){
+        if(cfgA27.detalle.includes('Departamento')) msgs.push('El departamento ya aparece en el <b>encabezado de grupo</b>: repetirlo en cada línea es innecesario.');
+        msgs.push('La línea de detalle debe mostrar los datos propios de cada empleado: <b>Nombre, Cargo y Salario</b>.');
+      }
+    } else if(id === 'pies'){
+      msgs = validarZonasA27_(['piePagina', 'pieReporte']);
+    }
+    return msgs;
+  }
+
+  // ---------- Apertura ----------
+  async function abrirActividadA27(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA27 = puntajeMaximo;
+    tiempoEstimadoA27 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA27').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA27').classList.remove('hidden');
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.7') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA27').classList.add('hidden');
+        document.getElementById('vistaEjercicioA27').classList.add('hidden');
+        document.getElementById('vistaResultadoA27').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA27', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA27', previa.detalle);
+        ultimoResultadoA27 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA27').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar */ }
+    document.getElementById('avisoYaCompletadaA27').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA27').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA27').classList.add('hidden');
+    document.getElementById('vistaResultadoA27').classList.add('hidden');
+    document.getElementById('tiempoEstimadoAvisoA27').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA27} minutos</b> para completar esta actividad una vez que la inicies.`;
+    cargarRecursosActividad('A.2.7', 'recursosEstudianteA27');
+    renderRubrica('instrumentoPrevioA27', CRITERIOS_BASE_A27.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA27, null);
+  }
+
+  document.getElementById('btnBackFromActividadA27').addEventListener('click', () => {
+    clearInterval(timerIntervalA27);
+    document.getElementById('panelActividadA27').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA27').addEventListener('click', () => {
+    reiniciarEstadoA27_();
+    document.getElementById('vistaInstrumentoA27').classList.add('hidden');
+    document.getElementById('vistaEjercicioA27').classList.remove('hidden');
+    document.getElementById('seccionFinalA27').classList.add('hidden');
+    pintarPasoA27_();
+    inicioTiempoA27 = Date.now();
+    clearInterval(timerIntervalA27);
+    timerIntervalA27 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA27) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0'), ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA27').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA27} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Estructura ----------
+  function irAPasoA27_(n){ if(n < 0 || n > limiteA27_()) return; pasoA27 = n; pintarPasoA27_(); }
+  function stepperA27_(){
+    const limite = limiteA27_();
+    return `<div class="stepper-a25" id="stepperA27">${PASOS_A27.map((p, i) => {
+      const hecho = i < PASO_EJEC_A27 ? !!okA27[p.id] : (i === PASO_EJEC_A27 ? ejecVistaA27 : (frecOkA27 && reflexOkA27));
+      return `<button type="button" class="paso-a25 ${i === pasoA27 ? 'activo' : ''} ${hecho ? 'hecho' : ''} ${i > limite ? 'bloqueado' : ''}" data-paso="${i}" ${i > limite ? 'disabled' : ''}>
+        <span class="num">${hecho && i !== pasoA27 ? '<i class="fa-solid fa-check"></i>' : i + 1}</span><span class="txt">${p.corto}</span></button>`;
+    }).join('')}</div>`;
+  }
+  function conectarStepperA27_(){ document.querySelectorAll('#stepperA27 .paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA27_(Number(b.dataset.paso)))); }
+  function refrescarStepperA27_(){
+    const st = document.getElementById('stepperA27'); if(!st) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = stepperA27_(); st.replaceWith(tmp.firstElementChild); conectarStepperA27_();
+  }
+  function pintarPasoA27_(){
+    document.getElementById('disenadorReporteA27').innerHTML = stepperA27_() + '<div id="cuerpoPasoA27"></div>';
+    document.getElementById('seccionFinalA27').classList.add('hidden');
+    conectarStepperA27_();
+    if(pasoA27 < PASO_EJEC_A27) pintarConstruccionA27_();
+    else if(pasoA27 === PASO_EJEC_A27) pintarEjecucionA27_();
+    else pintarAnalisisA27_();
+  }
+
+  // ---------- Pasos 1-5 ----------
+  const chipsZonaA27_ = (zona, titulo) => `
+    <label class="etiqueta-a25">${titulo}</label>
+    <div class="pool-campos-a21">${ordenElemA27.map(e => `<span class="campo-chip-a21 chip-zona-a27 ${cfgA27[zona].includes(e.id) ? 'seleccionado' : ''}" data-zona="${zona}" data-id="${e.id}">${cfgA27[zona].includes(e.id) ? '<i class="fa-solid fa-check"></i> ' : ''}${e.nombre}</span>`).join('')}</div>`;
+
+  function controlesA27_(id){
+    if(id === 'agrupacion'){
+      return `
+        <div class="caso-a110-card" style="max-width:100%; margin:0 0 10px;"><b>Caso:</b> el gerente de TECNOVENTAS RD pide la <b>nómina de empleados organizada por departamento</b>, mostrando cuánto suma cada departamento y el total de toda la empresa.</div>
+        <label class="etiqueta-a25">¿Por qué campo se agrupará el reporte?</label>
+        <select id="selCampoAgrA27" class="input-generico"><option value="">Selecciona un campo...</option>${ordenCamposAgrA27.map(c => `<option value="${c}" ${cfgA27.campoAgr === c ? 'selected' : ''}>${etiquetaCampoA27_(c)}</option>`).join('')}</select>
+        <label class="etiqueta-a25">¿Cómo deben estar los registros antes de agrupar?</label>
+        <select id="selOrdenA27" class="input-generico"><option value="">Selecciona una opción...</option>${ORDENES_A27.map(o => `<option value="${o.id}" ${cfgA27.orden === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}</select>`;
+    }
+    if(id === 'encabezados'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">El <b>encabezado de reporte</b> sale una vez, al inicio. El <b>encabezado de página</b> sale arriba de cada hoja.</p>
+        <label class="etiqueta-a25">Nombre de la empresa</label>
+        <input type="text" id="inpEmpresaA27" class="input-generico" placeholder="Nombre de la empresa..." value="${escAttrA27_(cfgA27.empresa)}">
+        <label class="etiqueta-a25">Título del reporte</label>
+        <input type="text" id="inpTituloA27" class="input-generico" placeholder="Título del reporte..." value="${escAttrA27_(cfgA27.titulo)}">
+        ${chipsZonaA27_('encPagina', 'Encabezado de página: toca lo que va aquí')}`;
+    }
+    if(id === 'grupos'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">El <b>encabezado de grupo</b> identifica a cada departamento; el <b>pie de grupo</b> lo resume. Ambos salen <b>una vez por cada grupo</b>. Algún elemento puede no corresponder.</p>
+        ${chipsZonaA27_('encGrupo', 'Encabezado de grupo: toca lo que va aquí')}
+        ${chipsZonaA27_('pieGrupo', 'Pie de grupo: toca lo que va aquí')}`;
+    }
+    if(id === 'detalle'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">La línea de detalle sale <b>una vez por cada empleado</b>. Toca los campos que debe mostrar cada línea.</p>
+        <div class="pool-campos-a21">${['Id','Nombre','Departamento','Cargo','FechaContratacion','Salario','Email'].map(c => `<span class="campo-chip-a21 chip-det-a27 ${cfgA27.detalle.includes(c) ? 'seleccionado' : ''}" data-id="${c}">${cfgA27.detalle.includes(c) ? '<i class="fa-solid fa-check"></i> ' : ''}${etiquetaCampoA27_(c)}</span>`).join('')}</div>`;
+    }
+    return `
+      <p class="descripcion-seccion-a21" style="margin-top:0;">El <b>pie de página</b> sale abajo de <b>cada hoja</b>. El <b>pie de reporte</b> sale <b>una sola vez</b>, al final. Algún elemento puede no corresponder.</p>
+      ${chipsZonaA27_('piePagina', 'Pie de página: toca lo que va aquí')}
+      ${chipsZonaA27_('pieReporte', 'Pie de reporte: toca lo que va aquí')}`;
+  }
+
+  function pintarConstruccionA27_(){
+    const p = PASOS_A27[pasoA27];
+    document.getElementById('cuerpoPasoA27').innerHTML = `
+      <div class="a25-layout">
+        <div class="a25-panel">
+          <div class="caja-diseno-a21 ${okA27[p.id] ? 'correcta' : ''}" id="cajaPasoA27">
+            <div class="caja-diseno-titulo"><i class="fa-solid ${p.icono}"></i> Paso ${pasoA27 + 1}: ${p.titulo}</div>
+            <div id="controlesA27">${controlesA27_(p.id)}</div>
+          </div>
+          <div id="feedbackA27"></div>
+          <div id="accionesA27"></div>
+        </div>
+        <div class="a25-preview" id="previewA27"></div>
+      </div>`;
+    conectarControlesA27_(p.id);
+    pintarAccionesA27_();
+    pintarPreviewA27_(null);
+  }
+  function invalidarA27_(id){
+    if(!okA27[id]) return;
+    okA27[id] = false;
+    document.getElementById('feedbackA27').innerHTML = '';
+    document.getElementById('cajaPasoA27').classList.remove('correcta');
+    pintarAccionesA27_(); pintarPreviewA27_(null); refrescarStepperA27_();
+  }
+  function conectarControlesA27_(id){
+    if(id === 'agrupacion'){
+      document.getElementById('selCampoAgrA27').addEventListener('change', (e) => { cfgA27.campoAgr = e.target.value; invalidarA27_(id); });
+      document.getElementById('selOrdenA27').addEventListener('change', (e) => { cfgA27.orden = e.target.value; invalidarA27_(id); });
+    }
+    if(id === 'encabezados'){
+      document.getElementById('inpEmpresaA27').addEventListener('input', (e) => { cfgA27.empresa = e.target.value; invalidarA27_(id); });
+      document.getElementById('inpTituloA27').addEventListener('input', (e) => { cfgA27.titulo = e.target.value; invalidarA27_(id); });
+    }
+    document.querySelectorAll('#controlesA27 .chip-zona-a27').forEach(chip => chip.addEventListener('click', () => {
+      const lista = cfgA27[chip.dataset.zona], i = lista.indexOf(chip.dataset.id);
+      if(i === -1) lista.push(chip.dataset.id); else lista.splice(i, 1);
+      chip.classList.toggle('seleccionado', i === -1);
+      chip.innerHTML = (i === -1 ? '<i class="fa-solid fa-check"></i> ' : '') + nombreElemA27_(chip.dataset.id);
+      invalidarA27_(id);
+    }));
+    document.querySelectorAll('#controlesA27 .chip-det-a27').forEach(chip => chip.addEventListener('click', () => {
+      const i = cfgA27.detalle.indexOf(chip.dataset.id);
+      if(i === -1) cfgA27.detalle.push(chip.dataset.id); else cfgA27.detalle.splice(i, 1);
+      chip.classList.toggle('seleccionado', i === -1);
+      chip.innerHTML = (i === -1 ? '<i class="fa-solid fa-check"></i> ' : '') + etiquetaCampoA27_(chip.dataset.id);
+      invalidarA27_(id);
+    }));
+  }
+  function pintarAccionesA27_(){
+    const cont = document.getElementById('accionesA27'); if(!cont) return;
+    const p = PASOS_A27[pasoA27], ok = !!okA27[p.id];
+    cont.innerHTML = `
+      <div class="nav-pasos" style="margin-top:14px;">
+        ${pasoA27 > 0 ? '<button type="button" class="btn-nav-paso" id="btnAntA27"><i class="fa-solid fa-arrow-left"></i> Anterior</button>' : ''}
+        <button type="button" class="btn btn-primary" id="btnConfA27" style="width:auto; padding:11px 22px;"><i class="fa-solid ${ok ? 'fa-rotate' : 'fa-check'}"></i> ${ok ? 'Volver a confirmar' : 'Confirmar'}</button>
+        ${ok ? `<button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSigA27">${pasoA27 === 4 ? 'Ejecutar el reporte' : 'Siguiente paso'} <i class="fa-solid fa-arrow-right"></i></button>` : ''}
+      </div>`;
+    const a = document.getElementById('btnAntA27'); if(a) a.addEventListener('click', () => irAPasoA27_(pasoA27 - 1));
+    document.getElementById('btnConfA27').addEventListener('click', confirmarPasoA27_);
+    const s = document.getElementById('btnSigA27'); if(s) s.addEventListener('click', () => irAPasoA27_(pasoA27 + 1));
+  }
+  function confirmarPasoA27_(){
+    const p = PASOS_A27[pasoA27], fb = document.getElementById('feedbackA27');
+    const msgs = validarPasoA27_(p.id);
+    if(msgs.length){
+      if(!okA27['_hecho_' + p.id]) fallosA27[p.id]++;
+      okA27[p.id] = false;
+      fb.innerHTML = msgs.map(m => `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`).join('');
+      document.getElementById('cajaPasoA27').classList.remove('correcta');
+      pintarAccionesA27_(); pintarPreviewA27_(null); refrescarStepperA27_();
+      return;
+    }
+    okA27[p.id] = true; okA27['_hecho_' + p.id] = true;
+    document.getElementById('cajaPasoA27').classList.add('correcta');
+    fb.innerHTML = `<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Paso completado!</b> Mira cómo cambió la hoja de muestra.</div></div>`;
+    pintarAccionesA27_(); pintarPreviewA27_(p.id); refrescarStepperA27_();
+  }
+
+  // ---------- Hoja de muestra (primer grupo) ----------
+  function pintarPreviewA27_(recien){
+    const cont = document.getElementById('previewA27'); if(!cont) return;
+    const g = gruposA27_()[0], g2 = gruposA27_()[1];
+    const campos = campoDetalleOrdenadoA27_();
+    const pend = (t) => `<div class="hoja-pendiente-a25"><i class="fa-regular fa-square-plus"></i> ${t}</div>`;
+    const glow = (id) => recien === id ? ' recien-a25' : '';
+    const encRep = okA27.encabezados ? `<div class="hoja-enc-reporte-a24${glow('encabezados')}"><div class="emp">${escA27_(cfgA27.empresa)}</div><div class="tit">${escA27_(cfgA27.titulo)}</div></div>` : pend('Encabezado de reporte: aún no agregado');
+    const encPag = okA27.encabezados ? `<div class="hoja-enc-pagina-a24${glow('encabezados')}"><div class="hoja-cols-a24">${campos.length ? campos.map(c => `<span>${etiquetaCampoA27_(c)}</span>`).join('') : '<span>[Títulos de columna]</span>'}</div></div>` : pend('Encabezado de página: aún no agregado');
+    const bandaGrupo = (cls, ids, grupo, id) => `<div class="${cls}${glow(id)}">${ids.map(i => `<div>${escA27_(textoElemA27_(i, grupo, 1, 1))}</div>`).join('')}</div>`;
+    const encGr = okA27.grupos ? bandaGrupo('hoja-grupo-a27 enc', cfgA27.encGrupo, g, 'grupos') : pend('Encabezado de grupo: aún no agregado');
+    const det = okA27.detalle ? `<div class="${glow('detalle').trim()}">${g.filas.map(f => `<div class="hoja-fila-a24">${campos.map(c => `<span>${c === 'Salario' ? fmtMontoA27_(f[c]) : escA27_(f[c])}</span>`).join('')}</div>`).join('')}</div>` : pend('Línea de detalle: aún no agregada');
+    const pieGr = okA27.grupos ? bandaGrupo('hoja-grupo-a27 pie', cfgA27.pieGrupo, g, 'grupos') : pend('Pie de grupo: aún no agregado');
+    const sig = okA27.grupos ? `<div class="hoja-grupo-a27 enc" style="opacity:.5;">${escA27_(textoElemA27_('nombreGrupo', g2, 1, 1))} … (siguiente grupo)</div>` : '';
+    const pieRep = okA27.pies ? `<div class="${glow('pies').trim()}">${cfgA27.pieReporte.map(i => `<div class="hoja-pie-reporte-a24">${escA27_(textoElemA27_(i, g, 1, 1))}</div>`).join('')}</div>` : pend('Pie de reporte: aún no agregado');
+    const piePag = okA27.pies ? `<div class="hoja-pie-pagina-a24${glow('pies')}">${cfgA27.piePagina.map(i => `<span>${escA27_(textoElemA27_(i, g, 1, 3))}</span>`).join('')}</div>` : pend('Pie de página: aún no agregado');
+    cont.innerHTML = `
+      <div class="hoja-etiqueta-a25"><i class="fa-solid fa-file-lines"></i> Hoja de muestra${cfgA27.campoAgr && okA27.agrupacion ? ` · agrupada por <b>${etiquetaCampoA27_(cfgA27.campoAgr)}</b>` : ''}</div>
+      <div class="hoja-reporte-a24" style="margin:0;">${encRep}${encPag}${encGr}${det}${pieGr}${sig}${pieRep}${piePag}</div>
+      <div class="leyenda-hoja-a24" style="margin:8px 0 0;">
+        <span><i style="background:#12294a"></i>enc. de reporte</span><span><i style="background:#8fb0e0"></i>enc. de página</span>
+        <span><i style="background:#7c5cb0"></i>enc. y pie de grupo</span><span><i style="background:#e9a850"></i>pie de página</span><span><i style="background:#2e8b57"></i>pie de reporte</span>
+      </div>`;
+  }
+
+  // ---------- Paso 6: ejecución ----------
+  function pintarEjecucionA27_(){
+    ejecVistaA27 = true;
+    const campos = campoDetalleOrdenadoA27_(), hojas = hojasA27_(), total = hojas.length;
+    const hojaHtml = (lineas, n) => `
+      <div class="hoja-etiqueta-a24">Hoja ${n} de ${total}</div>
+      <div class="hoja-reporte-a24">
+        ${n === 1 ? `<div class="hoja-enc-reporte-a24"><div class="emp">${escA27_(cfgA27.empresa)}</div><div class="tit">${escA27_(cfgA27.titulo)}</div></div>` : ''}
+        <div class="hoja-enc-pagina-a24"><div class="hoja-cols-a24">${campos.map(c => `<span>${etiquetaCampoA27_(c)}</span>`).join('')}</div></div>
+        ${lineas.map(l => l.t === 'encGrupo' ? `<div class="hoja-grupo-a27 enc">${cfgA27.encGrupo.map(i => `<div>${escA27_(textoElemA27_(i, l.g, n, total))}</div>`).join('')}</div>`
+          : l.t === 'pieGrupo' ? `<div class="hoja-grupo-a27 pie">${cfgA27.pieGrupo.map(i => `<div>${escA27_(textoElemA27_(i, l.g, n, total))}</div>`).join('')}</div>`
+          : `<div class="hoja-fila-a24">${campos.map(c => `<span>${c === 'Salario' ? fmtMontoA27_(l.f[c]) : escA27_(l.f[c])}</span>`).join('')}</div>`).join('')}
+        ${n === total ? cfgA27.pieReporte.map(i => `<div class="hoja-pie-reporte-a24">${escA27_(textoElemA27_(i, gruposA27_()[0], n, total))}</div>`).join('') : ''}
+        <div class="hoja-pie-pagina-a24">${cfgA27.piePagina.map(i => `<span>${escA27_(textoElemA27_(i, gruposA27_()[0], n, total))}</span>`).join('')}</div>
+      </div>`;
+    document.getElementById('cuerpoPasoA27').innerHTML = `
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-play"></i> <b>Ejecuta tu reporte.</b> Así se ve con los datos reales, repartido en hojas. Recórrelo y comprueba que cada sección salga donde y cuantas veces le corresponde. Fíjate también en que <b>los subtotales suman el total general</b>.</div>
+      <div class="leyenda-hoja-a24">
+        <span><i style="background:#12294a"></i>enc. de reporte</span><span><i style="background:#8fb0e0"></i>enc. de página</span>
+        <span><i style="background:#7c5cb0"></i>enc. y pie de grupo</span><span><i style="background:#e9a850"></i>pie de página</span><span><i style="background:#2e8b57"></i>pie de reporte</span>
+      </div>
+      ${hojas.map((h, i) => hojaHtml(h, i + 1)).join('')}
+      <div class="nav-pasos" style="justify-content:space-between; margin-top:16px;">
+        <button type="button" class="btn-nav-paso" id="btnAntA27"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+        <button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSigA27">Analizar el reporte <i class="fa-solid fa-arrow-right"></i></button>
+      </div>`;
+    document.getElementById('btnAntA27').addEventListener('click', () => irAPasoA27_(4));
+    document.getElementById('btnSigA27').addEventListener('click', () => irAPasoA27_(PASO_ANAL_A27));
+    refrescarStepperA27_();
+  }
+
+  // ---------- Paso 7: análisis ----------
+  function pintarAnalisisA27_(){
+    const r = analisisA27, completo = frecOkA27 && reflexOkA27;
+    const nums = (sel) => '<option value="">...</option>' + Array.from({ length:12 }, (_, i) => i + 1).map(n => `<option value="${n}" ${String(sel) === String(n) ? 'selected' : ''}>${n}</option>`).join('');
+    document.getElementById('cuerpoPasoA27').innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 14px;"><button type="button" class="btn-nav-paso" id="btnAntA27"><i class="fa-solid fa-arrow-left"></i> Volver a la ejecución</button></div>
+      <div class="section-heading" style="font-size:18px;">Analiza el reporte que diseñaste</div>
+      ${completo ? '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste el análisis! Ya puedes finalizar la actividad.</div>' : ''}
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">1. ¿Cuántas veces y dónde aparece cada sección?</div>
+        ${SECCIONES_FREC_A27.map(s => `<div class="afirmacion-a24"><span><b>${s.nombre}</b></span>
+          <select class="input-generico sel-frec-a27" data-sec="${s.id}" ${frecOkA27 ? 'disabled' : ''}><option value="">Selecciona...</option>
+          ${ordenOpcionesA27.map(o => `<option value="${o.id}" ${r.frec[s.id] === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}</select></div>`).join('')}
+      </div>
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">2. Cuenta en tu propio reporte</div>
+        <div class="afirmacion-a24"><span>¿Cuántas veces aparece el <b>encabezado de grupo</b>?</span><select class="input-generico" id="selNGruposA27" ${frecOkA27 ? 'disabled' : ''}>${nums(r.nGrupos)}</select></div>
+        <div class="afirmacion-a24"><span>¿Cuántas veces aparece el <b>pie de página</b>?</span><select class="input-generico" id="selNPiesA27" ${frecOkA27 ? 'disabled' : ''}>${nums(r.nPies)}</select></div>
+        <div class="afirmacion-a24" style="border-bottom:none;"><span>¿Cuántas veces aparece el <b>pie de reporte</b>?</span><select class="input-generico" id="selNPieRepA27" ${frecOkA27 ? 'disabled' : ''}>${nums(r.nPieRep)}</select></div>
+        <div id="fbFrecA27"></div>
+      </div>
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">3. Reflexión</div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Explica con tus palabras la diferencia entre el <b>pie de grupo</b> y el <b>pie de reporte</b>, usando un ejemplo de tu propio reporte.</label>
+        <textarea class="input-generico celda-respuesta-a15" id="txtReflexA27" rows="4" placeholder="Escribe tu explicación..." ${reflexOkA27 ? 'disabled' : ''}>${escA27_(r.reflexion)}</textarea>
+        <div id="fbReflexA27"></div>
+      </div>
+      ${completo ? '' : '<button type="button" class="btn btn-primary" id="btnConfAnalisisA27" style="width:auto; padding:12px 28px;"><i class="fa-solid fa-check"></i> Confirmar</button>'}`;
+    document.getElementById('btnAntA27').addEventListener('click', () => irAPasoA27_(PASO_EJEC_A27));
+    document.querySelectorAll('.sel-frec-a27').forEach(s => s.addEventListener('change', () => { r.frec[s.dataset.sec] = s.value; }));
+    document.getElementById('selNGruposA27').addEventListener('change', (e) => { r.nGrupos = e.target.value; });
+    document.getElementById('selNPiesA27').addEventListener('change', (e) => { r.nPies = e.target.value; });
+    document.getElementById('selNPieRepA27').addEventListener('change', (e) => { r.nPieRep = e.target.value; });
+    document.getElementById('txtReflexA27').addEventListener('input', (e) => { r.reflexion = e.target.value; });
+    const b = document.getElementById('btnConfAnalisisA27'); if(b) b.addEventListener('click', verificarAnalisisA27_);
+    if(completo) document.getElementById('seccionFinalA27').classList.remove('hidden');
+  }
+  function verificarAnalisisA27_(){
+    const r = analisisA27;
+    const caja = (m) => `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`;
+    let fbF = '', fbR = '';
+    if(!frecOkA27){
+      const malas = SECCIONES_FREC_A27.filter(s => r.frec[s.id] !== s.correcta).length;
+      const grupos = gruposA27_().length, hojas = hojasA27_().length;
+      const numerosOk = String(r.nGrupos) === String(grupos) && String(r.nPies) === String(hojas) && String(r.nPieRep) === '1';
+      if(malas === 0 && numerosOk) frecOkA27 = true;
+      else {
+        fallosA27.frecuencia++;
+        if(malas > 0) fbF += caja(`${malas} de las 7 secciones no tienen la frecuencia correcta. Piensa: ¿se repite por hoja, por grupo, por empleado o sale una sola vez?`);
+        if(!numerosOk) fbF += caja('Revisa tus conteos en la ejecución: cuenta los departamentos, las hojas y recuerda cuántas veces sale lo que resume todo el reporte.');
+      }
+    }
+    if(!reflexOkA27){
+      const t = normalizarTextoA15_(r.reflexion || '');
+      if(contarPalabrasRealesA15_(r.reflexion || '') >= 15 && t.includes('grupo') && t.includes('reporte') && (t.includes('total') || t.includes('subtotal') || t.includes('resum'))) reflexOkA27 = true;
+      else { fallosA27.reflexion++; fbR = caja('Tu explicación necesita más detalle: usa al menos 15 palabras, menciona el <b>pie de grupo</b> y el <b>pie de reporte</b> e indica qué <b>subtotal</b> o <b>total</b> muestra cada uno en tu reporte.'); }
+    }
+    pintarAnalisisA27_();
+    document.getElementById('fbFrecA27').innerHTML = fbF;
+    document.getElementById('fbReflexA27').innerHTML = fbR;
+    refrescarStepperA27_();
+  }
+
+  // ---------- Finalizar ----------
+  document.getElementById('btnFinalizarA27').addEventListener('click', async () => {
+    clearInterval(timerIntervalA27);
+    const minutos = (Date.now() - inicioTiempoA27) / 60000;
+    const nivel = (f) => f <= 0 ? 'logrado' : (f === 1 ? 'proceso' : 'no_logrado');
+    const C = CRITERIOS_BASE_A27;
+    const crit = (i, n) => ({ nombre:C[i].nombre, descripcion:C[i].descripcion, nivel:n });
+    const criterios = [
+      crit(0, 'logrado'), crit(1, nivel(fallosA27.agrupacion)), crit(2, nivel(fallosA27.encabezados)), crit(3, nivel(fallosA27.grupos)),
+      crit(4, nivel(fallosA27.detalle)), crit(5, nivel(fallosA27.pies)), crit(6, ejecVistaA27 ? 'logrado' : 'no_logrado'),
+      crit(7, nivel(fallosA27.frecuencia)), crit(8, nivel(fallosA27.reflexion)),
+      crit(9, minutos <= tiempoEstimadoA27 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA27 * 2 ? 'proceso' : 'no_logrado')),
+      crit(10, 'logrado')
+    ];
+    const peso = puntajeMaxA27 / criterios.length, pn = { logrado:1, proceso:0.5, no_logrado:0 };
+    let nota = 0; criterios.forEach(c => { nota += peso * pn[c.nivel]; });
+    nota = Math.round(nota * 100) / 100;
+
+    document.getElementById('vistaEjercicioA27').classList.add('hidden');
+    document.getElementById('vistaResultadoA27').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA27').classList.add('hidden');
+    renderRubrica('rubricaResultadoA27', criterios, puntajeMaxA27, nota);
+    ultimoResultadoA27 = { criterios, nota, puntajeMaximo: puntajeMaxA27 };
+    const prop = puntajeMaxA27 > 0 ? nota / puntajeMaxA27 : 0;
+    mostrarLogro(prop >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', prop >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(prop >= 0.8) dispararConfeti();
+
+    const r = analisisA27, it = (pregunta, tuRespuesta, correcta) => ({ pregunta, tuRespuesta, correcta });
+    const lista = (zona) => cfgA27[zona].map(nombreElemA27_).join(', ') || 'Vacío';
+    const detalle = [
+      { titulo:'Diseño del reporte agrupado', items:[
+        it('Campo de agrupación y orden', `${etiquetaCampoA27_(cfgA27.campoAgr)} · ${(ORDENES_A27.find(o => o.id === cfgA27.orden) || {}).texto || ''}`, fallosA27.agrupacion === 0),
+        it('Encabezado de reporte', `${cfgA27.empresa} — ${cfgA27.titulo}`, fallosA27.encabezados === 0),
+        it('Encabezado de página', lista('encPagina'), fallosA27.encabezados === 0),
+        it('Encabezado de grupo', lista('encGrupo'), fallosA27.grupos === 0),
+        it('Línea de detalle', campoDetalleOrdenadoA27_().map(etiquetaCampoA27_).join(', '), fallosA27.detalle === 0),
+        it('Pie de grupo', lista('pieGrupo'), fallosA27.grupos === 0),
+        it('Pie de página', lista('piePagina'), fallosA27.pies === 0),
+        it('Pie de reporte', lista('pieReporte'), fallosA27.pies === 0)
+      ] },
+      { titulo:'Análisis del reporte', items:[
+        it('¿Ejecutó y revisó el reporte completo?', ejecVistaA27 ? 'Sí' : 'No', ejecVistaA27),
+        ...SECCIONES_FREC_A27.map(s => it(`¿Cuántas veces y dónde aparece el ${s.nombre.toLowerCase()}?`, (OPCIONES_FREC_A27.find(o => o.id === r.frec[s.id]) || {}).texto || 'Sin responder', r.frec[s.id] === s.correcta)),
+        it('Conteos en su reporte', `Encabezado de grupo: ${r.nGrupos}; pie de página: ${r.nPies}; pie de reporte: ${r.nPieRep}`, fallosA27.frecuencia === 0),
+        it('Diferencia entre pie de grupo y pie de reporte', r.reflexion || 'Sin responder', fallosA27.reflexion === 0)
+      ] }
+    ];
+    ultimoResultadoA27.detalle = detalle;
+    renderDesgloseColoreado('resultadoDesgloseA27', detalle);
+    try{
+      await apiPost({ action:'guardarCalificacion', usuario: currentUser.usuario, codigo:'A.2.7', ra:'RA2', ec: EC_A27, nota, puntajeMaximo: puntajeMaxA27, criterios, detalle });
+    }catch(err){ console.error('No se pudo guardar la calificación', err); }
+  });
+
+  document.getElementById('btnDescargarPdfA27').addEventListener('click', () => {
+    if(!ultimoResultadoA27) return;
+    generarPdfResultado('A.2.7', ultimoResultadoA27.criterios, ultimoResultadoA27.nota, ultimoResultadoA27.puntajeMaximo, EC_A27, 'RA2', ultimoResultadoA27.detalle);
+  });
+  document.getElementById('btnVolverMisActA27').addEventListener('click', () => {
+    document.getElementById('panelActividadA27').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.7', abrirActividadA27);
