@@ -1783,3 +1783,17 @@
 .exito-a25>i{color:#2e8b57;margin-top:3px;}
 .oral-a25{display:inline-block;margin-top:4px;font-size:13px;opacity:.9;}
 .check-pareja-a25{display:flex;gap:8px;align-items:flex-start;font-size:14px;margin:8px 0;}
+
+/* ============ A.2.6 — Conexión a la base de datos ============ */
+.explorador-a26{display:flex;flex-direction:column;gap:6px;}
+.tabla-a26{border:1px solid var(--border,#d6dce6);border-radius:8px;overflow:hidden;}
+.tabla-cab-a26{display:flex;align-items:center;gap:8px;width:100%;padding:8px 12px;background:rgba(127,127,127,.12);border:0;color:inherit;font:inherit;font-size:13.5px;cursor:pointer;text-align:left;}
+.tabla-cab-a26 .n{margin-left:auto;font-size:12px;opacity:.7;}
+.tabla-cab-a26 .flecha{font-size:11px;opacity:.6;transition:transform .2s;}
+.tabla-a26.abierta .flecha{transform:rotate(180deg);}
+.tabla-campos-a26{display:flex;flex-wrap:wrap;gap:5px;padding:8px 12px;}
+.campo-a26{font-size:12px;padding:2px 8px;border-radius:999px;border:1px solid rgba(127,127,127,.4);}
+.tabla-datos-a26{padding:0 12px 10px;overflow-x:auto;font-size:12px;}
+.tabla-datos-a26 table{border-collapse:collapse;width:100%;}
+.tabla-datos-a26 th,.tabla-datos-a26 td{padding:3px 7px;border-bottom:1px solid rgba(127,127,127,.25);text-align:left;white-space:nowrap;}
+.tabla-datos-a26 th{font-weight:700;opacity:.85;}
