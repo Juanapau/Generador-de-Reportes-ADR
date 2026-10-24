@@ -1681,6 +1681,56 @@
         </div>
       </div>
     </div>
+
+    <div id="panelActividadA25" class="hidden panel-actividad-interactiva">
+      <button type="button" class="back-btn" id="btnBackFromActividadA25"><i class="fa-solid fa-arrow-left"></i> Volver a mis actividades</button>
+      <div class="section-heading">A.2.5 — Construye un reporte nuevo, sección por sección</div>
+
+      <div id="vistaInstrumentoA25">
+        <div class="section-heading" style="font-size:18.5px;">Enunciado</div>
+        <p id="enunciadoActivoA25" class="contenido-enriquecido" style="font-size:15.5px; margin-bottom:20px; line-height:1.6; white-space:pre-wrap;"></p>
+        <div class="section-heading" style="font-size:18.5px;"><i class="fa-solid fa-paperclip"></i> Recursos de apoyo</div>
+        <div id="recursosEstudianteA25" class="recursos-lista">
+          <div class="loading-note" style="padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Cargando recursos...</div>
+        </div>
+        <div id="instrumentoPrevioA25"></div>
+        <div class="empty-note" id="tiempoEstimadoAvisoA25" style="margin-bottom:16px;"></div>
+        <button type="button" class="btn btn-primary" id="btnComenzarA25" style="margin-top:6px; width:auto; padding:12px 28px;">
+          <i class="fa-solid fa-play"></i> Comenzar actividad
+        </button>
+      </div>
+
+      <div id="vistaEjercicioA25" class="hidden">
+        <div class="timer-badge" id="timerA25"><i class="fa-solid fa-stopwatch"></i> 00:00</div>
+        <div class="empty-note" style="margin-top:0;">
+          <i class="fa-solid fa-user-group"></i>
+          Trabajen en pares: creen el proyecto de la nómina de empleados y agreguen una sección a la vez, mirando cómo crece la hoja. Cada estudiante entrega su propia actividad.
+        </div>
+        <div id="disenadorReporteA25"></div>
+        <div id="seccionFinalA25" class="hidden">
+          <button type="button" class="btn btn-primary" id="btnFinalizarA25" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-check-double"></i> Finalizar y calificar
+          </button>
+        </div>
+      </div>
+
+      <div id="vistaResultadoA25" class="hidden">
+        <div class="empty-note hidden" id="avisoYaCompletadaA25">
+          <i class="fa-solid fa-lock"></i>
+          Ya completaste esta actividad — no se puede repetir. Este es el resultado que se guardó.
+        </div>
+        <div id="rubricaResultadoA25"></div>
+        <div id="resultadoDesgloseA25"></div>
+        <div class="acciones-resultado">
+          <button type="button" class="btn btn-primary" id="btnVolverMisActA25" style="width:auto; padding:12px 28px;">
+            <i class="fa-solid fa-arrow-left"></i> Volver a mis actividades
+          </button>
+          <button type="button" class="btn-descargar-pdf" id="btnDescargarPdfA25">
+            <i class="fa-solid fa-file-pdf"></i> Descargar resultado en PDF
+          </button>
+        </div>
+      </div>
+    </div>
   </main>
 
   <footer class="appfoot">Politécnico Nuestra Señora de la Altagracia — Generador de Reportes · Módulo ADR</footer>
