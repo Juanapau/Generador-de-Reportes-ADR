@@ -7885,3 +7885,619 @@
   });
 
   registrarActividadInteractiva('A.2.5', abrirActividadA25);
+
+
+// ============================================================================
+// A.2.6 — CONECTA EL REPORTE A SU BASE DE DATOS Y UBICA LAS TABLAS
+// ============================================================================
+  // En pares (cada estudiante entrega y se califica de forma individual). Crean el proyecto
+  // de una "Factura de venta" de TECNOVENTAS RD, lo conectan a la base de datos correcta y
+  // ubican de qué tablas sale cada dato del encabezado y del detalle. La base de datos va
+  // incluida aquí (no hace falta crear hojas en el Sheet). Se apoya en el recurso
+  // "Conexion_del_Reporte_a_su_Base_de_Datos_A26.pdf".
+
+  const EC_A26 = 'EC6.2.2';
+  const BD_CORRECTA_A26 = 'TecnoVentas_DB';
+
+  const BASES_A26 = {
+    TecnoVentas_DB: { descripcion:'Base de datos de TECNOVENTAS RD', tablas:[
+      { nombre:'Clientes', tema:'los clientes de la empresa', campos:['IdCliente','NombreCliente','RNC','Telefono','Ciudad'], filas:[
+        [1,'Ferretería El Progreso','101-23456-7','809-555-0101','Santo Domingo'],
+        [2,'Colegio San Rafael','130-45678-2','809-555-0144','Santiago'],
+        [3,'Distribuidora Caribe','101-88990-3','809-555-0178','La Romana'],
+        [4,'Clínica Dental Sonrisa','131-22110-9','809-555-0199','San Pedro']] },
+      { nombre:'Facturas', tema:'las facturas emitidas', campos:['NumFactura','Fecha','IdCliente','CondicionPago'], filas:[
+        [1001,'2026-03-02',2,'Crédito'],[1002,'2026-03-03',1,'Contado'],[1003,'2026-03-05',3,'Crédito']] },
+      { nombre:'DetalleFactura', tema:'las líneas (productos vendidos) de cada factura', campos:['NumFactura','IdProducto','Cantidad','PrecioUnitario'], filas:[
+        [1001,'P01',5,28500],[1001,'P02',10,650],[1001,'P04',10,900],[1002,'P03',2,12500],[1002,'P02',4,650],[1003,'P05',6,9800],[1003,'P01',2,28500]] },
+      { nombre:'Productos', tema:'el catálogo de productos', campos:['IdProducto','Descripcion','Categoria','IdProveedor'], filas:[
+        ['P01','Laptop HP 15','Computadoras','V1'],['P02','Mouse inalámbrico','Accesorios','V2'],['P03','Impresora láser','Impresoras','V1'],
+        ['P04','Teclado USB','Accesorios','V2'],['P05','Monitor 24"','Pantallas','V3']] },
+      { nombre:'Proveedores', tema:'los proveedores', campos:['IdProveedor','NombreProveedor','Telefono'], filas:[
+        ['V1','Tech Import RD','809-555-0210'],['V2','Accesorios del Caribe','809-555-0222'],['V3','Pantallas Global','809-555-0233']] },
+      { nombre:'Empleados', tema:'el personal de la empresa', campos:['IdEmpleado','Nombre','Departamento','Salario'], filas:[
+        [1,'Carlos Fernández','Ventas',68000],[2,'Ana Ramírez','Ventas',42000],[3,'Miguel Santos','Almacén',38500]] },
+      { nombre:'Gastos', tema:'los gastos de la empresa', campos:['IdGasto','Fecha','Categoria','Monto'], filas:[
+        [1,'2026-02-10','Servicios',12500],[2,'2026-02-14','Transporte',4800],[3,'2026-02-20','Suministros',3200]] }
+    ] },
+    Nomina_RRHH_DB: { descripcion:'Base de datos de recursos humanos', tablas:[
+      { nombre:'Empleados', tema:'el personal', campos:['IdEmpleado','Nombre','Cargo','Salario'], filas:[] },
+      { nombre:'Asistencia', tema:'la asistencia diaria', campos:['IdEmpleado','Fecha','Entrada','Salida'], filas:[] },
+      { nombre:'Cargos', tema:'los cargos de la empresa', campos:['IdCargo','NombreCargo','SalarioBase'], filas:[] }
+    ] },
+    Biblioteca_Escolar_DB: { descripcion:'Base de datos de la biblioteca', tablas:[
+      { nombre:'Socios', tema:'los socios', campos:['IdSocio','NombreSocio','Grado'], filas:[] },
+      { nombre:'Libros', tema:'los libros', campos:['IdLibro','Titulo','Autor'], filas:[] },
+      { nombre:'Prestamos', tema:'los préstamos', campos:['IdPrestamo','IdSocio','IdLibro','FechaPrestamo'], filas:[] }
+    ] }
+  };
+
+  const ITEMS_ENC_A26 = [
+    { id:'numFactura', texto:'Número de la factura', campo:'NumFactura', tabla:'Facturas' },
+    { id:'fecha', texto:'Fecha de la factura', campo:'Fecha', tabla:'Facturas' },
+    { id:'cliente', texto:'Nombre del cliente', campo:'NombreCliente', tabla:'Clientes' },
+    { id:'rnc', texto:'RNC del cliente', campo:'RNC', tabla:'Clientes' }
+  ];
+  const ITEMS_DET_A26 = [
+    { id:'desc', texto:'Descripción del producto', campo:'Descripcion', tabla:'Productos' },
+    { id:'cat', texto:'Categoría del producto', campo:'Categoria', tabla:'Productos' },
+    { id:'cant', texto:'Cantidad vendida', campo:'Cantidad', tabla:'DetalleFactura' },
+    { id:'precio', texto:'Precio unitario', campo:'PrecioUnitario', tabla:'DetalleFactura' }
+  ];
+  const RELACIONES_A26 = [
+    { id:'r1', par:'Facturas ↔ Clientes', correcto:'IdCliente' },
+    { id:'r2', par:'Facturas ↔ DetalleFactura', correcto:'NumFactura' },
+    { id:'r3', par:'DetalleFactura ↔ Productos', correcto:'IdProducto' }
+  ];
+  const CAMPOS_REL_A26 = ['IdCliente', 'NumFactura', 'IdProducto', 'Fecha', 'Categoria', 'Cantidad'];
+
+  const SECCIONES_A26 = [
+    { id:'proyecto', corto:'Proyecto', icono:'fa-folder-plus', oral:'Cuéntale a tu pareja: ¿de qué trata el reporte que van a diseñar?' },
+    { id:'conexion', corto:'Conexión', icono:'fa-database', oral:'Digan juntos: ¿qué tablas ven en la base conectada y de qué trata cada una?' },
+    { id:'encabezado', corto:'Encabezado', icono:'fa-heading', oral:'Expliquen: ¿por qué el encabezado necesitó dos tablas y no una sola?' },
+    { id:'detalle', corto:'Detalle', icono:'fa-table-list', oral:'Comenten: ¿qué tabla describe cada producto y cuál guarda lo vendido?' },
+    { id:'relaciones', corto:'Relaciones', icono:'fa-link', oral:'Digan en voz alta: ¿qué campo une cada par de tablas y por qué sirve para unirlas?' }
+  ];
+  const ETAPAS_A26 = [...SECCIONES_A26.map(s => ({ id:s.id, corto:s.corto })), { id:'vista', corto:'Reporte poblado' }, { id:'reflexion', corto:'Reflexión' }];
+  const PASO_VISTA_A26 = 5, PASO_REFLEXION_A26 = 6;
+
+  const CRITERIOS_BASE_A26 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio y revisa cada paso con su pareja.' },
+    { key:'proyecto', nombre:'2. Proyecto nuevo', descripcion:'Crea el proyecto con un nombre claro y anota a su pareja de trabajo.' },
+    { key:'conexion', nombre:'3. Conexión a la base de datos', descripcion:'Conecta el proyecto a la base de datos que contiene la información que necesita el reporte.' },
+    { key:'encabezado', nombre:'4. Tablas del encabezado', descripcion:'Ubica la tabla de la que sale cada dato del encabezado.' },
+    { key:'detalle', nombre:'5. Tablas del detalle', descripcion:'Ubica la tabla de la que sale cada dato de la línea de detalle.' },
+    { key:'relaciones', nombre:'6. Relación entre tablas', descripcion:'Identifica el campo en común que une cada par de tablas.' },
+    { key:'vista', nombre:'7. Revisión del reporte poblado', descripcion:'Revisa el reporte ya poblado con datos reales y comprueba que cuadre.' },
+    { key:'reflexion', nombre:'8. Reflexión sobre las tablas', descripcion:'Explica con sus palabras por qué el reporte necesita varias tablas y qué papel tiene el campo en común.' },
+    { key:'tiempo', nombre:'9. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'10. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let proyectoA26 = { nombre:'', pareja:'' };
+  let bdConectadaA26 = '';
+  let mapaEncA26 = {}, mapaDetA26 = {}, relA26 = {};
+  let okA26 = {};
+  let intentosA26 = {};
+  let pasoA26 = 0;
+  let vistaVisitadaA26 = false;
+  let facturaVistaA26 = 1001;
+  let reflexionA26 = { texto:'', conPareja:false };
+  let reflexionOkA26 = false;
+  let ordenTablasA26 = [], ordenCamposRelA26 = [], ordenBdA26 = null;
+  let tablaAbiertaA26 = '';
+  let ultimoResultadoA26 = null;
+  let puntajeMaxA26 = 0;
+  let tiempoEstimadoA26 = 10;
+  let inicioTiempoA26 = null;
+  let timerIntervalA26 = null;
+
+  const fmtMontoA26_ = (v) => 'RD$' + (Number(v) || 0).toLocaleString('es-DO', { minimumFractionDigits:2 });
+  const escHtmlA26_ = (t) => String(t === null || t === undefined ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const escAttrA26_ = (t) => escHtmlA26_(t).replace(/"/g, '&quot;');
+  const tablasTVA26_ = () => BASES_A26[BD_CORRECTA_A26].tablas;
+  const tablaTVA26_ = (n) => tablasTVA26_().find(t => t.nombre === n);
+
+  function reiniciarEstadoA26_(){
+    proyectoA26 = { nombre:'', pareja:'' };
+    bdConectadaA26 = '';
+    mapaEncA26 = {}; mapaDetA26 = {}; relA26 = {};
+    okA26 = {};
+    intentosA26 = { proyecto:0, conexion:0, encabezado:0, detalle:0, relaciones:0, reflexion:0 };
+    pasoA26 = 0; vistaVisitadaA26 = false; facturaVistaA26 = 1001; tablaAbiertaA26 = '';
+    reflexionA26 = { texto:'', conPareja:false }; reflexionOkA26 = false;
+    // Las opciones se barajan una vez por intento para que no queden "en el orden en que van"
+    ordenTablasA26 = barajar(tablasTVA26_().map(t => t.nombre));
+    ordenCamposRelA26 = barajar([...CAMPOS_REL_A26]);
+    ordenBdA26 = null;
+  }
+
+  function primerPendienteA26_(){
+    const i = SECCIONES_A26.findIndex(s => !okA26[s.id]);
+    return i === -1 ? PASO_VISTA_A26 : i;
+  }
+  function limitePasoA26_(){
+    const p = primerPendienteA26_();
+    if(p < PASO_VISTA_A26) return p;
+    return vistaVisitadaA26 ? PASO_REFLEXION_A26 : PASO_VISTA_A26;
+  }
+
+  // ---------- Validaciones: devuelven { ok, mensajes } ----------
+  function validarSeccionA26_(sec){
+    const msgs = [];
+    if(sec === 'proyecto'){
+      const nombre = (proyectoA26.nombre || '').trim();
+      const generico = /^(proyecto|nuevo proyecto|reporte|sin nombre|prueba|test)\s*\d*$/i.test(nombre);
+      if(nombre.length < 4 || generico) msgs.push('Ponle a tu proyecto un <b>nombre claro</b> que diga de qué es el reporte (por ejemplo, "Factura de venta"). Evita nombres genéricos como "Proyecto1".');
+      if((proyectoA26.pareja || '').trim().length < 3) msgs.push('Escribe el nombre de tu <b>pareja de trabajo</b>. Si hoy trabajas solo/a, escribe "Sin pareja".');
+    } else if(sec === 'conexion'){
+      if(!bdConectadaA26) msgs.push('Selecciona una base de datos y presiona <b>Conectar</b>.');
+      else if(bdConectadaA26 !== BD_CORRECTA_A26) msgs.push(`La base <b>${bdConectadaA26}</b> trata de otro tema: mira sus tablas en el explorador. Tu reporte es una <b>factura de venta</b> de TECNOVENTAS RD, que necesita clientes, facturas y productos vendidos. Conecta la base de datos que tiene esa información.`);
+    } else if(sec === 'encabezado' || sec === 'detalle'){
+      const items = sec === 'encabezado' ? ITEMS_ENC_A26 : ITEMS_DET_A26;
+      const mapa = sec === 'encabezado' ? mapaEncA26 : mapaDetA26;
+      items.forEach(it => {
+        const elegida = mapa[it.id];
+        if(!elegida){ msgs.push(`Falta elegir la tabla de: <b>${it.texto}</b>.`); return; }
+        if(elegida !== it.tabla){
+          const t = tablaTVA26_(elegida);
+          const tiene = t.campos.includes(it.campo);
+          msgs.push(`<b>${it.texto}</b>: la tabla <b>${elegida}</b> ${tiene ? `tiene un campo llamado ${it.campo}, pero guarda datos de ${t.tema}, no los de tu reporte` : `no tiene ese dato (guarda ${t.tema})`}. Revisa los campos de cada tabla en el explorador.`);
+        }
+      });
+    } else if(sec === 'relaciones'){
+      RELACIONES_A26.forEach(r => {
+        const v = relA26[r.id];
+        if(!v) msgs.push(`Falta elegir el campo que une <b>${r.par}</b>.`);
+        else if(v !== r.correcto) msgs.push(`<b>${r.par}</b>: <b>${v}</b> no es el campo que comparten esas dos tablas como identificador. Busca en el explorador un campo que aparezca en <u>ambas</u> y que identifique a la persona, la factura o el producto.`);
+      });
+    }
+    return { ok: msgs.length === 0, mensajes: msgs };
+  }
+
+  // ---------- Apertura ----------
+  async function abrirActividadA26(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA26 = puntajeMaximo;
+    tiempoEstimadoA26 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA26').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA26').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.6') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA26').classList.add('hidden');
+        document.getElementById('vistaEjercicioA26').classList.add('hidden');
+        document.getElementById('vistaResultadoA26').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA26', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA26', previa.detalle);
+        ultimoResultadoA26 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA26').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar */ }
+
+    document.getElementById('avisoYaCompletadaA26').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA26').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA26').classList.add('hidden');
+    document.getElementById('vistaResultadoA26').classList.add('hidden');
+    document.getElementById('tiempoEstimadoAvisoA26').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA26} minutos</b> para completar esta actividad una vez que la inicies.`;
+    cargarRecursosActividad('A.2.6', 'recursosEstudianteA26');
+    renderRubrica('instrumentoPrevioA26', CRITERIOS_BASE_A26.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA26, null);
+  }
+
+  document.getElementById('btnBackFromActividadA26').addEventListener('click', () => {
+    clearInterval(timerIntervalA26);
+    document.getElementById('panelActividadA26').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA26').addEventListener('click', () => {
+    reiniciarEstadoA26_();
+    document.getElementById('vistaInstrumentoA26').classList.add('hidden');
+    document.getElementById('vistaEjercicioA26').classList.remove('hidden');
+    document.getElementById('seccionFinalA26').classList.add('hidden');
+    pintarPasoA26_();
+    inicioTiempoA26 = Date.now();
+    clearInterval(timerIntervalA26);
+    timerIntervalA26 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA26) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA26').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA26} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Estructura: indicador de pasos + cuerpo ----------
+  function irAPasoA26_(n){
+    if(n < 0 || n > limitePasoA26_()) return;
+    pasoA26 = n;
+    pintarPasoA26_();
+  }
+  function stepperHtmlA26_(){
+    const limite = limitePasoA26_();
+    return `<div class="stepper-a25" id="stepperA26">${ETAPAS_A26.map((e, i) => {
+      const hecho = i < PASO_VISTA_A26 ? !!okA26[e.id] : (i === PASO_VISTA_A26 ? vistaVisitadaA26 : reflexionOkA26);
+      const clases = ['paso-a25', i === pasoA26 ? 'activo' : '', hecho ? 'hecho' : '', i > limite ? 'bloqueado' : ''].join(' ');
+      return `<button type="button" class="${clases}" data-paso="${i}" ${i > limite ? 'disabled' : ''}>
+        <span class="num">${hecho && i !== pasoA26 ? '<i class="fa-solid fa-check"></i>' : i + 1}</span><span class="txt">${e.corto}</span></button>`;
+    }).join('')}</div>`;
+  }
+  function conectarStepperA26_(){
+    document.querySelectorAll('#stepperA26 .paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA26_(Number(b.dataset.paso))));
+  }
+  function refrescarStepperA26_(){
+    const st = document.getElementById('stepperA26');
+    if(!st) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = stepperHtmlA26_();
+    st.replaceWith(tmp.firstElementChild);
+    conectarStepperA26_();
+  }
+  function pintarPasoA26_(){
+    document.getElementById('disenadorReporteA26').innerHTML = stepperHtmlA26_() + '<div id="cuerpoPasoA26"></div>';
+    document.getElementById('seccionFinalA26').classList.add('hidden');
+    conectarStepperA26_();
+    if(pasoA26 < PASO_VISTA_A26) pintarConstruccionA26_();
+    else if(pasoA26 === PASO_VISTA_A26) pintarVistaA26_();
+    else pintarReflexionA26_();
+  }
+
+  // ---------- Explorador de la base de datos (columna derecha) ----------
+  function pintarExploradorA26_(){
+    const cont = document.getElementById('exploradorA26');
+    if(!cont) return;
+    if(!bdConectadaA26){
+      cont.innerHTML = `<div class="hoja-etiqueta-a25"><i class="fa-solid fa-database"></i> Explorador de la base de datos</div>
+        <div class="hoja-pendiente-a25"><i class="fa-regular fa-circle"></i> Aún no hay una base de datos conectada.<br>Conéctala en el paso 2 para ver sus tablas.</div>`;
+      return;
+    }
+    const bd = BASES_A26[bdConectadaA26];
+    cont.innerHTML = `
+      <div class="hoja-etiqueta-a25"><i class="fa-solid fa-database"></i> Base conectada: <b>${bdConectadaA26}</b> · ${bd.tablas.length} tablas</div>
+      <div class="explorador-a26">
+        ${bd.tablas.map(t => `
+          <div class="tabla-a26 ${tablaAbiertaA26 === t.nombre ? 'abierta' : ''}">
+            <button type="button" class="tabla-cab-a26" data-tabla="${t.nombre}"><i class="fa-solid fa-table"></i> <b>${t.nombre}</b> <span class="n">${t.campos.length} campos</span><i class="fa-solid fa-chevron-down flecha"></i></button>
+            <div class="tabla-campos-a26">${t.campos.map(c => `<span class="campo-a26">${c}</span>`).join('')}</div>
+            ${tablaAbiertaA26 === t.nombre ? (t.filas.length ? `
+              <div class="tabla-datos-a26"><table><thead><tr>${t.campos.map(c => `<th>${c}</th>`).join('')}</tr></thead>
+              <tbody>${t.filas.slice(0, 4).map(f => `<tr>${f.map(v => `<td>${escHtmlA26_(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`
+              : '<div class="tabla-datos-a26"><i>Esta base no tiene vista de datos de ejemplo.</i></div>') : ''}
+          </div>`).join('')}
+      </div>
+      <div style="font-size:12px; opacity:.75; margin-top:6px;">Toca una tabla para ver unos registros de ejemplo.</div>`;
+    cont.querySelectorAll('.tabla-cab-a26').forEach(b => b.addEventListener('click', () => {
+      tablaAbiertaA26 = tablaAbiertaA26 === b.dataset.tabla ? '' : b.dataset.tabla;
+      pintarExploradorA26_();
+    }));
+  }
+
+  // ---------- Pasos 1-5: construcción ----------
+  const selectTablaHtmlA26_ = (it, mapa, bloque) => `
+    <div class="afirmacion-a24">
+      <span><b>${it.texto}</b><br><span style="font-size:12px; opacity:.7;">campo: ${it.campo}</span></span>
+      <select class="input-generico select-mapa-a26" data-bloque="${bloque}" data-item="${it.id}">
+        <option value="">Tabla...</option>
+        ${ordenTablasA26.map(n => `<option value="${n}" ${mapa[it.id] === n ? 'selected' : ''}>${n}</option>`).join('')}
+      </select>
+    </div>`;
+
+  function controlesA26_(sec){
+    if(sec === 'proyecto'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">Van a diseñar la <b>Factura de venta</b> de TECNOVENTAS RD: un reporte con los datos del cliente y la fecha arriba, y los productos vendidos debajo. Primero, creen el proyecto.</p>
+        <label class="etiqueta-a25">Nombre del proyecto</label>
+        <input type="text" id="inputProyNombreA26" class="input-generico" placeholder="Ej. Factura de venta" maxlength="60" value="${escAttrA26_(proyectoA26.nombre)}">
+        <label class="etiqueta-a25">Tu pareja de trabajo</label>
+        <input type="text" id="inputProyParejaA26" class="input-generico" placeholder="Nombre de tu compañero/a (o 'Sin pareja')" maxlength="60" value="${escAttrA26_(proyectoA26.pareja)}">`;
+    }
+    if(sec === 'conexion'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">El reporte necesita saber <b>de dónde</b> sacar sus datos. Elijan la base de datos que contiene la información de una factura de venta y conecten el proyecto.</p>
+        <label class="etiqueta-a25">Base de datos</label>
+        <select id="selectBdA26" class="input-generico">
+          <option value="" ${bdConectadaA26 ? '' : 'selected'}>Selecciona una base de datos...</option>
+          ${barajarFijoBdA26_().map(n => `<option value="${n}" ${bdConectadaA26 === n ? 'selected' : ''}>${n}</option>`).join('')}
+        </select>`;
+    }
+    if(sec === 'encabezado'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">El <b>encabezado</b> de la factura sale una sola vez. Para cada dato, elige la <b>tabla</b> de la que se toma. Usa el explorador para revisar los campos.</p>
+        ${ITEMS_ENC_A26.map(it => selectTablaHtmlA26_(it, mapaEncA26, 'enc')).join('')}`;
+    }
+    if(sec === 'detalle'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">La <b>línea de detalle</b> se repite por cada producto vendido. Para cada dato, elige la <b>tabla</b> de la que se toma.</p>
+        ${ITEMS_DET_A26.map(it => selectTablaHtmlA26_(it, mapaDetA26, 'det')).join('')}`;
+    }
+    return `
+      <p class="descripcion-seccion-a21" style="margin-top:0;">Para que el encabezado y el detalle muestren datos que <b>pertenecen a la misma factura</b>, las tablas se unen por un <b>campo en común</b>. Elige el campo que une cada par.</p>
+      ${RELACIONES_A26.map(r => `
+        <div class="afirmacion-a24"><span><b>${r.par}</b></span>
+          <select class="input-generico select-rel-a26" data-rel="${r.id}">
+            <option value="">Campo...</option>
+            ${ordenCamposRelA26.map(c => `<option value="${c}" ${relA26[r.id] === c ? 'selected' : ''}>${c}</option>`).join('')}
+          </select></div>`).join('')}`;
+  }
+  // El orden de las bases se mantiene fijo durante todo el intento
+  function barajarFijoBdA26_(){
+    if(!ordenBdA26) ordenBdA26 = barajar(Object.keys(BASES_A26));
+    return ordenBdA26;
+  }
+
+  function pintarConstruccionA26_(){
+    const sec = SECCIONES_A26[pasoA26];
+    const cuerpo = document.getElementById('cuerpoPasoA26');
+    const titulos = ['crea el proyecto', 'conecta la base de datos', 'ubica las tablas del encabezado', 'ubica las tablas del detalle', 'une las tablas con su campo en común'];
+    cuerpo.innerHTML = `
+      <div class="a25-layout">
+        <div class="a25-panel">
+          <div class="caja-diseno-a21 ${okA26[sec.id] ? 'correcta' : ''}" id="cajaSeccionA26">
+            <div class="caja-diseno-titulo"><i class="fa-solid ${sec.icono}"></i> Paso ${pasoA26 + 1}: ${titulos[pasoA26]}</div>
+            <div id="controlesA26">${controlesA26_(sec.id)}</div>
+          </div>
+          <div id="feedbackA26"></div>
+          <div id="accionesA26"></div>
+        </div>
+        <div class="a25-preview" id="exploradorA26"></div>
+      </div>`;
+    conectarControlesA26_(sec.id);
+    pintarAccionesA26_();
+    pintarExploradorA26_();
+  }
+
+  function invalidarA26_(sec){
+    if(!okA26[sec]) return;
+    okA26[sec] = false;
+    const fb = document.getElementById('feedbackA26'); if(fb) fb.innerHTML = '';
+    const caja = document.getElementById('cajaSeccionA26'); if(caja) caja.classList.remove('correcta');
+    pintarAccionesA26_();
+    refrescarStepperA26_();
+  }
+
+  function conectarControlesA26_(sec){
+    if(sec === 'proyecto'){
+      document.getElementById('inputProyNombreA26').addEventListener('input', (e) => { proyectoA26.nombre = e.target.value; invalidarA26_('proyecto'); });
+      document.getElementById('inputProyParejaA26').addEventListener('input', (e) => { proyectoA26.pareja = e.target.value; invalidarA26_('proyecto'); });
+    } else if(sec === 'conexion'){
+      document.getElementById('selectBdA26').addEventListener('change', (e) => {
+        bdConectadaA26 = e.target.value; tablaAbiertaA26 = '';
+        // Al cambiar de base, lo que dependía de ella se pierde
+        mapaEncA26 = {}; mapaDetA26 = {}; relA26 = {};
+        okA26.encabezado = okA26.detalle = okA26.relaciones = false;
+        invalidarA26_('conexion');
+        pintarExploradorA26_();
+      });
+    } else if(sec === 'encabezado' || sec === 'detalle'){
+      document.querySelectorAll('#controlesA26 .select-mapa-a26').forEach(sel => sel.addEventListener('change', () => {
+        (sel.dataset.bloque === 'enc' ? mapaEncA26 : mapaDetA26)[sel.dataset.item] = sel.value;
+        invalidarA26_(sec);
+      }));
+    } else if(sec === 'relaciones'){
+      document.querySelectorAll('#controlesA26 .select-rel-a26').forEach(sel => sel.addEventListener('change', () => {
+        relA26[sel.dataset.rel] = sel.value; invalidarA26_('relaciones');
+      }));
+    }
+  }
+
+  function pintarAccionesA26_(){
+    const cont = document.getElementById('accionesA26');
+    if(!cont) return;
+    const sec = SECCIONES_A26[pasoA26];
+    const ok = !!okA26[sec.id];
+    const etiquetas = ['Crear proyecto', 'Conectar', 'Confirmar tablas', 'Confirmar tablas', 'Confirmar relaciones'];
+    cont.innerHTML = `
+      <div class="nav-pasos" style="margin-top:14px;">
+        ${pasoA26 > 0 ? '<button type="button" class="btn-nav-paso" id="btnAnteriorA26"><i class="fa-solid fa-arrow-left"></i> Anterior</button>' : ''}
+        <button type="button" class="btn btn-primary" id="btnConfirmarA26" style="width:auto; padding:11px 22px;">
+          <i class="fa-solid ${ok ? 'fa-rotate' : 'fa-check'}"></i> ${ok ? 'Volver a confirmar' : etiquetas[pasoA26]}
+        </button>
+        ${ok ? `<button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSiguienteA26">${pasoA26 === 4 ? 'Ver el reporte poblado' : 'Siguiente paso'} <i class="fa-solid fa-arrow-right"></i></button>` : ''}
+      </div>`;
+    const ant = document.getElementById('btnAnteriorA26'); if(ant) ant.addEventListener('click', () => irAPasoA26_(pasoA26 - 1));
+    document.getElementById('btnConfirmarA26').addEventListener('click', confirmarSeccionA26_);
+    const sig = document.getElementById('btnSiguienteA26'); if(sig) sig.addEventListener('click', () => irAPasoA26_(pasoA26 + 1));
+  }
+
+  function confirmarSeccionA26_(){
+    const sec = SECCIONES_A26[pasoA26];
+    const fb = document.getElementById('feedbackA26');
+    const r = validarSeccionA26_(sec.id);
+    if(!r.ok){
+      // Solo cuenta como intento fallido mientras la sección no se haya completado nunca
+      if(!okA26['_hecho_' + sec.id]) intentosA26[sec.id]++;
+      okA26[sec.id] = false;
+      fb.innerHTML = r.mensajes.map(m => `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`).join('');
+      document.getElementById('cajaSeccionA26').classList.remove('correcta');
+      pintarAccionesA26_();
+      refrescarStepperA26_();
+      return;
+    }
+    okA26[sec.id] = true; okA26['_hecho_' + sec.id] = true;
+    document.getElementById('cajaSeccionA26').classList.add('correcta');
+    const mensajes = {
+      proyecto: '¡Proyecto creado!', conexion: `¡Proyecto conectado a <b>${bdConectadaA26}</b>!`,
+      encabezado: '¡Tablas del encabezado ubicadas!', detalle: '¡Tablas del detalle ubicadas!', relaciones: '¡Relaciones identificadas!'
+    };
+    fb.innerHTML = `
+      <div class="exito-a25"><i class="fa-solid fa-circle-check"></i>
+        <div><b>${mensajes[sec.id]}</b><br>
+        <span class="oral-a25"><i class="fa-solid fa-comments"></i> ${sec.oral} Luego cambien de rol.</span></div>
+      </div>`;
+    pintarAccionesA26_();
+    refrescarStepperA26_();
+    if(sec.id === 'conexion') pintarExploradorA26_();
+  }
+
+  // ---------- Paso 6: reporte ya poblado ----------
+  function filasUnidasA26_(numFactura){
+    const fac = tablaTVA26_('Facturas').filas.find(f => f[0] === numFactura);
+    const cli = tablaTVA26_('Clientes').filas.find(c => c[0] === fac[2]);
+    const lineas = tablaTVA26_('DetalleFactura').filas.filter(l => l[0] === numFactura).map(l => {
+      const p = tablaTVA26_('Productos').filas.find(x => x[0] === l[1]);
+      return { desc:p[1], cat:p[2], cant:l[2], precio:l[3] };
+    });
+    return { numero:fac[0], fecha:fac[1], cliente:cli[1], rnc:cli[2], lineas };
+  }
+  function pintarVistaA26_(){
+    vistaVisitadaA26 = true;
+    const cuerpo = document.getElementById('cuerpoPasoA26');
+    const f = filasUnidasA26_(facturaVistaA26);
+    const facturas = tablaTVA26_('Facturas').filas.map(x => x[0]);
+    cuerpo.innerHTML = `
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-play"></i> <b>Así queda tu reporte ya conectado.</b> El encabezado toma sus datos de <b>Facturas</b> y <b>Clientes</b>, y el detalle de <b>DetalleFactura</b> y <b>Productos</b>, unidas por los campos en común que identificaron. Cambien de factura y comprueben que todo cuadre.</div>
+      <div class="vistas-tabs" style="margin-bottom:10px;">${facturas.map(n => `<button type="button" class="vista-tab-btn ${n === facturaVistaA26 ? 'activo' : ''}" data-fac="${n}">Factura ${n}</button>`).join('')}</div>
+      <div class="hoja-reporte-a24">
+        <div class="hoja-enc-reporte-a24"><div class="emp">TECNOVENTAS RD</div><div class="tit">Factura de venta N.º ${f.numero}</div></div>
+        <div class="hoja-fila-a24" style="background:rgba(143,176,224,.15);"><span><b>Fecha:</b> ${escHtmlA26_(String(f.fecha).split('-').reverse().join('/'))}</span><span><b>Cliente:</b> ${escHtmlA26_(f.cliente)}</span><span><b>RNC:</b> ${escHtmlA26_(f.rnc)}</span></div>
+        <div class="hoja-enc-pagina-a24"><div class="hoja-cols-a24"><span>Descripción</span><span>Categoría</span><span style="text-align:right;">Cantidad</span><span style="text-align:right;">Precio unitario</span></div></div>
+        ${f.lineas.map(l => `<div class="hoja-fila-a24"><span>${escHtmlA26_(l.desc)}</span><span>${escHtmlA26_(l.cat)}</span><span style="text-align:right;">${l.cant}</span><span style="text-align:right;">${fmtMontoA26_(l.precio)}</span></div>`).join('')}
+      </div>
+      <div class="nav-pasos" style="justify-content:space-between; margin-top:16px;">
+        <button type="button" class="btn-nav-paso" id="btnAnteriorA26"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+        <button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSiguienteA26">Reflexionar <i class="fa-solid fa-arrow-right"></i></button>
+      </div>`;
+    cuerpo.querySelectorAll('[data-fac]').forEach(b => b.addEventListener('click', () => { facturaVistaA26 = Number(b.dataset.fac); pintarVistaA26_(); }));
+    document.getElementById('btnAnteriorA26').addEventListener('click', () => irAPasoA26_(4));
+    document.getElementById('btnSiguienteA26').addEventListener('click', () => irAPasoA26_(PASO_REFLEXION_A26));
+    refrescarStepperA26_();
+  }
+
+  // ---------- Paso 7: reflexión ----------
+  function pintarReflexionA26_(){
+    const cuerpo = document.getElementById('cuerpoPasoA26');
+    const r = reflexionA26;
+    cuerpo.innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 14px;"><button type="button" class="btn-nav-paso" id="btnAnteriorA26"><i class="fa-solid fa-arrow-left"></i> Volver al reporte</button></div>
+      <div class="section-heading" style="font-size:18px;">Reflexión de la pareja</div>
+      ${reflexionOkA26 ? '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Listo! Ya puedes finalizar la actividad.</div>' : ''}
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿Por qué el encabezado y el detalle de tu reporte necesitaron más de una tabla, y qué papel tuvo el campo en común para unirlas?</label>
+        <textarea class="input-generico celda-respuesta-a15" id="txtReflexionA26" rows="4" placeholder="Escribe tu reflexión con tus propias palabras..." ${reflexionOkA26 ? 'disabled' : ''}>${escHtmlA26_(r.texto)}</textarea>
+        <div id="feedbackReflexionA26"></div>
+      </div>
+      <label class="check-pareja-a25"><input type="checkbox" id="chkParejaA26" ${r.conPareja ? 'checked' : ''} ${reflexionOkA26 ? 'disabled' : ''}> Dijimos en voz alta, mi pareja y yo, de qué tabla sale cada dato del reporte.</label>
+      <div id="feedbackGeneralA26"></div>
+      ${reflexionOkA26 ? '' : '<button type="button" class="btn btn-primary" id="btnConfirmarReflexionA26" style="width:auto; padding:12px 28px; margin-top:12px;"><i class="fa-solid fa-check"></i> Confirmar</button>'}`;
+    document.getElementById('btnAnteriorA26').addEventListener('click', () => irAPasoA26_(PASO_VISTA_A26));
+    document.getElementById('txtReflexionA26').addEventListener('input', (e) => { r.texto = e.target.value; });
+    document.getElementById('chkParejaA26').addEventListener('change', (e) => { r.conPareja = e.target.checked; });
+    const btn = document.getElementById('btnConfirmarReflexionA26');
+    if(btn) btn.addEventListener('click', verificarReflexionA26_);
+    if(reflexionOkA26) document.getElementById('seccionFinalA26').classList.remove('hidden');
+  }
+
+  function verificarReflexionA26_(){
+    const r = reflexionA26;
+    const caja = (m) => `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`;
+    const texto = normalizarTextoA15_(r.texto || '');
+    const claves = ['tabla', 'encabezado', 'detalle', 'campo', 'relacion', 'une', 'union'].filter(k => texto.includes(k)).length;
+    if(!(contarPalabrasRealesA15_(r.texto || '') >= 15 && claves >= 2)){
+      if(!okA26._hechoReflexion) intentosA26.reflexion++;
+      document.getElementById('feedbackReflexionA26').innerHTML = caja('Tu reflexión necesita más detalle: usa al menos 15 palabras y menciona las <b>tablas</b>, el <b>encabezado</b>, el <b>detalle</b> y el <b>campo en común</b> que las une.');
+      return;
+    }
+    document.getElementById('feedbackReflexionA26').innerHTML = '';
+    if(!r.conPareja){
+      document.getElementById('feedbackGeneralA26').innerHTML = caja('Marca la casilla: antes de finalizar, díganse en voz alta con tu pareja de qué tabla sale cada dato.');
+      return;
+    }
+    reflexionOkA26 = true; okA26._hechoReflexion = true;
+    pintarReflexionA26_();
+    refrescarStepperA26_();
+  }
+
+  // ---------- Finalizar y calificar ----------
+  document.getElementById('btnFinalizarA26').addEventListener('click', async () => {
+    clearInterval(timerIntervalA26);
+    const minutos = (Date.now() - inicioTiempoA26) / 60000;
+    const nivelPorFallos = (fallos) => fallos <= 0 ? 'logrado' : (fallos === 1 ? 'proceso' : 'no_logrado');
+    const C = CRITERIOS_BASE_A26;
+    const crit = (i, nivel) => ({ nombre: C[i].nombre, descripcion: C[i].descripcion, nivel });
+    const criterios = [
+      crit(0, 'logrado'),
+      crit(1, nivelPorFallos(intentosA26.proyecto)),
+      crit(2, nivelPorFallos(intentosA26.conexion)),
+      crit(3, nivelPorFallos(intentosA26.encabezado)),
+      crit(4, nivelPorFallos(intentosA26.detalle)),
+      crit(5, nivelPorFallos(intentosA26.relaciones)),
+      crit(6, vistaVisitadaA26 ? 'logrado' : 'no_logrado'),
+      crit(7, nivelPorFallos(intentosA26.reflexion)),
+      crit(8, minutos <= tiempoEstimadoA26 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA26 * 2 ? 'proceso' : 'no_logrado')),
+      crit(9, 'logrado')
+    ];
+    const pesoUnidad = puntajeMaxA26 / criterios.length;
+    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    let nota = 0;
+    criterios.forEach(c => { nota += pesoUnidad * pesosPorNivel[c.nivel]; });
+    nota = Math.round(nota * 100) / 100;
+
+    document.getElementById('vistaEjercicioA26').classList.add('hidden');
+    document.getElementById('vistaResultadoA26').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA26').classList.add('hidden');
+    renderRubrica('rubricaResultadoA26', criterios, puntajeMaxA26, nota);
+    ultimoResultadoA26 = { criterios, nota, puntajeMaximo: puntajeMaxA26 };
+
+    const proporcion = puntajeMaxA26 > 0 ? nota / puntajeMaxA26 : 0;
+    mostrarLogro(proporcion >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcion >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcion >= 0.8) dispararConfeti();
+
+    const item = (pregunta, tuRespuesta, correcta) => ({ pregunta, tuRespuesta, correcta });
+    const detalle = [
+      {
+        titulo: 'Proyecto y conexión',
+        items: [
+          item('Proyecto nuevo', `"${proyectoA26.nombre}" · pareja: ${proyectoA26.pareja}`, intentosA26.proyecto === 0),
+          item('Base de datos conectada', bdConectadaA26, intentosA26.conexion === 0)
+        ]
+      },
+      {
+        titulo: 'Tablas de cada sección',
+        items: [
+          ...ITEMS_ENC_A26.map(it => item(`Encabezado — ${it.texto}`, mapaEncA26[it.id] || 'Sin responder', intentosA26.encabezado === 0)),
+          ...ITEMS_DET_A26.map(it => item(`Detalle — ${it.texto}`, mapaDetA26[it.id] || 'Sin responder', intentosA26.detalle === 0))
+        ]
+      },
+      {
+        titulo: 'Relaciones y reflexión',
+        items: [
+          ...RELACIONES_A26.map(r => item(`Campo en común: ${r.par}`, relA26[r.id] || 'Sin responder', intentosA26.relaciones === 0)),
+          item('Revisó el reporte poblado', vistaVisitadaA26 ? 'Sí' : 'No', vistaVisitadaA26),
+          item('Reflexión sobre las tablas', reflexionA26.texto || 'Sin responder', intentosA26.reflexion === 0)
+        ]
+      }
+    ];
+    ultimoResultadoA26.detalle = detalle;
+    renderDesgloseColoreado('resultadoDesgloseA26', detalle);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.2.6',
+        ra:'RA2',
+        ec: EC_A26,
+        nota,
+        puntajeMaximo: puntajeMaxA26,
+        criterios,
+        detalle
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA26').addEventListener('click', () => {
+    if(!ultimoResultadoA26) return;
+    generarPdfResultado('A.2.6', ultimoResultadoA26.criterios, ultimoResultadoA26.nota, ultimoResultadoA26.puntajeMaximo, EC_A26, 'RA2', ultimoResultadoA26.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA26').addEventListener('click', () => {
+    document.getElementById('panelActividadA26').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.6', abrirActividadA26);
