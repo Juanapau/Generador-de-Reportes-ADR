@@ -7247,6 +7247,7 @@
   let intentosFrecuenciaA25 = 0, intentosReflexionA25 = 0;
   let frecuenciaOkA25 = false, reflexionOkA25 = false, analisisOkA25 = false;
   let ultimoResultadoA25 = null;
+  let opcionesFrecuenciaBarajadasA25 = null;
   let puntajeMaxA25 = 0;
   let tiempoEstimadoA25 = 10;
   let inicioTiempoA25 = null;
@@ -7263,6 +7264,9 @@
     agregadaA25 = {}; completadaAlgunaVezA25 = {};
     intentosA25 = { proyecto:0, encReporte:0, encPagina:0, detalle:0, piePagina:0, pieReporte:0 };
     pasoA25 = 0; ejecucionVistaA25 = false;
+    // Las opciones de frecuencia se barajan una vez por intento, para que no queden en el orden en que van las secciones
+    do { opcionesFrecuenciaBarajadasA25 = barajar([...OPCIONES_FRECUENCIA_A25]); }
+    while(opcionesFrecuenciaBarajadasA25.every((o, i) => o.id === OPCIONES_FRECUENCIA_A25[i].id));
     respAnalisisA25 = { frecuencias:{}, lineas:'', vecesPie:'', reflexion:'', conPareja:false };
     intentosFrecuenciaA25 = 0; intentosReflexionA25 = 0; frecuenciaOkA25 = false; reflexionOkA25 = false; analisisOkA25 = false;
   }
@@ -7704,7 +7708,7 @@
             <span><b>${s.nombre}</b></span>
             <select class="input-generico select-frecuencia-a25" data-sec="${s.id}" ${frecuenciaOkA25 ? 'disabled' : ''}>
               <option value="">Selecciona...</option>
-              ${OPCIONES_FRECUENCIA_A25.map(o => `<option value="${o.id}" ${r.frecuencias[s.id] === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}
+              ${(opcionesFrecuenciaBarajadasA25 || OPCIONES_FRECUENCIA_A25).map(o => `<option value="${o.id}" ${r.frecuencias[s.id] === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}
             </select>
           </div>`).join('')}
       </div>
