@@ -7139,3 +7139,745 @@
   });
 
   registrarActividadInteractiva('A.2.4', abrirActividadA24);
+
+
+// ============================================================================
+// A.2.5 — CONSTRUYE UN REPORTE NUEVO, SECCIÓN POR SECCIÓN
+// ============================================================================
+  // En pares (cada estudiante entrega y se califica de forma individual). Crean un proyecto
+  // nuevo de reporte (la nómina de empleados de TECNOVENTAS RD) y agregan PROGRESIVAMENTE sus
+  // 5 secciones, en este orden: encabezado de reporte, encabezado de página, línea de detalle,
+  // pie de página y pie de reporte. Mientras construyen, ven a un lado una hoja de muestra que
+  // va "creciendo": las secciones aún no agregadas aparecen como recuadros punteados.
+  // Al final ejecutan el reporte (paginado, con datos reales) y lo analizan. Se apoya en el
+  // recurso "Construccion_Progresiva_de_un_Reporte_A25.pdf".
+
+  const EC_A25 = 'EC6.2.2';
+  const FILAS_POR_HOJA_A25 = 5;
+  const CAMPOS_CORRECTOS_DETALLE_A25 = ['Nombre', 'Cargo', 'Departamento', 'Salario'];
+  const ETIQUETAS_CAMPOS_A25 = { FechaContratacion:'Fecha de contratación', Email:'Correo electrónico' };
+  const etiquetaCampoA25_ = (c) => ETIQUETAS_CAMPOS_A25[c] || c;
+
+  // Datos de respaldo: se usan si la tabla DB_Empleados del Sheet no tiene datos reales todavía.
+  const CAMPOS_EMPLEADOS_A25 = ['Id', 'Nombre', 'Departamento', 'Cargo', 'FechaContratacion', 'Salario', 'Email'];
+  const DATOS_EMPLEADOS_RESPALDO_A25 = [
+    [1,'Carlos Fernández','Ventas','Gerente de ventas','2019-03-11',68000,'cfernandez@tecnoventas.do'],
+    [2,'Ana Ramírez','Ventas','Ejecutiva de ventas','2021-06-01',42000,'aramirez@tecnoventas.do'],
+    [3,'Miguel Santos','Almacén','Encargado de almacén','2020-02-17',38500,'msantos@tecnoventas.do'],
+    [4,'Rosa Jiménez','Contabilidad','Contadora general','2018-09-10',61000,'rjimenez@tecnoventas.do'],
+    [5,'Luis Peña','Administración','Asistente administrativo','2022-01-24',31500,'lpena@tecnoventas.do'],
+    [6,'Carmen Reyes','Almacén','Auxiliar de almacén','2023-04-03',27000,'creyes@tecnoventas.do'],
+    [7,'Pedro Martínez','Ventas','Ejecutivo de ventas','2022-08-15',41000,'pmartinez@tecnoventas.do'],
+    [8,'Yesenia Cabrera','Contabilidad','Auxiliar contable','2023-02-06',33500,'ycabrera@tecnoventas.do'],
+    [9,'José Almonte','Almacén','Despachador','2021-11-22',29500,'jalmonte@tecnoventas.do'],
+    [10,'Lucía Batista','Administración','Recepcionista','2024-01-15',26500,'lbatista@tecnoventas.do'],
+    [11,'Raúl Peralta','Ventas','Ejecutivo de ventas','2024-05-20',40000,'rperalta@tecnoventas.do'],
+    [12,'Daniela Mejía','Administración','Gerente administrativa','2019-07-08',64000,'dmejia@tecnoventas.do']
+  ].map(fila => { const o = {}; CAMPOS_EMPLEADOS_A25.forEach((c, i) => { o[c] = fila[i]; }); return o; });
+
+  function tablaEmpleadosValidaA25_(t){
+    if(!t || !t.campos || !t.datos) return false;
+    if(!CAMPOS_CORRECTOS_DETALLE_A25.every(c => t.campos.includes(c))) return false;
+    const buenas = t.datos.filter(f => String(f.Nombre || '').trim().length > 3 && isFinite(Number(f.Salario)) && Number(f.Salario) > 0);
+    return buenas.length >= 8;
+  }
+  async function cargarTablaA25_(codigoTabla){
+    const t = await cargarTablaDatos(codigoTabla);
+    if(codigoTabla === 'DB_Empleados' && !tablaEmpleadosValidaA25_(t)){
+      return { campos: [...CAMPOS_EMPLEADOS_A25], datos: DATOS_EMPLEADOS_RESPALDO_A25.map(f => ({ ...f })) };
+    }
+    return t;
+  }
+
+  // Elementos que el estudiante decide en qué sección van. "zona" es la sección correcta;
+  // "Subtotal por departamento" es un distractor: este reporte NO está agrupado.
+  const ELEMENTOS_A25 = [
+    { id:'titulosColumna', nombre:'Títulos de columna', zona:'encPagina', pista:'Los títulos de columna se repiten arriba de cada hoja: van en el <b>encabezado de página</b>.' },
+    { id:'numeroPagina', nombre:'Número de página', zona:'piePagina', pista:'El número de página es información de cada hoja y se repite en todas: va en el <b>pie de página</b>.' },
+    { id:'fechaImpresion', nombre:'Fecha de impresión', zona:'piePagina', pista:'La fecha de impresión se repite en cada hoja: va en el <b>pie de página</b>.' },
+    { id:'totalNomina', nombre:'Total de la nómina', zona:'pieReporte', pista:'El total de la nómina suma <b>todos</b> los salarios y sale una sola vez, al final: va en el <b>pie de reporte</b>.' },
+    { id:'cantidadEmpleados', nombre:'Cantidad de empleados', zona:'pieReporte', pista:'La cantidad de empleados resume todo el reporte y sale una sola vez, al final: va en el <b>pie de reporte</b>.' },
+    { id:'subtotalDepto', nombre:'Subtotal por departamento', zona:null, pista:'Este reporte no está agrupado por departamento, así que no lleva subtotales: <b>"Subtotal por departamento"</b> no va en esta sección.' }
+  ];
+
+  const SECCIONES_A25 = [
+    { id:'proyecto', nombre:'Proyecto nuevo', corto:'Proyecto', icono:'fa-folder-plus', oral:'Cuéntale a tu pareja: ¿de dónde sacará este reporte sus datos?' },
+    { id:'encReporte', nombre:'Encabezado de reporte', corto:'Enc. de reporte', icono:'fa-heading', oral:'Digan juntos: ¿cuántas veces saldrá este encabezado en todo el reporte?' },
+    { id:'encPagina', nombre:'Encabezado de página', corto:'Enc. de página', icono:'fa-table-columns', oral:'Comenten: ¿por qué los títulos de columna se repiten en cada hoja?' },
+    { id:'detalle', nombre:'Línea de detalle', corto:'Detalle', icono:'fa-table-list', oral:'Digan en voz alta: ¿cuántas líneas de detalle tendrá el reporte y por qué?' },
+    { id:'piePagina', nombre:'Pie de página', corto:'Pie de página', icono:'fa-shoe-prints', oral:'Expliquen: ¿qué tienen en común el número de página y la fecha de impresión?' },
+    { id:'pieReporte', nombre:'Pie de reporte', corto:'Pie de reporte', icono:'fa-flag-checkered', oral:'Comenten: ¿por qué el total va solo al final y no en cada hoja?' }
+  ];
+  const ETAPAS_A25 = [...SECCIONES_A25.map(s => ({ id:s.id, corto:s.corto })), { id:'ejecucion', corto:'Ejecutar' }, { id:'analisis', corto:'Analizar' }];
+  const PASO_EJECUCION_A25 = 6, PASO_ANALISIS_A25 = 7;
+
+  const OPCIONES_FRECUENCIA_A25 = [
+    { id:'unaVezInicio', texto:'Una sola vez, al inicio del reporte' },
+    { id:'arribaCadaHoja', texto:'En la parte de arriba de cada hoja' },
+    { id:'cadaRegistro', texto:'Una vez por cada empleado' },
+    { id:'abajoCadaHoja', texto:'En la parte de abajo de cada hoja' },
+    { id:'unaVezFinal', texto:'Una sola vez, al final del reporte' }
+  ];
+  const FRECUENCIAS_CORRECTAS_A25 = { encReporte:'unaVezInicio', encPagina:'arribaCadaHoja', detalle:'cadaRegistro', piePagina:'abajoCadaHoja', pieReporte:'unaVezFinal' };
+
+  const CRITERIOS_BASE_A25 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio y revisa cada sección con su pareja.' },
+    { key:'proyecto', nombre:'2. Proyecto nuevo', descripcion:'Crea el proyecto con un nombre claro y lo conecta a la tabla de datos correcta.' },
+    { key:'encReporte', nombre:'3. Encabezado de reporte', descripcion:'Agrega el nombre de la empresa y el título del reporte de nómina.' },
+    { key:'encPagina', nombre:'4. Encabezado de página', descripcion:'Agrega los títulos de columna en el encabezado de página.' },
+    { key:'detalle', nombre:'5. Línea de detalle', descripcion:'Elige exactamente los campos que debe mostrar cada empleado.' },
+    { key:'piePagina', nombre:'6. Pie de página', descripcion:'Agrega al pie de página lo que se repite en cada hoja (número de página y fecha de impresión).' },
+    { key:'pieReporte', nombre:'7. Pie de reporte', descripcion:'Agrega al pie de reporte los resúmenes de todo el reporte (total de la nómina y cantidad de empleados).' },
+    { key:'ejecucion', nombre:'8. Ejecución y revisión del reporte', descripcion:'Ejecuta el reporte completo y revisa el resultado hoja por hoja.' },
+    { key:'frecuencia', nombre:'9. Cuántas veces aparece cada sección', descripcion:'Reconoce cuántas veces y en qué lugar aparece cada sección en su reporte.' },
+    { key:'reflexion', nombre:'10. Reflexión sobre la construcción', descripcion:'Explica con sus propias palabras qué cambió en la hoja al agregar las secciones y por qué conviene revisar tras cada paso.' },
+    { key:'tiempo', nombre:'11. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'12. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let proyectoA25 = { nombre:'', pareja:'', tabla:'' };
+  let datosTablaA25 = null;
+  let cfgA25 = {};
+  let agregadaA25 = {};
+  let completadaAlgunaVezA25 = {};
+  let intentosA25 = {};
+  let pasoA25 = 0;
+  let ejecucionVistaA25 = false;
+  let respAnalisisA25 = { frecuencias:{}, lineas:'', vecesPie:'', reflexion:'', conPareja:false };
+  let intentosFrecuenciaA25 = 0, intentosReflexionA25 = 0;
+  let frecuenciaOkA25 = false, reflexionOkA25 = false, analisisOkA25 = false;
+  let ultimoResultadoA25 = null;
+  let puntajeMaxA25 = 0;
+  let tiempoEstimadoA25 = 10;
+  let inicioTiempoA25 = null;
+  let timerIntervalA25 = null;
+
+  const formatoMontoA25_ = (v) => 'RD$' + (Number(v) || 0).toLocaleString('es-DO', { minimumFractionDigits:2 });
+  const escaparAttrA25_ = (t) => String(t || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+  const escaparHtmlA25_ = (t) => String(t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  function reiniciarEstadoA25_(){
+    proyectoA25 = { nombre:'', pareja:'', tabla:'' };
+    datosTablaA25 = null;
+    cfgA25 = { encReporte:{ empresa:'', titulo:'' }, encPagina:[], detalle:[], piePagina:[], pieReporte:[] };
+    agregadaA25 = {}; completadaAlgunaVezA25 = {};
+    intentosA25 = { proyecto:0, encReporte:0, encPagina:0, detalle:0, piePagina:0, pieReporte:0 };
+    pasoA25 = 0; ejecucionVistaA25 = false;
+    respAnalisisA25 = { frecuencias:{}, lineas:'', vecesPie:'', reflexion:'', conPareja:false };
+    intentosFrecuenciaA25 = 0; intentosReflexionA25 = 0; frecuenciaOkA25 = false; reflexionOkA25 = false; analisisOkA25 = false;
+  }
+
+  function filasEmpleadosA25_(){ return (datosTablaA25 && datosTablaA25.datos) || []; }
+  function totalNominaA25_(){ return filasEmpleadosA25_().reduce((s, f) => s + (Number(f.Salario) || 0), 0); }
+  function hojasA25_(){
+    const filas = filasEmpleadosA25_();
+    const hojas = [];
+    for(let i = 0; i < filas.length; i += FILAS_POR_HOJA_A25) hojas.push(filas.slice(i, i + FILAS_POR_HOJA_A25));
+    return hojas.length ? hojas : [[]];
+  }
+  function camposDetalleOrdenadosA25_(){ return CAMPOS_CORRECTOS_DETALLE_A25.filter(c => cfgA25.detalle.includes(c)); }
+  function valorCeldaA25_(campo, fila){
+    if(campo === 'Salario') return formatoMontoA25_(fila[campo]);
+    return escaparHtmlA25_(formatearValorCeldaReporte_(fila[campo]));
+  }
+  function textoElementoA25_(id, n, total){
+    switch(id){
+      case 'numeroPagina': return `Página ${n} de ${total}`;
+      case 'fechaImpresion': return 'Impreso: ' + formatearFechaCortaSinHora_(new Date());
+      case 'totalNomina': return `Total de la nómina: ${formatoMontoA25_(totalNominaA25_())}`;
+      case 'cantidadEmpleados': return `Cantidad de empleados: ${filasEmpleadosA25_().length}`;
+      default: return '';
+    }
+  }
+  const nombreElementoA25_ = (id) => (ELEMENTOS_A25.find(e => e.id === id) || {}).nombre || id;
+
+  // ---------- Validación de cada sección (devuelve { ok, mensajes }) ----------
+  function validarSeccionA25_(sec){
+    const msgs = [];
+    if(sec === 'proyecto'){
+      const nombre = (proyectoA25.nombre || '').trim();
+      const generico = /^(proyecto|nuevo proyecto|reporte|sin nombre|prueba|test)\s*\d*$/i.test(nombre);
+      if(nombre.length < 4 || generico) msgs.push('Ponle a tu proyecto un <b>nombre claro</b> que diga de qué es el reporte (por ejemplo, "Nómina de empleados"). Evita nombres genéricos como "Proyecto1".');
+      if((proyectoA25.pareja || '').trim().length < 3) msgs.push('Escribe el nombre de tu <b>pareja de trabajo</b>. Si hoy trabajas solo/a, escribe "Sin pareja".');
+      if(!proyectoA25.tabla) msgs.push('Conecta el proyecto a una <b>tabla de datos</b>.');
+      else if(proyectoA25.tabla !== 'DB_Empleados') msgs.push('Este reporte es la nómina de TECNOVENTAS RD: necesita los datos de los empleados y sus salarios. Conecta el proyecto a la tabla <b>Empleados</b>.');
+    } else if(sec === 'encReporte'){
+      if(!normalizarTextoA15_(cfgA25.encReporte.empresa).includes('tecnoventas')) msgs.push('Escribe el nombre de la empresa: <b>TECNOVENTAS RD</b>.');
+      const tit = normalizarTextoA15_(cfgA25.encReporte.titulo);
+      if(!(tit.includes('nomina') || tit.includes('empleado'))) msgs.push('El título debe decir de qué es el reporte: una <b>nómina de empleados</b>.');
+    } else if(sec === 'detalle'){
+      const sel = [...cfgA25.detalle].sort(), esp = [...CAMPOS_CORRECTOS_DETALLE_A25].sort();
+      if(!(sel.length === esp.length && sel.every((c, i) => c === esp[i]))){
+        msgs.push('La línea de detalle debe mostrar exactamente estos 4 campos: <b>Nombre, Cargo, Departamento y Salario</b>. Cada empleado ocupa una línea.');
+      }
+    } else {
+      const esperados = ELEMENTOS_A25.filter(e => e.zona === sec).map(e => e.id).sort();
+      const elegidos = [...cfgA25[sec]].sort();
+      if(!(esperados.length === elegidos.length && esperados.every((id, i) => id === elegidos[i]))){
+        ELEMENTOS_A25.forEach(e => {
+          if(cfgA25[sec].includes(e.id) && e.zona !== sec) msgs.push(e.pista);
+          else if(e.zona === sec && !cfgA25[sec].includes(e.id)) msgs.push(`Falta agregar <b>${e.nombre}</b>.`);
+        });
+      }
+    }
+    return { ok: msgs.length === 0, mensajes: msgs };
+  }
+
+  // Primer paso de construcción (0-5) que aún no está agregado; 6 si ya están todos.
+  function primerPendienteA25_(){
+    const i = SECCIONES_A25.findIndex(s => !agregadaA25[s.id]);
+    return i === -1 ? PASO_EJECUCION_A25 : i;
+  }
+  function limitePasoA25_(){
+    const p = primerPendienteA25_();
+    if(p < PASO_EJECUCION_A25) return p;
+    return ejecucionVistaA25 ? PASO_ANALISIS_A25 : PASO_EJECUCION_A25;
+  }
+
+  // ---------- Pantalla de apertura ----------
+  async function abrirActividadA25(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA25 = puntajeMaximo;
+    tiempoEstimadoA25 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA25').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA25').classList.remove('hidden');
+
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.5') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA25').classList.add('hidden');
+        document.getElementById('vistaEjercicioA25').classList.add('hidden');
+        document.getElementById('vistaResultadoA25').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA25', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA25', previa.detalle);
+        ultimoResultadoA25 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA25').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar con normalidad */ }
+
+    document.getElementById('avisoYaCompletadaA25').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA25').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA25').classList.add('hidden');
+    document.getElementById('vistaResultadoA25').classList.add('hidden');
+    document.getElementById('tiempoEstimadoAvisoA25').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA25} minutos</b> para completar esta actividad una vez que la inicies.`;
+    cargarRecursosActividad('A.2.5', 'recursosEstudianteA25');
+    renderRubrica('instrumentoPrevioA25', CRITERIOS_BASE_A25.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA25, null);
+  }
+
+  document.getElementById('btnBackFromActividadA25').addEventListener('click', () => {
+    clearInterval(timerIntervalA25);
+    document.getElementById('panelActividadA25').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+
+  document.getElementById('btnComenzarA25').addEventListener('click', () => {
+    reiniciarEstadoA25_();
+    document.getElementById('vistaInstrumentoA25').classList.add('hidden');
+    document.getElementById('vistaEjercicioA25').classList.remove('hidden');
+    document.getElementById('seccionFinalA25').classList.add('hidden');
+    pintarPasoA25_();
+
+    inicioTiempoA25 = Date.now();
+    clearInterval(timerIntervalA25);
+    timerIntervalA25 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA25) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0');
+      const ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA25').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA25} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Estructura general: indicador de pasos + cuerpo del paso actual ----------
+  function irAPasoA25_(n){
+    if(n < 0 || n > limitePasoA25_()) return;
+    pasoA25 = n;
+    pintarPasoA25_();
+  }
+
+  function pintarStepperA25_(){
+    const limite = limitePasoA25_();
+    return `<div class="stepper-a25">${ETAPAS_A25.map((e, i) => {
+      const hecho = i < PASO_EJECUCION_A25 ? !!agregadaA25[e.id] : (i === PASO_EJECUCION_A25 ? ejecucionVistaA25 : analisisOkA25);
+      const clases = ['paso-a25', i === pasoA25 ? 'activo' : '', hecho ? 'hecho' : '', i > limite ? 'bloqueado' : ''].join(' ');
+      return `<button type="button" class="${clases}" data-paso="${i}" ${i > limite ? 'disabled' : ''}>
+        <span class="num">${hecho && i !== pasoA25 ? '<i class="fa-solid fa-check"></i>' : i + 1}</span><span class="txt">${e.corto}</span></button>`;
+    }).join('')}</div>`;
+  }
+
+  function pintarPasoA25_(){
+    const cont = document.getElementById('disenadorReporteA25');
+    document.getElementById('seccionFinalA25').classList.add('hidden');
+    let cuerpo = '<div id="cuerpoPasoA25"></div>';
+    cont.innerHTML = pintarStepperA25_() + cuerpo;
+    cont.querySelectorAll('.paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA25_(Number(b.dataset.paso))));
+    if(pasoA25 < PASO_EJECUCION_A25) pintarPasoConstruccionA25_();
+    else if(pasoA25 === PASO_EJECUCION_A25) pintarEjecucionA25_();
+    else pintarAnalisisA25_();
+  }
+
+  // ---------- Pasos 1-6: construir una sección ----------
+  function controlesSeccionA25_(sec){
+    const s = SECCIONES_A25.find(x => x.id === sec);
+    if(sec === 'proyecto'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">Crea el proyecto de la <b>nómina de empleados</b> de TECNOVENTAS RD: ponle un nombre claro, anota con quién trabajas y conéctalo a la tabla que tiene los datos de los empleados.</p>
+        <label class="etiqueta-a25">Nombre del proyecto</label>
+        <input type="text" id="inputProyectoNombreA25" class="input-generico" placeholder="Ej. Nómina de empleados" maxlength="60" value="${escaparAttrA25_(proyectoA25.nombre)}">
+        <label class="etiqueta-a25">Tu pareja de trabajo</label>
+        <input type="text" id="inputProyectoParejaA25" class="input-generico" placeholder="Nombre de tu compañero/a (o 'Sin pareja')" maxlength="60" value="${escaparAttrA25_(proyectoA25.pareja)}">
+        <label class="etiqueta-a25">Tabla de datos</label>
+        <select id="selectProyectoTablaA25" class="input-generico">
+          <option value="" ${proyectoA25.tabla ? '' : 'selected disabled'}>Selecciona una tabla...</option>
+          ${TABLAS_DISPONIBLES_A19.map(t => `<option value="${t.codigo}" ${proyectoA25.tabla === t.codigo ? 'selected' : ''}>${t.nombre}</option>`).join('')}
+        </select>`;
+    }
+    if(sec === 'encReporte'){
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">Aparece <b>una sola vez</b>, al principio de todo el reporte. Escribe el nombre de la empresa y el título del reporte.</p>
+        <label class="etiqueta-a25">Nombre de la empresa</label>
+        <input type="text" id="inputEmpresaA25" class="input-generico" placeholder="Nombre de la empresa..." value="${escaparAttrA25_(cfgA25.encReporte.empresa)}">
+        <label class="etiqueta-a25">Título del reporte</label>
+        <input type="text" id="inputTituloA25" class="input-generico" placeholder="Título del reporte..." value="${escaparAttrA25_(cfgA25.encReporte.titulo)}">`;
+    }
+    if(sec === 'detalle'){
+      const campos = (datosTablaA25 && datosTablaA25.campos) || [];
+      return `
+        <p class="descripcion-seccion-a21" style="margin-top:0;">Se repite <b>una vez por cada empleado</b>. Toca los campos que debe mostrar cada línea: exactamente <b>Nombre, Cargo, Departamento y Salario</b>.</p>
+        <div class="pool-campos-a21">
+          ${campos.map(c => `<span class="campo-chip-a21 chip-toggle-a25 ${cfgA25.detalle.includes(c) ? 'seleccionado' : ''}" data-id="${c}">${cfgA25.detalle.includes(c) ? '<i class="fa-solid fa-check"></i> ' : ''}${etiquetaCampoA25_(c)}</span>`).join('') || '<span style="opacity:.7;">No hay campos disponibles: vuelve al paso 1 y conecta una tabla.</span>'}
+        </div>`;
+    }
+    // encPagina, piePagina, pieReporte: se eligen elementos
+    const descripciones = {
+      encPagina: 'Parte superior de <b>cada hoja</b>. Toca los elementos que van aquí.',
+      piePagina: 'Parte inferior de <b>cada hoja</b>: se repite en todas. Toca los elementos que van aquí.',
+      pieReporte: '<b>Una sola vez</b>, al final, después del último empleado. Toca los elementos que van aquí.'
+    };
+    return `
+      <p class="descripcion-seccion-a21" style="margin-top:0;">${descripciones[sec]} Ojo: algún elemento puede no corresponder a esta sección.</p>
+      <div class="pool-campos-a21">
+        ${ELEMENTOS_A25.map(e => `<span class="campo-chip-a21 chip-toggle-a25 ${cfgA25[sec].includes(e.id) ? 'seleccionado' : ''}" data-id="${e.id}">${cfgA25[sec].includes(e.id) ? '<i class="fa-solid fa-check"></i> ' : ''}${e.nombre}</span>`).join('')}
+      </div>`;
+  }
+
+  function pintarPasoConstruccionA25_(){
+    const sec = SECCIONES_A25[pasoA25];
+    const cuerpo = document.getElementById('cuerpoPasoA25');
+    cuerpo.innerHTML = `
+      <div class="a25-layout">
+        <div class="a25-panel">
+          <div class="caja-diseno-a21 ${agregadaA25[sec.id] ? 'correcta' : ''}" id="cajaSeccionA25">
+            <div class="caja-diseno-titulo"><i class="fa-solid ${sec.icono}"></i> Paso ${pasoA25 + 1}: ${pasoA25 === 0 ? sec.nombre : 'agrega el ' + sec.nombre.toLowerCase()}</div>
+            <div id="controlesA25">${controlesSeccionA25_(sec.id)}</div>
+          </div>
+          <div id="feedbackA25"></div>
+          <div id="accionesA25"></div>
+        </div>
+        <div class="a25-preview" id="previewA25"></div>
+      </div>`;
+    conectarControlesA25_(sec.id);
+    pintarAccionesA25_();
+    pintarPreviewA25_(null);
+  }
+
+  // Si el estudiante cambia algo de una sección ya agregada, vuelve a quedar "sin agregar" hasta
+  // que presione de nuevo el botón (así lo que ve en la hoja siempre coincide con lo validado).
+  function invalidarSeccionA25_(sec){
+    if(!agregadaA25[sec]) return;
+    agregadaA25[sec] = false;
+    document.getElementById('feedbackA25').innerHTML = '';
+    document.getElementById('cajaSeccionA25').classList.remove('correcta');
+    pintarAccionesA25_();
+    pintarPreviewA25_(null);
+    const st = document.querySelector('.stepper-a25');
+    if(st){ const tmp = document.createElement('div'); tmp.innerHTML = pintarStepperA25_(); st.replaceWith(tmp.firstElementChild); document.querySelectorAll('.paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA25_(Number(b.dataset.paso)))); }
+  }
+
+  function conectarControlesA25_(sec){
+    if(sec === 'proyecto'){
+      document.getElementById('inputProyectoNombreA25').addEventListener('input', (e) => { proyectoA25.nombre = e.target.value; invalidarSeccionA25_('proyecto'); });
+      document.getElementById('inputProyectoParejaA25').addEventListener('input', (e) => { proyectoA25.pareja = e.target.value; invalidarSeccionA25_('proyecto'); });
+      document.getElementById('selectProyectoTablaA25').addEventListener('change', async (e) => {
+        proyectoA25.tabla = e.target.value;
+        cfgA25.detalle = [];
+        agregadaA25.detalle = false;
+        invalidarSeccionA25_('proyecto');
+        datosTablaA25 = null;
+        datosTablaA25 = proyectoA25.tabla ? await cargarTablaA25_(proyectoA25.tabla) : null;
+        pintarPreviewA25_(null);
+      });
+    } else if(sec === 'encReporte'){
+      document.getElementById('inputEmpresaA25').addEventListener('input', (e) => { cfgA25.encReporte.empresa = e.target.value; invalidarSeccionA25_('encReporte'); });
+      document.getElementById('inputTituloA25').addEventListener('input', (e) => { cfgA25.encReporte.titulo = e.target.value; invalidarSeccionA25_('encReporte'); });
+    } else {
+      document.querySelectorAll('#controlesA25 .chip-toggle-a25').forEach(chip => {
+        chip.addEventListener('click', () => {
+          const lista = cfgA25[sec];
+          const id = chip.dataset.id;
+          const i = lista.indexOf(id);
+          if(i === -1) lista.push(id); else lista.splice(i, 1);
+          chip.classList.toggle('seleccionado', i === -1);
+          chip.innerHTML = (i === -1 ? '<i class="fa-solid fa-check"></i> ' : '') + (sec === 'detalle' ? etiquetaCampoA25_(id) : nombreElementoA25_(id));
+          invalidarSeccionA25_(sec);
+        });
+      });
+    }
+  }
+
+  function pintarAccionesA25_(){
+    const cont = document.getElementById('accionesA25');
+    if(!cont) return;
+    const sec = SECCIONES_A25[pasoA25];
+    const agregada = !!agregadaA25[sec.id];
+    cont.innerHTML = `
+      <div class="nav-pasos" style="margin-top:14px;">
+        ${pasoA25 > 0 ? '<button type="button" class="btn-nav-paso" id="btnAnteriorA25"><i class="fa-solid fa-arrow-left"></i> Anterior</button>' : ''}
+        <button type="button" class="btn btn-primary" id="btnAgregarA25" style="width:auto; padding:11px 22px;">
+          <i class="fa-solid ${agregada ? 'fa-rotate' : 'fa-plus'}"></i> ${pasoA25 === 0 ? (agregada ? 'Actualizar proyecto' : 'Crear proyecto') : (agregada ? 'Actualizar sección' : 'Agregar al reporte')}
+        </button>
+        ${agregada ? `<button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSiguienteA25">${pasoA25 === 5 ? 'Ejecutar el reporte' : 'Siguiente sección'} <i class="fa-solid fa-arrow-right"></i></button>` : ''}
+      </div>`;
+    const ant = document.getElementById('btnAnteriorA25');
+    if(ant) ant.addEventListener('click', () => irAPasoA25_(pasoA25 - 1));
+    document.getElementById('btnAgregarA25').addEventListener('click', agregarSeccionA25_);
+    const sig = document.getElementById('btnSiguienteA25');
+    if(sig) sig.addEventListener('click', () => irAPasoA25_(pasoA25 + 1));
+  }
+
+  function agregarSeccionA25_(){
+    const sec = SECCIONES_A25[pasoA25];
+    const fb = document.getElementById('feedbackA25');
+    const r = validarSeccionA25_(sec.id);
+    if(!r.ok){
+      if(!completadaAlgunaVezA25[sec.id]) intentosA25[sec.id]++;
+      agregadaA25[sec.id] = false;
+      fb.innerHTML = r.mensajes.map(m => `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`).join('');
+      document.getElementById('cajaSeccionA25').classList.remove('correcta');
+      pintarAccionesA25_();
+      pintarPreviewA25_(null);
+      return;
+    }
+    agregadaA25[sec.id] = true;
+    completadaAlgunaVezA25[sec.id] = true;
+    document.getElementById('cajaSeccionA25').classList.add('correcta');
+    fb.innerHTML = `
+      <div class="exito-a25"><i class="fa-solid fa-circle-check"></i>
+        <div><b>${pasoA25 === 0 ? '¡Proyecto creado!' : `¡${sec.nombre} agregado!`}</b> Mira cómo cambió la hoja.<br>
+        <span class="oral-a25"><i class="fa-solid fa-comments"></i> ${sec.oral} Luego cambien de rol.</span></div>
+      </div>`;
+    pintarAccionesA25_();
+    pintarPreviewA25_(sec.id);
+    const st = document.querySelector('.stepper-a25');
+    const tmp = document.createElement('div'); tmp.innerHTML = pintarStepperA25_(); st.replaceWith(tmp.firstElementChild);
+    document.querySelectorAll('.paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA25_(Number(b.dataset.paso))));
+  }
+
+  // ---------- Hoja de muestra que va creciendo ----------
+  function pintarPreviewA25_(recienAgregada){
+    const cont = document.getElementById('previewA25');
+    if(!cont) return;
+    const ag = agregadaA25;
+    const nombreEmpresa = escaparHtmlA25_(cfgA25.encReporte.empresa);
+    const tituloReporte = escaparHtmlA25_(cfgA25.encReporte.titulo);
+    const campos = camposDetalleOrdenadosA25_();
+    const filasMuestra = filasEmpleadosA25_().slice(0, 3);
+    const pend = (txt) => `<div class="hoja-pendiente-a25"><i class="fa-regular fa-square-plus"></i> ${txt}</div>`;
+    const glow = (id) => recienAgregada === id ? ' recien-a25' : '';
+
+    const encRep = ag.encReporte
+      ? `<div class="hoja-enc-reporte-a24${glow('encReporte')}"><div class="emp">${nombreEmpresa}</div><div class="tit">${tituloReporte}</div></div>`
+      : pend('Encabezado de reporte: aún no agregado');
+    const encPag = ag.encPagina
+      ? `<div class="hoja-enc-pagina-a24${glow('encPagina')}">${ag.detalle && campos.length
+          ? `<div class="hoja-cols-a24">${campos.map(c => `<span>${etiquetaCampoA25_(c)}</span>`).join('')}</div>`
+          : '<div class="hoja-cols-a24"><span>[Títulos de columna]</span></div>'}</div>`
+      : pend('Encabezado de página: aún no agregado');
+    const detalle = ag.detalle
+      ? `<div class="${glow('detalle').trim()}">${filasMuestra.map(f => `<div class="hoja-fila-a24">${campos.map(c => `<span>${valorCeldaA25_(c, f)}</span>`).join('')}</div>`).join('')}
+         <div class="hoja-fila-a24" style="opacity:.55;"><span>… una línea por cada empleado</span></div></div>`
+      : pend('Línea de detalle: aún no agregada');
+    const pieRep = ag.pieReporte
+      ? `<div class="${glow('pieReporte').trim()}">${cfgA25.pieReporte.map(id => `<div class="hoja-pie-reporte-a24">[${nombreElementoA25_(id)}]</div>`).join('')}</div>`
+      : pend('Pie de reporte: aún no agregado');
+    const piePag = ag.piePagina
+      ? `<div class="hoja-pie-pagina-a24${glow('piePagina')}">${cfgA25.piePagina.map(id => `<span>[${nombreElementoA25_(id)}]</span>`).join('')}</div>`
+      : pend('Pie de página: aún no agregado');
+
+    const nombreProyecto = ag.proyecto ? escaparHtmlA25_(proyectoA25.nombre) : '';
+    cont.innerHTML = `
+      <div class="hoja-etiqueta-a25"><i class="fa-solid fa-file-lines"></i> ${ag.proyecto ? `Proyecto: <b>${nombreProyecto}</b>` : 'Tu proyecto todavía no existe'} · hoja de muestra</div>
+      <div class="hoja-reporte-a24" style="margin:0;">
+        ${encRep}${encPag}${detalle}${pieRep}${piePag}
+      </div>
+      <div class="leyenda-hoja-a24" style="margin:8px 0 0;">
+        <span><i style="background:#12294a"></i>enc. de reporte</span>
+        <span><i style="background:#8fb0e0"></i>enc. de página</span>
+        <span><i style="background:#e9a850"></i>pie de página</span>
+        <span><i style="background:#2e8b57"></i>pie de reporte</span>
+      </div>`;
+  }
+
+  // ---------- Paso 7: ejecutar el reporte ----------
+  function pintarEjecucionA25_(){
+    ejecucionVistaA25 = true;
+    const cuerpo = document.getElementById('cuerpoPasoA25');
+    const campos = camposDetalleOrdenadosA25_();
+    const hojas = hojasA25_();
+    const totalHojas = hojas.length;
+    const nombreEmpresa = escaparHtmlA25_(cfgA25.encReporte.empresa);
+    const tituloReporte = escaparHtmlA25_(cfgA25.encReporte.titulo);
+    const tiene = (zona, id) => cfgA25[zona].includes(id);
+
+    const hojaHtml = (filas, n, esUltima) => `
+      <div class="hoja-etiqueta-a24">Hoja ${n} de ${totalHojas}</div>
+      <div class="hoja-reporte-a24">
+        ${n === 1 ? `<div class="hoja-enc-reporte-a24"><div class="emp">${nombreEmpresa}</div><div class="tit">${tituloReporte}</div></div>` : ''}
+        <div class="hoja-enc-pagina-a24"><div class="hoja-cols-a24">${campos.map(c => `<span>${etiquetaCampoA25_(c)}</span>`).join('')}</div></div>
+        ${filas.map(f => `<div class="hoja-fila-a24">${campos.map(c => `<span>${valorCeldaA25_(c, f)}</span>`).join('')}</div>`).join('')}
+        ${esUltima ? cfgA25.pieReporte.map(id => `<div class="hoja-pie-reporte-a24">${textoElementoA25_(id, n, totalHojas)}</div>`).join('') : ''}
+        <div class="hoja-pie-pagina-a24">${cfgA25.piePagina.map(id => `<span>${textoElementoA25_(id, n, totalHojas)}</span>`).join('')}</div>
+      </div>`;
+
+    cuerpo.innerHTML = `
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-play"></i> <b>Ejecuta tu reporte.</b> Ya está construido: así se ve con los datos reales de la nómina, repartido en hojas. Recórrelo con tu pareja y comprueba que cada sección aparezca donde y cuantas veces le corresponde.</div>
+      <div class="leyenda-hoja-a24">
+        <span><i style="background:#12294a"></i>encabezado de reporte</span>
+        <span><i style="background:#8fb0e0"></i>encabezado de página</span>
+        <span><i style="background:#e9a850"></i>pie de página</span>
+        <span><i style="background:#2e8b57"></i>pie de reporte</span>
+      </div>
+      ${hojas.map((h, i) => hojaHtml(h, i + 1, i === hojas.length - 1)).join('')}
+      <div class="nav-pasos" style="justify-content:space-between; margin-top:16px;">
+        <button type="button" class="btn-nav-paso" id="btnAnteriorA25"><i class="fa-solid fa-arrow-left"></i> Anterior</button>
+        <button type="button" class="btn-descargar-pdf" id="btnDescargarReportePdfA25"><i class="fa-solid fa-file-pdf"></i> Descargar reporte en PDF</button>
+        <button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSiguienteA25">Analizar el reporte <i class="fa-solid fa-arrow-right"></i></button>
+      </div>`;
+
+    document.getElementById('btnAnteriorA25').addEventListener('click', () => irAPasoA25_(5));
+    document.getElementById('btnSiguienteA25').addEventListener('click', () => irAPasoA25_(PASO_ANALISIS_A25));
+    document.getElementById('btnDescargarReportePdfA25').addEventListener('click', () => {
+      const lineasPieReporte = [];
+      if(tiene('pieReporte', 'totalNomina')) lineasPieReporte.push({ etiqueta:'TOTAL DE LA NÓMINA', valor: formatoMontoA25_(totalNominaA25_()) });
+      if(tiene('pieReporte', 'cantidadEmpleados')) lineasPieReporte.push({ etiqueta:'CANTIDAD DE EMPLEADOS', valor: String(filasEmpleadosA25_().length) });
+      generarPdfReporteDisenado({
+        nombreEmpresa: cfgA25.encReporte.empresa, tituloReporte: cfgA25.encReporte.titulo,
+        columnas: campos.map(etiquetaCampoA25_),
+        filas: filasEmpleadosA25_().map(f => campos.map(c => formatoCeldaPdfA25_(c, f))),
+        mostrarTitulosColumna: true,
+        piePagina: { numero: tiene('piePagina', 'numeroPagina'), fecha: tiene('piePagina', 'fechaImpresion') },
+        pieReporte: lineasPieReporte,
+        filasPorHoja: FILAS_POR_HOJA_A25,
+        nombreArchivo: 'nomina_de_empleados'
+      });
+    });
+    // Reaparece el stepper con "Ejecutar" ya marcado como hecho
+    const st = document.querySelector('.stepper-a25');
+    const tmp = document.createElement('div'); tmp.innerHTML = pintarStepperA25_(); st.replaceWith(tmp.firstElementChild);
+    document.querySelectorAll('.paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA25_(Number(b.dataset.paso))));
+  }
+  function formatoCeldaPdfA25_(campo, fila){
+    if(campo === 'Salario') return formatoMontoA25_(fila[campo]);
+    const v = formatearValorCeldaReporte_(fila[campo]);
+    return v === null || v === undefined ? '' : String(v);
+  }
+
+  // ---------- Paso 8: analizar el reporte construido ----------
+  function pintarAnalisisA25_(){
+    const cuerpo = document.getElementById('cuerpoPasoA25');
+    const r = respAnalisisA25;
+    const hojas = hojasA25_().length;
+    const opcionesNum = (sel, max) => '<option value="">Selecciona...</option>' + Array.from({ length:max }, (_, i) => i + 1).map(n => `<option value="${n}" ${String(sel) === String(n) ? 'selected' : ''}>${n}</option>`).join('');
+    const completo = analisisOkA25;
+
+    cuerpo.innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 14px;"><button type="button" class="btn-nav-paso" id="btnAnteriorA25"><i class="fa-solid fa-arrow-left"></i> Volver a la ejecución</button></div>
+      <div class="section-heading" style="font-size:18px;">Analiza el reporte que construyeron</div>
+      ${completo ? '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Completaste el análisis! Ya puedes finalizar la actividad.</div>' : ''}
+
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">1. ¿Cuántas veces y dónde aparece cada sección?</div>
+        ${SECCIONES_A25.slice(1).map(s => `
+          <div class="afirmacion-a24">
+            <span><b>${s.nombre}</b></span>
+            <select class="input-generico select-frecuencia-a25" data-sec="${s.id}" ${frecuenciaOkA25 ? 'disabled' : ''}>
+              <option value="">Selecciona...</option>
+              ${OPCIONES_FRECUENCIA_A25.map(o => `<option value="${o.id}" ${r.frecuencias[s.id] === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}
+            </select>
+          </div>`).join('')}
+      </div>
+
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">2. Cuenta en tu propio reporte</div>
+        <p style="font-size:14px; margin:0 0 12px;">Fíjate en la Vista de Ejecución: tu reporte quedó repartido en varias hojas.</p>
+        <div class="afirmacion-a24"><span>¿Cuántas <b>líneas de detalle</b> tiene tu reporte en total?</span>
+          <select class="input-generico" id="selLineasA25" ${frecuenciaOkA25 ? 'disabled' : ''}>${opcionesNum(r.lineas, 20)}</select></div>
+        <div class="afirmacion-a24" style="border-bottom:none;"><span>¿Cuántas veces aparece el <b>pie de página</b> en todo el reporte?</span>
+          <select class="input-generico" id="selVecesPieA25" ${frecuenciaOkA25 ? 'disabled' : ''}>${opcionesNum(r.vecesPie, 10)}</select></div>
+        <div id="feedbackFrecuenciaA25"></div>
+      </div>
+
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <div class="caja-diseno-titulo">3. Reflexión de la pareja</div>
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">Al construir el reporte sección por sección, ¿qué cambió en la hoja con cada sección que agregaron y por qué conviene revisar la hoja después de cada paso?</label>
+        <textarea class="input-generico celda-respuesta-a15" id="txtReflexionA25" rows="4" placeholder="Escribe tu reflexión con tus propias palabras..." ${reflexionOkA25 ? 'disabled' : ''}>${escaparHtmlA25_(r.reflexion)}</textarea>
+        <div id="feedbackReflexionA25"></div>
+      </div>
+
+      <label class="check-pareja-a25"><input type="checkbox" id="chkParejaA25" ${r.conPareja ? 'checked' : ''} ${completo ? 'disabled' : ''}> Revisamos en voz alta, mi pareja y yo, qué apareció en la hoja con cada sección.</label>
+      <div id="feedbackGeneralA25"></div>
+      ${completo ? '' : `<button type="button" class="btn btn-primary" id="btnConfirmarAnalisisA25" style="width:auto; padding:12px 28px; margin-top:12px;"><i class="fa-solid fa-check"></i> Confirmar</button>`}`;
+
+    document.getElementById('btnAnteriorA25').addEventListener('click', () => irAPasoA25_(PASO_EJECUCION_A25));
+    cuerpo.querySelectorAll('.select-frecuencia-a25').forEach(sel => sel.addEventListener('change', () => { r.frecuencias[sel.dataset.sec] = sel.value; }));
+    document.getElementById('selLineasA25').addEventListener('change', (e) => { r.lineas = e.target.value; });
+    document.getElementById('selVecesPieA25').addEventListener('change', (e) => { r.vecesPie = e.target.value; });
+    document.getElementById('txtReflexionA25').addEventListener('input', (e) => { r.reflexion = e.target.value; });
+    document.getElementById('chkParejaA25').addEventListener('change', (e) => { r.conPareja = e.target.checked; });
+    const btn = document.getElementById('btnConfirmarAnalisisA25');
+    if(btn) btn.addEventListener('click', verificarAnalisisA25_);
+    if(completo) document.getElementById('seccionFinalA25').classList.remove('hidden');
+  }
+
+  function verificarAnalisisA25_(){
+    const r = respAnalisisA25;
+    const hojas = hojasA25_().length;
+    const caja = (m) => `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`;
+
+    if(!frecuenciaOkA25){
+      const malas = SECCIONES_A25.slice(1).filter(s => r.frecuencias[s.id] !== FRECUENCIAS_CORRECTAS_A25[s.id]).length;
+      const numerosOk = String(r.lineas) === String(filasEmpleadosA25_().length) && String(r.vecesPie) === String(hojas);
+      if(malas === 0 && numerosOk){
+        frecuenciaOkA25 = true;
+      } else {
+        intentosFrecuenciaA25++;
+        const m = [];
+        if(malas > 0) m.push(`${malas} de las 5 secciones no tienen la frecuencia correcta. Piensa: ¿sale una vez, en cada hoja o una por empleado? ¿Arriba o abajo?`);
+        if(!numerosOk) m.push('Revisa tus conteos en la Vista de Ejecución: una línea de detalle por empleado, y el pie de página sale una vez por hoja.');
+        document.getElementById('feedbackFrecuenciaA25').innerHTML = m.map(caja).join('');
+      }
+    }
+    if(!reflexionOkA25){
+      const texto = normalizarTextoA15_(r.reflexion || '');
+      const claves = ['encabezado', 'detalle', 'pie'].filter(k => texto.includes(k)).length;
+      if(contarPalabrasRealesA15_(r.reflexion || '') >= 15 && claves >= 2){
+        reflexionOkA25 = true;
+      } else {
+        intentosReflexionA25++;
+        document.getElementById('feedbackReflexionA25').innerHTML = caja('Tu reflexión necesita más detalle: usa al menos 15 palabras y menciona varias secciones (por ejemplo, el <b>encabezado</b>, el <b>detalle</b> o los <b>pies</b>) indicando qué apareció en la hoja al agregarlas.');
+      }
+    }
+    const fbF = document.getElementById('feedbackFrecuenciaA25').innerHTML;
+    const fbR = document.getElementById('feedbackReflexionA25').innerHTML;
+    const sinCheck = frecuenciaOkA25 && reflexionOkA25 && !r.conPareja;
+    if(frecuenciaOkA25 && reflexionOkA25 && r.conPareja) analisisOkA25 = true;
+    pintarAnalisisA25_();
+    if(analisisOkA25){ pintarStepperEnLugarA25_(); return; }
+    document.getElementById('feedbackFrecuenciaA25').innerHTML = fbF;
+    document.getElementById('feedbackReflexionA25').innerHTML = fbR;
+    if(sinCheck) document.getElementById('feedbackGeneralA25').innerHTML = caja('Marca la casilla: antes de finalizar, comenten en voz alta con tu pareja lo que apareció en la hoja con cada sección.');
+  }
+  function pintarStepperEnLugarA25_(){
+    const st = document.querySelector('.stepper-a25');
+    const tmp = document.createElement('div'); tmp.innerHTML = pintarStepperA25_(); st.replaceWith(tmp.firstElementChild);
+    document.querySelectorAll('.paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA25_(Number(b.dataset.paso))));
+  }
+
+  // ---------- Finalizar y calificar ----------
+  document.getElementById('btnFinalizarA25').addEventListener('click', async () => {
+    clearInterval(timerIntervalA25);
+    const minutos = (Date.now() - inicioTiempoA25) / 60000;
+    const nivelPorIntentos = (intentos) => intentos <= 1 ? 'logrado' : (intentos <= 2 ? 'proceso' : 'no_logrado');
+    const C = CRITERIOS_BASE_A25;
+    const crit = (i, nivel) => ({ nombre: C[i].nombre, descripcion: C[i].descripcion, nivel });
+    const criterios = [
+      crit(0, 'logrado'),
+      crit(1, nivelPorIntentos(intentosA25.proyecto + 1)),
+      crit(2, nivelPorIntentos(intentosA25.encReporte + 1)),
+      crit(3, nivelPorIntentos(intentosA25.encPagina + 1)),
+      crit(4, nivelPorIntentos(intentosA25.detalle + 1)),
+      crit(5, nivelPorIntentos(intentosA25.piePagina + 1)),
+      crit(6, nivelPorIntentos(intentosA25.pieReporte + 1)),
+      crit(7, ejecucionVistaA25 ? 'logrado' : 'no_logrado'),
+      crit(8, nivelPorIntentos(intentosFrecuenciaA25 + 1)),
+      crit(9, nivelPorIntentos(intentosReflexionA25 + 1)),
+      crit(10, minutos <= tiempoEstimadoA25 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA25 * 2 ? 'proceso' : 'no_logrado')),
+      crit(11, 'logrado')
+    ];
+    const pesoUnidad = puntajeMaxA25 / criterios.length;
+    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    let nota = 0;
+    criterios.forEach(c => { nota += pesoUnidad * pesosPorNivel[c.nivel]; });
+    nota = Math.round(nota * 100) / 100;
+
+    document.getElementById('vistaEjercicioA25').classList.add('hidden');
+    document.getElementById('vistaResultadoA25').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA25').classList.add('hidden');
+    renderRubrica('rubricaResultadoA25', criterios, puntajeMaxA25, nota);
+    ultimoResultadoA25 = { criterios, nota, puntajeMaximo: puntajeMaxA25 };
+
+    const proporcion = puntajeMaxA25 > 0 ? nota / puntajeMaxA25 : 0;
+    mostrarLogro(proporcion >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', proporcion >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(proporcion >= 0.8) dispararConfeti();
+
+    const r = respAnalisisA25;
+    const detalle = [
+      {
+        titulo: 'Construcción del reporte, sección por sección',
+        items: [
+          { pregunta:'Proyecto nuevo', tuRespuesta: `"${proyectoA25.nombre}" · conectado a ${(TABLAS_DISPONIBLES_A19.find(t => t.codigo === proyectoA25.tabla) || {}).nombre || 'sin tabla'} · pareja: ${proyectoA25.pareja}`, correcta: intentosA25.proyecto === 0 },
+          { pregunta:'Encabezado de reporte', tuRespuesta: `${cfgA25.encReporte.empresa} — ${cfgA25.encReporte.titulo}`, correcta: intentosA25.encReporte === 0 },
+          { pregunta:'Encabezado de página', tuRespuesta: cfgA25.encPagina.map(nombreElementoA25_).join(', ') || 'Vacío', correcta: intentosA25.encPagina === 0 },
+          { pregunta:'Línea de detalle', tuRespuesta: camposDetalleOrdenadosA25_().map(etiquetaCampoA25_).join(', '), correcta: intentosA25.detalle === 0 },
+          { pregunta:'Pie de página', tuRespuesta: cfgA25.piePagina.map(nombreElementoA25_).join(', ') || 'Vacío', correcta: intentosA25.piePagina === 0 },
+          { pregunta:'Pie de reporte', tuRespuesta: cfgA25.pieReporte.map(nombreElementoA25_).join(', ') || 'Vacío', correcta: intentosA25.pieReporte === 0 }
+        ]
+      },
+      {
+        titulo: 'Análisis del reporte',
+        items: [
+          { pregunta:'¿Ejecutó y revisó el reporte completo?', tuRespuesta: ejecucionVistaA25 ? 'Sí' : 'No', correcta: ejecucionVistaA25 },
+          ...SECCIONES_A25.slice(1).map(s => ({
+            pregunta: `¿Cuántas veces y dónde aparece el ${s.nombre.toLowerCase()}?`,
+            tuRespuesta: (OPCIONES_FRECUENCIA_A25.find(o => o.id === r.frecuencias[s.id]) || {}).texto || 'Sin responder',
+            correcta: r.frecuencias[s.id] === FRECUENCIAS_CORRECTAS_A25[s.id]
+          })),
+          { pregunta:'Conteos en su reporte', tuRespuesta: `Líneas de detalle: ${r.lineas}; veces que aparece el pie de página: ${r.vecesPie}`, correcta: intentosFrecuenciaA25 === 0 },
+          { pregunta:'Reflexión sobre la construcción por secciones', tuRespuesta: r.reflexion || 'Sin responder', correcta: intentosReflexionA25 === 0 }
+        ]
+      }
+    ];
+    ultimoResultadoA25.detalle = detalle;
+    renderDesgloseColoreado('resultadoDesgloseA25', detalle);
+
+    try{
+      await apiPost({
+        action:'guardarCalificacion',
+        usuario: currentUser.usuario,
+        codigo:'A.2.5',
+        ra:'RA2',
+        ec: EC_A25,
+        nota,
+        puntajeMaximo: puntajeMaxA25,
+        criterios,
+        detalle
+      });
+    }catch(err){
+      console.error('No se pudo guardar la calificación', err);
+    }
+  });
+
+  document.getElementById('btnDescargarPdfA25').addEventListener('click', () => {
+    if(!ultimoResultadoA25) return;
+    generarPdfResultado('A.2.5', ultimoResultadoA25.criterios, ultimoResultadoA25.nota, ultimoResultadoA25.puntajeMaximo, EC_A25, 'RA2', ultimoResultadoA25.detalle);
+  });
+
+  document.getElementById('btnVolverMisActA25').addEventListener('click', () => {
+    document.getElementById('panelActividadA25').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.5', abrirActividadA25);
