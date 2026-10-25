@@ -9062,3 +9062,499 @@
   });
 
   registrarActividadInteractiva('A.2.7', abrirActividadA27);
+
+
+// ============================================================================
+// A.2.8 — DISEÑA, EJECUTA, VERIFICA E IMPRIME UN REPORTE ESTRUCTURADO
+// ============================================================================
+  // Individual. Caso nuevo: informe de inventario de productos de TECNOVENTAS RD (datos
+  // incluidos aquí, no requiere hojas nuevas). El estudiante diseña las 5 secciones según una
+  // solicitud escrita, revisa la vista previa, verifica lo que ve y finalmente imprime (PDF).
+  // Se apoya en "Reporte_de_Inventario_Disenar_Verificar_e_Imprimir_A28.pdf".
+
+  const EC_A28 = 'EC6.2.2';
+  const FILAS_POR_HOJA_A28 = 6;
+  const CAMPOS_A28 = ['Codigo', 'Producto', 'Categoria', 'Existencia', 'PrecioUnitario', 'Proveedor', 'NivelMinimo'];
+  const ETIQ_CAMPO_A28 = { Codigo:'Código', Categoria:'Categoría', PrecioUnitario:'Precio unitario', NivelMinimo:'Nivel mínimo' };
+  const etiqCampoA28_ = (c) => ETIQ_CAMPO_A28[c] || c;
+  const CAMPOS_DETALLE_A28 = ['Producto', 'Categoria', 'Existencia', 'PrecioUnitario'];
+  const PRODUCTOS_A28 = [
+    ['P-001','Laptop HP 15','Computadoras',8,28500,'Tech Import RD',3],
+    ['P-002','Laptop Lenovo 14','Computadoras',5,31200,'Tech Import RD',3],
+    ['P-003','Mouse inalámbrico','Accesorios',45,650,'Accesorios del Caribe',15],
+    ['P-004','Teclado USB','Accesorios',32,900,'Accesorios del Caribe',10],
+    ['P-005','Audífonos Bluetooth','Accesorios',27,1450,'Accesorios del Caribe',10],
+    ['P-006','Impresora láser','Impresoras',6,12500,'Tech Import RD',2],
+    ['P-007','Impresora multifuncional','Impresoras',4,9800,'Tech Import RD',2],
+    ['P-008','Monitor 24"','Pantallas',12,9600,'Pantallas Global',4],
+    ['P-009','Monitor 27"','Pantallas',7,14500,'Pantallas Global',3],
+    ['P-010','Cable HDMI 2 m','Accesorios',60,350,'Accesorios del Caribe',20],
+    ['P-011','Disco duro externo 1 TB','Almacenamiento',18,3900,'Tech Import RD',6],
+    ['P-012','Memoria USB 64 GB','Almacenamiento',50,480,'Tech Import RD',20],
+    ['P-013','Router Wi-Fi','Redes',14,2800,'Redes del Este',5],
+    ['P-014','Switch 8 puertos','Redes',9,2200,'Redes del Este',3]
+  ].map(f => { const o = {}; CAMPOS_A28.forEach((c, i) => { o[c] = f[i]; }); return o; });
+  const valorTotalA28_ = () => PRODUCTOS_A28.reduce((s, p) => s + p.Existencia * p.PrecioUnitario, 0);
+  const hojasTotalA28_ = () => Math.ceil(PRODUCTOS_A28.length / FILAS_POR_HOJA_A28);
+  const fmtMontoA28_ = (v) => 'RD$' + (Number(v) || 0).toLocaleString('es-DO', { minimumFractionDigits:2 });
+  const escA28_ = (t) => String(t === null || t === undefined ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const escAttrA28_ = (t) => escA28_(t).replace(/"/g, '&quot;');
+
+  const ELEMENTOS_A28 = {
+    titulosColumna:{ nombre:'Títulos de columna', zona:'encPagina', pista:'<b>Títulos de columna</b> se repite arriba de cada hoja: va en el encabezado de página.' },
+    numeroPagina:{ nombre:'Número de página', zona:'piePagina', pista:'<b>Número de página</b> es información de la hoja: va en el pie de página.' },
+    fechaImpresion:{ nombre:'Fecha de impresión', zona:'piePagina', pista:'<b>Fecha de impresión</b> se repite en cada hoja: va en el pie de página.' },
+    totalProductos:{ nombre:'Total de productos', zona:'pieReporte', pista:'<b>Total de productos</b> cuenta todo el informe y sale una sola vez: va en el pie de reporte.' },
+    valorTotal:{ nombre:'Valor total del inventario', zona:'pieReporte', pista:'<b>Valor total del inventario</b> suma todo el informe y sale una sola vez: va en el pie de reporte.' }
+  };
+  const ZONAS_A28 = {
+    encPagina:{ nombre:'Encabezado de página', candidatos:['titulosColumna', 'numeroPagina', 'totalProductos'], texto:'Sale arriba de <b>cada hoja</b>.' },
+    piePagina:{ nombre:'Pie de página', candidatos:['numeroPagina', 'fechaImpresion', 'valorTotal'], texto:'Sale abajo de <b>cada hoja</b>.' },
+    pieReporte:{ nombre:'Pie de reporte', candidatos:['totalProductos', 'valorTotal', 'fechaImpresion'], texto:'Sale <b>una sola vez</b>, al final del informe.' }
+  };
+  const SECCIONES_A28 = [
+    { id:'encReporte', nombre:'Encabezado de reporte', color:'#12294a' },
+    { id:'encPagina', nombre:'Encabezado de página', color:'#8fb0e0' },
+    { id:'detalle', nombre:'Línea de detalle', color:'#999' },
+    { id:'piePagina', nombre:'Pie de página', color:'#e9a850' },
+    { id:'pieReporte', nombre:'Pie de reporte', color:'#2e8b57' }
+  ];
+  const ETAPAS_A28 = [
+    { id:'diseno', corto:'Diseñar', icono:'fa-pen-ruler' },
+    { id:'vista', corto:'Vista previa', icono:'fa-eye' },
+    { id:'verificar', corto:'Verificar', icono:'fa-list-check' },
+    { id:'imprimir', corto:'Imprimir', icono:'fa-print' }
+  ];
+
+  const CRITERIOS_BASE_A28 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio y trabaja con orden.' },
+    { key:'encReporte', nombre:'2. Encabezado de reporte', descripcion:'Escribe el nombre de la empresa y un título que describe el informe solicitado.' },
+    { key:'encPagina', nombre:'3. Encabezado de página', descripcion:'Coloca en el encabezado de página lo que debe repetirse arriba de cada hoja.' },
+    { key:'detalle', nombre:'4. Línea de detalle', descripcion:'Elige los campos que pide la solicitud, ni más ni menos.' },
+    { key:'piePagina', nombre:'5. Pie de página', descripcion:'Coloca en el pie de página lo que debe repetirse abajo de cada hoja.' },
+    { key:'pieReporte', nombre:'6. Pie de reporte', descripcion:'Coloca en el pie de reporte los resúmenes de todo el informe.' },
+    { key:'vista', nombre:'7. Verificación de la vista previa', descripcion:'Revisa la vista previa y responde correctamente qué muestra cada sección.' },
+    { key:'impresion', nombre:'8. Impresión del reporte', descripcion:'Genera el reporte impreso (PDF) y comprueba que sus secciones salen completas.' },
+    { key:'tiempo', nombre:'9. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'10. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let cfgA28 = {}, okA28 = {}, fallosA28 = {}, pasoA28 = 0;
+  let vistaVistaA28 = false, verifOkA28 = false, impresoA28 = false, revisoPdfA28 = false;
+  let respVerifA28 = {}, ordenZonaA28 = {}, ordenCamposA28 = [], opcionesVerifA28 = null;
+  let ultimoResultadoA28 = null, puntajeMaxA28 = 0, tiempoEstimadoA28 = 10, inicioTiempoA28 = null, timerIntervalA28 = null;
+
+  function reiniciarEstadoA28_(){
+    cfgA28 = { empresa:'', titulo:'', encPagina:[], detalle:[], piePagina:[], pieReporte:[] };
+    okA28 = {}; fallosA28 = { encReporte:0, encPagina:0, detalle:0, piePagina:0, pieReporte:0, vista:0 };
+    pasoA28 = 0; vistaVistaA28 = false; verifOkA28 = false; impresoA28 = false; revisoPdfA28 = false;
+    respVerifA28 = {};
+    ordenZonaA28 = {}; Object.keys(ZONAS_A28).forEach(z => { ordenZonaA28[z] = barajar([...ZONAS_A28[z].candidatos]); });
+    ordenCamposA28 = barajar([...CAMPOS_A28]);
+    const tot = valorTotalA28_();
+    opcionesVerifA28 = {
+      valor: barajar([tot, tot + 15000, PRODUCTOS_A28.reduce((s, p) => s + p.PrecioUnitario, 0)]),
+    };
+  }
+  const camposDetalleOrdenA28_ = () => CAMPOS_A28.filter(c => cfgA28.detalle.includes(c));
+
+  function textoElemA28_(id, n, total){
+    switch(id){
+      case 'numeroPagina': return `Página ${n} de ${total}`;
+      case 'fechaImpresion': return 'Impreso: ' + formatearFechaCortaSinHora_(new Date());
+      case 'totalProductos': return `Total de productos: ${PRODUCTOS_A28.length}`;
+      case 'valorTotal': return `Valor total del inventario: ${fmtMontoA28_(valorTotalA28_())}`;
+      default: return '';
+    }
+  }
+  function celdaA28_(c, p){
+    if(c === 'PrecioUnitario') return fmtMontoA28_(p[c]);
+    return escA28_(p[c]);
+  }
+
+  // ---------- Validación por sección ----------
+  function validarSeccionA28_(sec){
+    const msgs = [];
+    if(sec === 'encReporte'){
+      if(!normalizarTextoA15_(cfgA28.empresa).includes('tecnoventas')) msgs.push('Escribe el nombre de la empresa: <b>TECNOVENTAS RD</b>.');
+      if(!normalizarTextoA15_(cfgA28.titulo).includes('inventario')) msgs.push('El título debe decir de qué es el informe que pidió el almacén: un <b>inventario de productos</b>.');
+    } else if(sec === 'detalle'){
+      const sel = [...cfgA28.detalle].sort(), esp = [...CAMPOS_DETALLE_A28].sort();
+      if(!(sel.length === esp.length && sel.every((c, i) => c === esp[i]))) msgs.push('La línea de detalle debe mostrar exactamente los 4 campos de la solicitud: <b>Producto, Categoría, Existencia y Precio unitario</b>.');
+    } else {
+      ZONAS_A28[sec].candidatos.forEach(id => {
+        const e = ELEMENTOS_A28[id], puesto = cfgA28[sec].includes(id);
+        if(puesto && e.zona !== sec) msgs.push(`En el ${ZONAS_A28[sec].nombre.toLowerCase()}: ${e.pista}`);
+        else if(!puesto && e.zona === sec) msgs.push(`Falta agregar <b>${e.nombre}</b> al ${ZONAS_A28[sec].nombre.toLowerCase()}.`);
+      });
+    }
+    return msgs;
+  }
+
+  function limiteA28_(){
+    if(!SECCIONES_A28.every(s => okA28[s.id])) return 0;
+    if(!vistaVistaA28) return 1;
+    if(!verifOkA28) return 2;
+    return 3;
+  }
+
+  // ---------- Apertura ----------
+  async function abrirActividadA28(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA28 = puntajeMaximo;
+    tiempoEstimadoA28 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA28').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA28').classList.remove('hidden');
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.8') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA28').classList.add('hidden');
+        document.getElementById('vistaEjercicioA28').classList.add('hidden');
+        document.getElementById('vistaResultadoA28').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA28', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA28', previa.detalle);
+        ultimoResultadoA28 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA28').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar */ }
+    document.getElementById('avisoYaCompletadaA28').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA28').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA28').classList.add('hidden');
+    document.getElementById('vistaResultadoA28').classList.add('hidden');
+    document.getElementById('tiempoEstimadoAvisoA28').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA28} minutos</b> para completar esta actividad una vez que la inicies.`;
+    cargarRecursosActividad('A.2.8', 'recursosEstudianteA28');
+    renderRubrica('instrumentoPrevioA28', CRITERIOS_BASE_A28.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA28, null);
+  }
+  document.getElementById('btnBackFromActividadA28').addEventListener('click', () => {
+    clearInterval(timerIntervalA28);
+    document.getElementById('panelActividadA28').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+  document.getElementById('btnComenzarA28').addEventListener('click', () => {
+    reiniciarEstadoA28_();
+    document.getElementById('vistaInstrumentoA28').classList.add('hidden');
+    document.getElementById('vistaEjercicioA28').classList.remove('hidden');
+    document.getElementById('seccionFinalA28').classList.add('hidden');
+    pintarPasoA28_();
+    inicioTiempoA28 = Date.now();
+    clearInterval(timerIntervalA28);
+    timerIntervalA28 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA28) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0'), ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA28').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA28} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Estructura ----------
+  function irAPasoA28_(n){ if(n < 0 || n > limiteA28_()) return; pasoA28 = n; pintarPasoA28_(); }
+  function stepperA28_(){
+    const limite = limiteA28_();
+    const hecho = [SECCIONES_A28.every(s => okA28[s.id]), vistaVistaA28, verifOkA28, impresoA28 && revisoPdfA28];
+    return `<div class="stepper-a25" id="stepperA28">${ETAPAS_A28.map((e, i) => `
+      <button type="button" class="paso-a25 ${i === pasoA28 ? 'activo' : ''} ${hecho[i] ? 'hecho' : ''} ${i > limite ? 'bloqueado' : ''}" data-paso="${i}" ${i > limite ? 'disabled' : ''}>
+        <span class="num">${hecho[i] && i !== pasoA28 ? '<i class="fa-solid fa-check"></i>' : i + 1}</span><span class="txt">${e.corto}</span></button>`).join('')}</div>`;
+  }
+  function conectarStepperA28_(){ document.querySelectorAll('#stepperA28 .paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA28_(Number(b.dataset.paso)))); }
+  function refrescarStepperA28_(){
+    const st = document.getElementById('stepperA28'); if(!st) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = stepperA28_(); st.replaceWith(tmp.firstElementChild); conectarStepperA28_();
+  }
+  function pintarPasoA28_(){
+    document.getElementById('disenadorReporteA28').innerHTML = stepperA28_() + '<div id="cuerpoPasoA28"></div>';
+    document.getElementById('seccionFinalA28').classList.add('hidden');
+    conectarStepperA28_();
+    if(pasoA28 === 0) pintarDisenoA28_();
+    else if(pasoA28 === 1) pintarVistaA28_();
+    else if(pasoA28 === 2) pintarVerificarA28_();
+    else pintarImprimirA28_();
+  }
+
+  // ---------- Paso 1: diseñar ----------
+  function chipsZonaA28_(zona){
+    return `<div class="bloque-zona-a28" data-zona-bloque="${zona}">
+      <label class="etiqueta-a25">${ZONAS_A28[zona].nombre} <span style="font-weight:400; opacity:.75;">— ${ZONAS_A28[zona].texto} Toca lo que va aquí:</span></label>
+      <div class="pool-campos-a21">${ordenZonaA28[zona].map(id => `<span class="campo-chip-a21 chip-zona-a28 ${cfgA28[zona].includes(id) ? 'seleccionado' : ''}" data-zona="${zona}" data-id="${id}">${cfgA28[zona].includes(id) ? '<i class="fa-solid fa-check"></i> ' : ''}${ELEMENTOS_A28[id].nombre}</span>`).join('')}</div>
+      <div class="estado-zona-a28" id="estado-${zona}"></div>
+    </div>`;
+  }
+  function pintarDisenoA28_(){
+    document.getElementById('cuerpoPasoA28').innerHTML = `
+      <div class="caso-a110-card" style="max-width:100%; margin:0 0 12px;">
+        <div class="caja-diseno-titulo"><i class="fa-solid fa-clipboard-list"></i> Solicitud del almacén de TECNOVENTAS RD</div>
+        <div style="font-size:14px; line-height:1.55;">Necesitamos el informe <b>"Inventario de productos"</b>. Debe mostrar:
+          <ul style="margin:6px 0 0 18px; padding:0;">
+            <li>El <b>nombre de la empresa</b> y el <b>título</b> del informe, una sola vez al inicio.</li>
+            <li>Arriba de <b>cada hoja</b>, los <b>títulos de columna</b>.</li>
+            <li>Una línea por producto, con: <b>Producto, Categoría, Existencia y Precio unitario</b>.</li>
+            <li>Abajo de <b>cada hoja</b>, el <b>número de página</b> y la <b>fecha de impresión</b>.</li>
+            <li>Al final del informe, una sola vez: el <b>total de productos</b> y el <b>valor total del inventario</b>.</li>
+          </ul></div>
+      </div>
+      <div class="a25-layout">
+        <div class="a25-panel">
+          <div class="caja-diseno-a21" id="cajaDisenoA28">
+            <div class="caja-diseno-titulo"><i class="fa-solid fa-pen-ruler"></i> Paso 1: diseña las 5 secciones</div>
+            <div class="bloque-zona-a28" data-zona-bloque="encReporte">
+              <label class="etiqueta-a25" style="margin-top:0;">Encabezado de reporte <span style="font-weight:400; opacity:.75;">— sale una sola vez, al inicio.</span></label>
+              <input type="text" id="inpEmpresaA28" class="input-generico" placeholder="Nombre de la empresa..." value="${escAttrA28_(cfgA28.empresa)}">
+              <input type="text" id="inpTituloA28" class="input-generico" style="margin-top:6px;" placeholder="Título del informe..." value="${escAttrA28_(cfgA28.titulo)}">
+              <div class="estado-zona-a28" id="estado-encReporte"></div>
+            </div>
+            ${chipsZonaA28_('encPagina')}
+            <div class="bloque-zona-a28" data-zona-bloque="detalle">
+              <label class="etiqueta-a25">Línea de detalle <span style="font-weight:400; opacity:.75;">— una por producto. Toca los campos que se muestran:</span></label>
+              <div class="pool-campos-a21">${ordenCamposA28.map(c => `<span class="campo-chip-a21 chip-det-a28 ${cfgA28.detalle.includes(c) ? 'seleccionado' : ''}" data-id="${c}">${cfgA28.detalle.includes(c) ? '<i class="fa-solid fa-check"></i> ' : ''}${etiqCampoA28_(c)}</span>`).join('')}</div>
+              <div class="estado-zona-a28" id="estado-detalle"></div>
+            </div>
+            ${chipsZonaA28_('piePagina')}
+            ${chipsZonaA28_('pieReporte')}
+          </div>
+          <div id="feedbackA28"></div>
+          <div class="nav-pasos" style="margin-top:14px;">
+            <button type="button" class="btn btn-primary" id="btnConfirmarA28" style="width:auto; padding:11px 22px;"><i class="fa-solid fa-check"></i> Confirmar diseño</button>
+            <button type="button" class="btn-nav-paso btn-nav-paso-primario ${SECCIONES_A28.every(s => okA28[s.id]) ? '' : 'hidden'}" id="btnSigA28">Ver la vista previa <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+        <div class="a25-preview" id="previewA28"></div>
+      </div>`;
+    conectarDisenoA28_();
+    pintarEstadosA28_();
+    pintarPreviewA28_(null);
+  }
+  function pintarEstadosA28_(){
+    SECCIONES_A28.forEach(s => {
+      const el = document.getElementById('estado-' + s.id); if(!el) return;
+      el.innerHTML = okA28[s.id] ? '<span class="ok-zona-a28"><i class="fa-solid fa-circle-check"></i> Correcto</span>' : '';
+    });
+  }
+  function invalidarA28_(sec){
+    if(!okA28[sec]) return;
+    okA28[sec] = false;
+    pintarEstadosA28_(); pintarPreviewA28_(null); refrescarStepperA28_();
+    document.getElementById('btnSigA28').classList.add('hidden');
+  }
+  function conectarDisenoA28_(){
+    document.getElementById('inpEmpresaA28').addEventListener('input', (e) => { cfgA28.empresa = e.target.value; invalidarA28_('encReporte'); });
+    document.getElementById('inpTituloA28').addEventListener('input', (e) => { cfgA28.titulo = e.target.value; invalidarA28_('encReporte'); });
+    document.querySelectorAll('.chip-zona-a28').forEach(chip => chip.addEventListener('click', () => {
+      const z = chip.dataset.zona, lista = cfgA28[z], i = lista.indexOf(chip.dataset.id);
+      if(i === -1) lista.push(chip.dataset.id); else lista.splice(i, 1);
+      chip.classList.toggle('seleccionado', i === -1);
+      chip.innerHTML = (i === -1 ? '<i class="fa-solid fa-check"></i> ' : '') + ELEMENTOS_A28[chip.dataset.id].nombre;
+      invalidarA28_(z);
+    }));
+    document.querySelectorAll('.chip-det-a28').forEach(chip => chip.addEventListener('click', () => {
+      const i = cfgA28.detalle.indexOf(chip.dataset.id);
+      if(i === -1) cfgA28.detalle.push(chip.dataset.id); else cfgA28.detalle.splice(i, 1);
+      chip.classList.toggle('seleccionado', i === -1);
+      chip.innerHTML = (i === -1 ? '<i class="fa-solid fa-check"></i> ' : '') + etiqCampoA28_(chip.dataset.id);
+      invalidarA28_('detalle');
+    }));
+    document.getElementById('btnConfirmarA28').addEventListener('click', confirmarDisenoA28_);
+    document.getElementById('btnSigA28').addEventListener('click', () => irAPasoA28_(1));
+  }
+  function confirmarDisenoA28_(){
+    const todos = [];
+    SECCIONES_A28.forEach(s => {
+      const msgs = validarSeccionA28_(s.id);
+      if(msgs.length){
+        if(!okA28['_hecho_' + s.id]) fallosA28[s.id]++;
+        okA28[s.id] = false;
+        todos.push(`<div class="advertencia-sitio-falso" style="max-width:100%; margin:8px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div><b>${s.nombre}:</b> ${msgs.join(' ')}</div></div>`);
+      } else { okA28[s.id] = true; okA28['_hecho_' + s.id] = true; }
+    });
+    document.getElementById('feedbackA28').innerHTML = todos.length
+      ? todos.join('')
+      : '<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Diseño completo!</b> Las 5 secciones están correctas. Pasa a la vista previa.</div></div>';
+    pintarEstadosA28_(); pintarPreviewA28_('all'); refrescarStepperA28_();
+    if(!todos.length) document.getElementById('btnSigA28').classList.remove('hidden');
+  }
+  function pintarPreviewA28_(recien){
+    const cont = document.getElementById('previewA28'); if(!cont) return;
+    const campos = camposDetalleOrdenA28_(), filas = PRODUCTOS_A28.slice(0, 3);
+    const pend = (t) => `<div class="hoja-pendiente-a25"><i class="fa-regular fa-square-plus"></i> ${t}: pendiente</div>`;
+    const glow = recien ? ' recien-a25' : '';
+    cont.innerHTML = `
+      <div class="hoja-etiqueta-a25"><i class="fa-solid fa-file-lines"></i> Hoja de muestra: las secciones correctas se encienden</div>
+      <div class="hoja-reporte-a24" style="margin:0;">
+        ${okA28.encReporte ? `<div class="hoja-enc-reporte-a24${glow}"><div class="emp">${escA28_(cfgA28.empresa)}</div><div class="tit">${escA28_(cfgA28.titulo)}</div></div>` : pend('Encabezado de reporte')}
+        ${okA28.encPagina ? `<div class="hoja-enc-pagina-a24${glow}"><div class="hoja-cols-a24">${campos.length ? campos.map(c => `<span>${etiqCampoA28_(c)}</span>`).join('') : '<span>[Títulos de columna]</span>'}</div></div>` : pend('Encabezado de página')}
+        ${okA28.detalle ? `<div class="${glow.trim()}">${filas.map(p => `<div class="hoja-fila-a24">${campos.map(c => `<span>${celdaA28_(c, p)}</span>`).join('')}</div>`).join('')}<div class="hoja-fila-a24" style="opacity:.55;"><span>… una línea por producto</span></div></div>` : pend('Línea de detalle')}
+        ${okA28.pieReporte ? `<div class="${glow.trim()}">${cfgA28.pieReporte.map(id => `<div class="hoja-pie-reporte-a24">${escA28_(textoElemA28_(id, 1, hojasTotalA28_()))}</div>`).join('')}</div>` : pend('Pie de reporte')}
+        ${okA28.piePagina ? `<div class="hoja-pie-pagina-a24${glow}">${cfgA28.piePagina.map(id => `<span>${escA28_(textoElemA28_(id, 1, hojasTotalA28_()))}</span>`).join('')}</div>` : pend('Pie de página')}
+      </div>
+      <div class="leyenda-hoja-a24" style="margin:8px 0 0;">
+        <span><i style="background:#12294a"></i>enc. de reporte</span><span><i style="background:#8fb0e0"></i>enc. de página</span>
+        <span><i style="background:#e9a850"></i>pie de página</span><span><i style="background:#2e8b57"></i>pie de reporte</span>
+      </div>`;
+  }
+
+  // ---------- Paso 2: vista previa ----------
+  function hojaCompletaHtmlA28_(filas, n, total){
+    const campos = camposDetalleOrdenA28_();
+    return `
+      <div class="hoja-etiqueta-a24">Hoja ${n} de ${total}</div>
+      <div class="hoja-reporte-a24">
+        ${n === 1 ? `<div class="hoja-enc-reporte-a24"><div class="emp">${escA28_(cfgA28.empresa)}</div><div class="tit">${escA28_(cfgA28.titulo)}</div></div>` : ''}
+        <div class="hoja-enc-pagina-a24"><div class="hoja-cols-a24">${campos.map(c => `<span>${etiqCampoA28_(c)}</span>`).join('')}</div></div>
+        ${filas.map(p => `<div class="hoja-fila-a24">${campos.map(c => `<span>${celdaA28_(c, p)}</span>`).join('')}</div>`).join('')}
+        ${n === total ? cfgA28.pieReporte.map(id => `<div class="hoja-pie-reporte-a24">${escA28_(textoElemA28_(id, n, total))}</div>`).join('') : ''}
+        <div class="hoja-pie-pagina-a24">${cfgA28.piePagina.map(id => `<span>${escA28_(textoElemA28_(id, n, total))}</span>`).join('')}</div>
+      </div>`;
+  }
+  function pintarVistaA28_(){
+    vistaVistaA28 = true;
+    const total = hojasTotalA28_(), hojas = [];
+    for(let i = 0; i < PRODUCTOS_A28.length; i += FILAS_POR_HOJA_A28) hojas.push(PRODUCTOS_A28.slice(i, i + FILAS_POR_HOJA_A28));
+    document.getElementById('cuerpoPasoA28').innerHTML = `
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-eye"></i> <b>Vista previa del informe.</b> Así saldrá impreso, con los datos reales. Recórrelo hoja por hoja <b>fijándote en qué aparece en cada una</b>: en el siguiente paso te preguntaremos qué viste.</div>
+      <div class="leyenda-hoja-a24">
+        <span><i style="background:#12294a"></i>enc. de reporte</span><span><i style="background:#8fb0e0"></i>enc. de página</span>
+        <span><i style="background:#e9a850"></i>pie de página</span><span><i style="background:#2e8b57"></i>pie de reporte</span>
+      </div>
+      ${hojas.map((h, i) => hojaCompletaHtmlA28_(h, i + 1, total)).join('')}
+      <div class="nav-pasos" style="justify-content:space-between; margin-top:16px;">
+        <button type="button" class="btn-nav-paso" id="btnAntA28"><i class="fa-solid fa-arrow-left"></i> Volver al diseño</button>
+        <button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSigA28">Verificar lo que vi <i class="fa-solid fa-arrow-right"></i></button>
+      </div>`;
+    document.getElementById('btnAntA28').addEventListener('click', () => irAPasoA28_(0));
+    document.getElementById('btnSigA28').addEventListener('click', () => irAPasoA28_(2));
+    refrescarStepperA28_();
+  }
+
+  // ---------- Paso 3: verificar ----------
+  const PREGUNTAS_VERIF_A28 = () => {
+    const total = hojasTotalA28_();
+    const num = (n) => ({ id:String(n), texto:String(n) });
+    return [
+      { id:'hojas', texto:'¿Cuántas hojas tiene el informe?', opciones:[1,2,3,4,5,6].map(num), correcta:String(total) },
+      { id:'lineas', texto:'¿Cuántas líneas de detalle hay en todo el informe?', opciones:[12,13,14,15,16].map(num), correcta:String(PRODUCTOS_A28.length) },
+      { id:'encRep', texto:'¿En qué hojas aparece el encabezado de reporte (empresa y título)?', opciones:[{ id:'primera', texto:'Solo en la hoja 1' }, { id:'todas', texto:'En todas las hojas' }, { id:'ultima', texto:'Solo en la última hoja' }], correcta:'primera' },
+      { id:'pieRep', texto:'¿En qué hojas aparece el pie de reporte (los totales)?', opciones:[{ id:'primera', texto:'Solo en la hoja 1' }, { id:'todas', texto:'En todas las hojas' }, { id:'ultima', texto:'Solo en la última hoja' }], correcta:'ultima' },
+      { id:'valor', texto:'¿Qué valor total del inventario muestra el pie de reporte?', opciones:opcionesVerifA28.valor.map(v => ({ id:String(v), texto:fmtMontoA28_(v) })), correcta:String(valorTotalA28_()) }
+    ];
+  };
+  function pintarVerificarA28_(){
+    const preg = PREGUNTAS_VERIF_A28();
+    document.getElementById('cuerpoPasoA28').innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 12px;"><button type="button" class="btn-nav-paso" id="btnAntA28"><i class="fa-solid fa-arrow-left"></i> Volver a la vista previa</button></div>
+      <div class="section-heading" style="font-size:18px;">Verifica lo que viste en la vista previa</div>
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        ${preg.map(q => `<div class="afirmacion-a24"><span><b>${q.texto}</b></span>
+          <select class="input-generico sel-verif-a28" data-q="${q.id}" ${verifOkA28 ? 'disabled' : ''}><option value="">Selecciona...</option>
+          ${q.opciones.map(o => `<option value="${o.id}" ${respVerifA28[q.id] === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}</select></div>`).join('')}
+        <div id="fbVerifA28"></div>
+      </div>
+      ${verifOkA28 ? '<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Verificación correcta!</b> Todas las secciones se muestran como se pidió.</div></div>' : '<button type="button" class="btn btn-primary" id="btnConfVerifA28" style="width:auto; padding:12px 28px;"><i class="fa-solid fa-check"></i> Confirmar</button>'}
+      ${verifOkA28 ? '<div class="nav-pasos" style="margin-top:12px;"><button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSigA28">Ir a imprimir <i class="fa-solid fa-arrow-right"></i></button></div>' : ''}`;
+    document.getElementById('btnAntA28').addEventListener('click', () => irAPasoA28_(1));
+    document.querySelectorAll('.sel-verif-a28').forEach(s => s.addEventListener('change', () => { respVerifA28[s.dataset.q] = s.value; }));
+    const b = document.getElementById('btnConfVerifA28');
+    if(b) b.addEventListener('click', () => {
+      if(preg.some(q => !respVerifA28[q.id])){
+        document.getElementById('fbVerifA28').innerHTML = '<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Responde las 5 preguntas antes de confirmar.</div></div>';
+        return;
+      }
+      const malas = preg.filter(q => respVerifA28[q.id] !== q.correcta);
+      if(!malas.length){ verifOkA28 = true; pintarVerificarA28_(); refrescarStepperA28_(); return; }
+      fallosA28.vista++;
+      document.getElementById('fbVerifA28').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${malas.length} respuesta(s) no coinciden con la vista previa. Vuelve a recorrerla y fíjate en lo que muestra cada hoja: revisa <b>${malas.map(q => '"' + q.texto + '"').join(', ')}</b>.</div></div>`;
+    });
+    const s = document.getElementById('btnSigA28'); if(s) s.addEventListener('click', () => irAPasoA28_(3));
+  }
+
+  // ---------- Paso 4: imprimir ----------
+  function pintarImprimirA28_(){
+    document.getElementById('cuerpoPasoA28').innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 12px;"><button type="button" class="btn-nav-paso" id="btnAntA28"><i class="fa-solid fa-arrow-left"></i> Volver a verificar</button></div>
+      <div class="section-heading" style="font-size:18px;">Imprime el informe</div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-print"></i> Presiona el botón para <b>generar el informe impreso</b> (se descarga como PDF). Ábrelo y comprueba que salen: el encabezado de reporte en la hoja 1, los títulos de columna y el pie de página en cada hoja, y los totales al final.</div>
+      <button type="button" class="btn-descargar-pdf" id="btnImprimirA28"><i class="fa-solid fa-print"></i> ${impresoA28 ? 'Imprimir de nuevo (PDF)' : 'Imprimir informe (PDF)'}</button>
+      ${impresoA28 ? `<label class="check-pareja-a25" style="margin-top:14px;"><input type="checkbox" id="chkRevisoA28" ${revisoPdfA28 ? 'checked' : ''}> Abrí el PDF y comprobé que todas las secciones salen completas.</label>` : ''}
+      <div id="fbImprimirA28"></div>`;
+    document.getElementById('btnAntA28').addEventListener('click', () => irAPasoA28_(2));
+    document.getElementById('btnImprimirA28').addEventListener('click', () => {
+      generarPdfReporteDisenado({
+        nombreEmpresa: cfgA28.empresa, tituloReporte: cfgA28.titulo,
+        columnas: camposDetalleOrdenA28_().map(etiqCampoA28_),
+        filas: PRODUCTOS_A28.map(p => camposDetalleOrdenA28_().map(c => c === 'PrecioUnitario' ? fmtMontoA28_(p[c]) : String(p[c]))),
+        mostrarTitulosColumna: true,
+        piePagina: { numero: cfgA28.piePagina.includes('numeroPagina'), fecha: cfgA28.piePagina.includes('fechaImpresion') },
+        pieReporte: cfgA28.pieReporte.map(id => ({ etiqueta: ELEMENTOS_A28[id].nombre.toUpperCase(), valor: id === 'valorTotal' ? fmtMontoA28_(valorTotalA28_()) : String(PRODUCTOS_A28.length) })),
+        filasPorHoja: FILAS_POR_HOJA_A28,
+        nombreArchivo: 'inventario_de_productos'
+      });
+      impresoA28 = true; pintarImprimirA28_(); refrescarStepperA28_();
+    });
+    const chk = document.getElementById('chkRevisoA28');
+    if(chk) chk.addEventListener('change', (e) => {
+      revisoPdfA28 = e.target.checked;
+      refrescarStepperA28_();
+      document.getElementById('seccionFinalA28').classList.toggle('hidden', !(impresoA28 && revisoPdfA28));
+    });
+    document.getElementById('seccionFinalA28').classList.toggle('hidden', !(impresoA28 && revisoPdfA28));
+  }
+
+  // ---------- Finalizar ----------
+  document.getElementById('btnFinalizarA28').addEventListener('click', async () => {
+    clearInterval(timerIntervalA28);
+    const minutos = (Date.now() - inicioTiempoA28) / 60000;
+    const nivel = (f) => f <= 0 ? 'logrado' : (f === 1 ? 'proceso' : 'no_logrado');
+    const C = CRITERIOS_BASE_A28;
+    const crit = (i, n) => ({ nombre:C[i].nombre, descripcion:C[i].descripcion, nivel:n });
+    const criterios = [
+      crit(0, 'logrado'), crit(1, nivel(fallosA28.encReporte)), crit(2, nivel(fallosA28.encPagina)), crit(3, nivel(fallosA28.detalle)),
+      crit(4, nivel(fallosA28.piePagina)), crit(5, nivel(fallosA28.pieReporte)), crit(6, nivel(fallosA28.vista)),
+      crit(7, impresoA28 && revisoPdfA28 ? 'logrado' : 'no_logrado'),
+      crit(8, minutos <= tiempoEstimadoA28 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA28 * 2 ? 'proceso' : 'no_logrado')),
+      crit(9, 'logrado')
+    ];
+    const peso = puntajeMaxA28 / criterios.length, pn = { logrado:1, proceso:0.5, no_logrado:0 };
+    let nota = 0; criterios.forEach(c => { nota += peso * pn[c.nivel]; });
+    nota = Math.round(nota * 100) / 100;
+
+    document.getElementById('vistaEjercicioA28').classList.add('hidden');
+    document.getElementById('vistaResultadoA28').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA28').classList.add('hidden');
+    renderRubrica('rubricaResultadoA28', criterios, puntajeMaxA28, nota);
+    ultimoResultadoA28 = { criterios, nota, puntajeMaximo: puntajeMaxA28 };
+    const prop = puntajeMaxA28 > 0 ? nota / puntajeMaxA28 : 0;
+    mostrarLogro(prop >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', prop >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(prop >= 0.8) dispararConfeti();
+
+    const it = (pregunta, tuRespuesta, correcta) => ({ pregunta, tuRespuesta, correcta });
+    const lista = (z) => cfgA28[z].map(id => ELEMENTOS_A28[id].nombre).join(', ') || 'Vacío';
+    const preg = PREGUNTAS_VERIF_A28();
+    const detalle = [
+      { titulo:'Diseño del informe de inventario', items:[
+        it('Encabezado de reporte', `${cfgA28.empresa} — ${cfgA28.titulo}`, fallosA28.encReporte === 0),
+        it('Encabezado de página', lista('encPagina'), fallosA28.encPagina === 0),
+        it('Línea de detalle', camposDetalleOrdenA28_().map(etiqCampoA28_).join(', '), fallosA28.detalle === 0),
+        it('Pie de página', lista('piePagina'), fallosA28.piePagina === 0),
+        it('Pie de reporte', lista('pieReporte'), fallosA28.pieReporte === 0)
+      ] },
+      { titulo:'Verificación e impresión', items:[
+        ...preg.map(q => it(q.texto, (q.opciones.find(o => o.id === respVerifA28[q.id]) || {}).texto || 'Sin responder', respVerifA28[q.id] === q.correcta)),
+        it('Imprimió el informe (PDF) y revisó sus secciones', impresoA28 && revisoPdfA28 ? 'Sí' : 'No', impresoA28 && revisoPdfA28)
+      ] }
+    ];
+    ultimoResultadoA28.detalle = detalle;
+    renderDesgloseColoreado('resultadoDesgloseA28', detalle);
+    try{
+      await apiPost({ action:'guardarCalificacion', usuario: currentUser.usuario, codigo:'A.2.8', ra:'RA2', ec: EC_A28, nota, puntajeMaximo: puntajeMaxA28, criterios, detalle });
+    }catch(err){ console.error('No se pudo guardar la calificación', err); }
+  });
+  document.getElementById('btnDescargarPdfA28').addEventListener('click', () => {
+    if(!ultimoResultadoA28) return;
+    generarPdfResultado('A.2.8', ultimoResultadoA28.criterios, ultimoResultadoA28.nota, ultimoResultadoA28.puntajeMaximo, EC_A28, 'RA2', ultimoResultadoA28.detalle);
+  });
+  document.getElementById('btnVolverMisActA28').addEventListener('click', () => {
+    document.getElementById('panelActividadA28').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.8', abrirActividadA28);
