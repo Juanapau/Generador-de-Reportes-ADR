@@ -5571,15 +5571,15 @@
   const ETIQUETAS_CAMPOS_A23 = { PrecioUnitario: 'Monto' };
 
   const CRITERIOS_BASE_A23 = [
-    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio.' },
-    { key:'encReporte', nombre:'2. Encabezado de reporte', descripcion:'Escribe correctamente el nombre de la empresa y el título del reporte.' },
-    { key:'detalle', nombre:'3. Línea de detalle', descripcion:'Selecciona la tabla correcta y arrastra exactamente los campos correctos hacia la línea de detalle.' },
-    { key:'agrupacion', nombre:'4. Agrupación por región', descripcion:'Agrupa el reporte por el campo correcto, generando encabezado, detalle y pie de grupo.' },
-    { key:'encPagina', nombre:'5. Encabezado de página', descripcion:'Incluye el número de página además de los títulos de columna.' },
-    { key:'vistas', nombre:'6. Recorrido de las 3 vistas', descripcion:'Recorre las vistas de Diseño, Previsualización y Ejecución del reporte ya construido.' },
-    { key:'identificar', nombre:'7. Identifica y define las partes del grupo', descripcion:'Identifica correctamente el encabezado de grupo, el detalle de grupo y el pie de grupo, y explica en sus propias palabras la función que cumple cada uno.' },
-    { key:'tiempo', nombre:'8. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'prolijidad', nombre:'9. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+    { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
+    { key:'encReporte', nombre:'2. Encabezado de reporte', niveles:{ excelente:'Escribe correctamente el nombre de la empresa y el título del reporte a la primera.', bueno:'Lo logra con un reintento.', proceso:'Lo logra tras varios reintentos.', insuficiente:'No logra escribir correctamente el encabezado de reporte.' } },
+    { key:'detalle', nombre:'3. Línea de detalle', niveles:{ excelente:'Elige la tabla correcta y arrastra exactamente los campos correctos a la línea de detalle a la primera.', bueno:'Lo logra con un reintento.', proceso:'Lo logra tras varios reintentos o con campos de más o de menos.', insuficiente:'No logra armar la línea de detalle.' } },
+    { key:'agrupacion', nombre:'4. Agrupación por región', niveles:{ excelente:'Agrupa por el campo correcto a la primera, generando encabezado, detalle y pie de grupo.', bueno:'Agrupa correctamente con un reintento.', proceso:'Agrupa correctamente tras varios reintentos.', insuficiente:'No logra agrupar el reporte por el campo correcto.' } },
+    { key:'encPagina', nombre:'5. Encabezado de página', niveles:{ excelente:'Incluye los títulos de columna y el número de página a la primera.', bueno:'Lo logra con un reintento.', proceso:'Lo logra tras varios reintentos o le falta algún elemento.', insuficiente:'No logra completar el encabezado de página.' } },
+    { key:'vistas', nombre:'6. Recorrido de las 3 vistas', niveles:{ excelente:'Recorre las vistas de Diseño, Previsualización y Ejecución.', bueno:'Recorre solo dos de las tres vistas.', proceso:'Recorre una sola vista de forma superficial.', insuficiente:'No recorre las vistas del reporte.' } },
+    { key:'identificar', nombre:'7. Identifica y define las partes del grupo', niveles:{ excelente:'Identifica las 3 partes del grupo y explica la función de cada una a la primera.', bueno:'Lo logra con un reintento.', proceso:'Lo logra tras varios reintentos o con explicaciones poco claras.', insuficiente:'No logra identificar ni explicar las partes del grupo.' } },
+    { key:'tiempo', nombre:'8. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
+    { key:'prolijidad', nombre:'9. Orden y prolijidad', niveles:{ excelente:'Desarrolla la actividad de forma ordenada y completa.', bueno:'Desarrolla la actividad con pequeños desórdenes.', proceso:'Desarrolla la actividad de forma desordenada.', insuficiente:'La actividad queda incompleta o sin orden.' } }
   ];
 
   let tablaSeleccionadaDetalleA23 = '';
@@ -5657,7 +5657,7 @@
         document.getElementById('vistaInstrumentoA23').classList.add('hidden');
         document.getElementById('vistaEjercicioA23').classList.add('hidden');
         document.getElementById('vistaResultadoA23').classList.remove('hidden');
-        renderRubrica('rubricaResultadoA23', previa.criterios, previa.puntajeMaximo, previa.nota);
+        renderRubricaDescriptiva('rubricaResultadoA23', previa.criterios, previa.puntajeMaximo, previa.nota);
         if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA23', previa.detalle);
         ultimoResultadoA23 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA23').classList.remove('hidden');
@@ -5675,8 +5675,8 @@
 
     cargarRecursosActividad('A.2.3', 'recursosEstudianteA23');
 
-    const criteriosPrevios = CRITERIOS_BASE_A23.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null }));
-    renderRubrica('instrumentoPrevioA23', criteriosPrevios, puntajeMaxA23, null);
+    const criteriosPrevios = CRITERIOS_BASE_A23.map(c => ({ nombre:c.nombre, niveles:c.niveles, nivel:null }));
+    renderRubricaDescriptiva('instrumentoPrevioA23', criteriosPrevios, puntajeMaxA23, null);
   }
 
   document.getElementById('btnBackFromActividadA23').addEventListener('click', () => {
@@ -6175,24 +6175,24 @@
     clearInterval(timerIntervalA23);
 
     const minutosTranscurridos = (Date.now() - inicioTiempoA23) / 60000;
-    const nivelPorIntentos = (intentos) => intentos <= 1 ? 'logrado' : (intentos <= 2 ? 'proceso' : 'no_logrado');
+    const nivelPorIntentos = (intentos) => intentos <= 1 ? 'excelente' : (intentos <= 2 ? 'bueno' : (intentos <= 3 ? 'proceso' : 'insuficiente'));
 
     const criterios = [];
-    criterios.push({ nombre: CRITERIOS_BASE_A23[0].nombre, descripcion: CRITERIOS_BASE_A23[0].descripcion, nivel: 'logrado' });
-    criterios.push({ nombre: CRITERIOS_BASE_A23[1].nombre, descripcion: CRITERIOS_BASE_A23[1].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.encReporte || 1) });
-    criterios.push({ nombre: CRITERIOS_BASE_A23[2].nombre, descripcion: CRITERIOS_BASE_A23[2].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.detalle || 1) });
-    criterios.push({ nombre: CRITERIOS_BASE_A23[3].nombre, descripcion: CRITERIOS_BASE_A23[3].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.agrupacion || 1) });
-    criterios.push({ nombre: CRITERIOS_BASE_A23[4].nombre, descripcion: CRITERIOS_BASE_A23[4].descripcion, nivel: nivelPorIntentos(intentosPorSeccionA23.encPagina || 1) });
-    criterios.push({ nombre: CRITERIOS_BASE_A23[5].nombre, descripcion: CRITERIOS_BASE_A23[5].descripcion, nivel: 'logrado' });
-    criterios.push({ nombre: CRITERIOS_BASE_A23[6].nombre, descripcion: CRITERIOS_BASE_A23[6].descripcion, nivel: nivelPorIntentos(intentosIdentificarGeneralA23 || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[0].nombre, niveles: CRITERIOS_BASE_A23[0].niveles, nivel: 'excelente' });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[1].nombre, niveles: CRITERIOS_BASE_A23[1].niveles, nivel: nivelPorIntentos(intentosPorSeccionA23.encReporte || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[2].nombre, niveles: CRITERIOS_BASE_A23[2].niveles, nivel: nivelPorIntentos(intentosPorSeccionA23.detalle || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[3].nombre, niveles: CRITERIOS_BASE_A23[3].niveles, nivel: nivelPorIntentos(intentosPorSeccionA23.agrupacion || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[4].nombre, niveles: CRITERIOS_BASE_A23[4].niveles, nivel: nivelPorIntentos(intentosPorSeccionA23.encPagina || 1) });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[5].nombre, niveles: CRITERIOS_BASE_A23[5].niveles, nivel: 'excelente' });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[6].nombre, niveles: CRITERIOS_BASE_A23[6].niveles, nivel: nivelPorIntentos(intentosIdentificarGeneralA23 || 1) });
     criterios.push({
-      nombre: CRITERIOS_BASE_A23[7].nombre, descripcion: CRITERIOS_BASE_A23[7].descripcion,
-      nivel: minutosTranscurridos <= tiempoEstimadoA23 * 1.5 ? 'logrado' : (minutosTranscurridos <= tiempoEstimadoA23 * 2 ? 'proceso' : 'no_logrado')
+      nombre: CRITERIOS_BASE_A23[7].nombre, niveles: CRITERIOS_BASE_A23[7].niveles,
+      nivel: minutosTranscurridos <= tiempoEstimadoA23 ? 'excelente' : (minutosTranscurridos <= tiempoEstimadoA23 * 1.5 ? 'bueno' : (minutosTranscurridos <= tiempoEstimadoA23 * 2 ? 'proceso' : 'insuficiente'))
     });
-    criterios.push({ nombre: CRITERIOS_BASE_A23[8].nombre, descripcion: CRITERIOS_BASE_A23[8].descripcion, nivel: 'logrado' });
+    criterios.push({ nombre: CRITERIOS_BASE_A23[8].nombre, niveles: CRITERIOS_BASE_A23[8].niveles, nivel: 'excelente' });
 
     const pesoUnidad = puntajeMaxA23 / criterios.length;
-    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    const pesosPorNivel = { excelente:1, bueno:0.75, proceso:0.4, insuficiente:0 };
     let notaCalculada = 0;
     criterios.forEach(c => { notaCalculada += pesoUnidad * pesosPorNivel[c.nivel]; });
     notaCalculada = Math.round(notaCalculada * 100) / 100;
@@ -6200,7 +6200,7 @@
     document.getElementById('vistaEjercicioA23').classList.add('hidden');
     document.getElementById('vistaResultadoA23').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA23').classList.add('hidden');
-    renderRubrica('rubricaResultadoA23', criterios, puntajeMaxA23, notaCalculada);
+    renderRubricaDescriptiva('rubricaResultadoA23', criterios, puntajeMaxA23, notaCalculada);
     ultimoResultadoA23 = { criterios, nota: notaCalculada, puntajeMaximo: puntajeMaxA23 };
 
     const proporcionFinalA23 = puntajeMaxA23 > 0 ? notaCalculada / puntajeMaxA23 : 0;
@@ -7353,7 +7353,7 @@
         document.getElementById('vistaInstrumentoA25').classList.add('hidden');
         document.getElementById('vistaEjercicioA25').classList.add('hidden');
         document.getElementById('vistaResultadoA25').classList.remove('hidden');
-        renderRubrica('rubricaResultadoA25', previa.criterios, previa.puntajeMaximo, previa.nota);
+        renderListaCotejo('rubricaResultadoA25', previa.criterios, previa.puntajeMaximo, previa.nota);
         if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA25', previa.detalle);
         ultimoResultadoA25 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA25').classList.remove('hidden');
@@ -7368,7 +7368,7 @@
     document.getElementById('tiempoEstimadoAvisoA25').innerHTML =
       `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA25} minutos</b> para completar esta actividad una vez que la inicies.`;
     cargarRecursosActividad('A.2.5', 'recursosEstudianteA25');
-    renderRubrica('instrumentoPrevioA25', CRITERIOS_BASE_A25.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA25, null);
+    renderListaCotejo('instrumentoPrevioA25', CRITERIOS_BASE_A25.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA25, null);
   }
 
   document.getElementById('btnBackFromActividadA25').addEventListener('click', () => {
@@ -7810,8 +7810,10 @@
       crit(10, minutos <= tiempoEstimadoA25 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA25 * 2 ? 'proceso' : 'no_logrado')),
       crit(11, 'logrado')
     ];
+    // Lista de cotejo: cumple (logrado o con un solo reintento) / no cumple
+    criterios.forEach((c, i) => { c.nivel = (i === 10 ? minutos <= tiempoEstimadoA25 * 1.5 : (c.nivel === 'logrado' || c.nivel === 'proceso')) ? 'cumple' : 'no_cumple'; });
     const pesoUnidad = puntajeMaxA25 / criterios.length;
-    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    const pesosPorNivel = { cumple:1, no_cumple:0 };
     let nota = 0;
     criterios.forEach(c => { nota += pesoUnidad * pesosPorNivel[c.nivel]; });
     nota = Math.round(nota * 100) / 100;
@@ -7819,7 +7821,7 @@
     document.getElementById('vistaEjercicioA25').classList.add('hidden');
     document.getElementById('vistaResultadoA25').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA25').classList.add('hidden');
-    renderRubrica('rubricaResultadoA25', criterios, puntajeMaxA25, nota);
+    renderListaCotejo('rubricaResultadoA25', criterios, puntajeMaxA25, nota);
     ultimoResultadoA25 = { criterios, nota, puntajeMaximo: puntajeMaxA25 };
 
     const proporcion = puntajeMaxA25 > 0 ? nota / puntajeMaxA25 : 0;
@@ -7962,16 +7964,16 @@
   const PASO_VISTA_A26 = 5, PASO_REFLEXION_A26 = 6;
 
   const CRITERIOS_BASE_A26 = [
-    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio y revisa cada paso con su pareja.' },
-    { key:'proyecto', nombre:'2. Proyecto nuevo', descripcion:'Crea el proyecto con un nombre claro y anota a su pareja de trabajo.' },
-    { key:'conexion', nombre:'3. Conexión a la base de datos', descripcion:'Conecta el proyecto a la base de datos que contiene la información que necesita el reporte.' },
-    { key:'encabezado', nombre:'4. Tablas del encabezado', descripcion:'Ubica la tabla de la que sale cada dato del encabezado.' },
-    { key:'detalle', nombre:'5. Tablas del detalle', descripcion:'Ubica la tabla de la que sale cada dato de la línea de detalle.' },
-    { key:'relaciones', nombre:'6. Relación entre tablas', descripcion:'Identifica el campo en común que une cada par de tablas.' },
-    { key:'vista', nombre:'7. Revisión del reporte poblado', descripcion:'Revisa el reporte ya poblado con datos reales y comprueba que cuadre.' },
-    { key:'reflexion', nombre:'8. Reflexión sobre las tablas', descripcion:'Explica con sus palabras por qué el reporte necesita varias tablas y qué papel tiene el campo en común.' },
-    { key:'tiempo', nombre:'9. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
-    { key:'prolijidad', nombre:'10. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+    { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio y revisa cada paso con su pareja.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
+    { key:'proyecto', nombre:'2. Proyecto nuevo', niveles:{ excelente:'Crea el proyecto con nombre claro y anota a su pareja sin errores.', bueno:'Lo logra con un error.', proceso:'Lo logra tras varios errores.', insuficiente:'No logra crear el proyecto correctamente.' } },
+    { key:'conexion', nombre:'3. Conexión a la base de datos', niveles:{ excelente:'Conecta el proyecto a la base de datos correcta sin errores.', bueno:'Lo logra con un error.', proceso:'Lo logra tras varios errores.', insuficiente:'No logra conectar a la base de datos correcta.' } },
+    { key:'encabezado', nombre:'4. Tablas del encabezado', niveles:{ excelente:'Ubica sin errores la tabla de la que sale cada dato del encabezado.', bueno:'Ubica las tablas del encabezado con un error.', proceso:'Ubica las tablas del encabezado con varios errores.', insuficiente:'No logra ubicar las tablas del encabezado.' } },
+    { key:'detalle', nombre:'5. Tablas del detalle', niveles:{ excelente:'Ubica sin errores la tabla de la que sale cada dato del detalle.', bueno:'Ubica las tablas del detalle con un error.', proceso:'Ubica las tablas del detalle con varios errores.', insuficiente:'No logra ubicar las tablas del detalle.' } },
+    { key:'relaciones', nombre:'6. Relación entre tablas', niveles:{ excelente:'Identifica sin errores el campo en común de cada par de tablas.', bueno:'Lo identifica con un error.', proceso:'Lo identifica con varios errores.', insuficiente:'No logra identificar los campos en común.' } },
+    { key:'vista', nombre:'7. Revisión del reporte poblado', niveles:{ excelente:'Revisa el reporte poblado y comprueba que cuadre.', bueno:'Revisa el reporte pero la comprobación es parcial.', proceso:'Revisa el reporte de forma superficial.', insuficiente:'No revisa el reporte poblado.' } },
+    { key:'reflexion', nombre:'8. Reflexión sobre las tablas', niveles:{ excelente:'Explica con claridad por qué se necesitan varias tablas y el papel del campo en común.', bueno:'Explica de forma general o con un reintento.', proceso:'Ofrece una explicación breve o poco clara.', insuficiente:'No logra explicar el uso de varias tablas.' } },
+    { key:'tiempo', nombre:'9. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
+    { key:'prolijidad', nombre:'10. Orden y prolijidad', niveles:{ excelente:'Desarrolla la actividad de forma ordenada y completa.', bueno:'Desarrolla la actividad con pequeños desórdenes.', proceso:'Desarrolla la actividad de forma desordenada.', insuficiente:'La actividad queda incompleta o sin orden.' } }
   ];
 
   let proyectoA26 = { nombre:'', pareja:'' };
@@ -8070,7 +8072,7 @@
         document.getElementById('vistaInstrumentoA26').classList.add('hidden');
         document.getElementById('vistaEjercicioA26').classList.add('hidden');
         document.getElementById('vistaResultadoA26').classList.remove('hidden');
-        renderRubrica('rubricaResultadoA26', previa.criterios, previa.puntajeMaximo, previa.nota);
+        renderRubricaDescriptiva('rubricaResultadoA26', previa.criterios, previa.puntajeMaximo, previa.nota);
         if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA26', previa.detalle);
         ultimoResultadoA26 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA26').classList.remove('hidden');
@@ -8085,7 +8087,7 @@
     document.getElementById('tiempoEstimadoAvisoA26').innerHTML =
       `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA26} minutos</b> para completar esta actividad una vez que la inicies.`;
     cargarRecursosActividad('A.2.6', 'recursosEstudianteA26');
-    renderRubrica('instrumentoPrevioA26', CRITERIOS_BASE_A26.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA26, null);
+    renderRubricaDescriptiva('instrumentoPrevioA26', CRITERIOS_BASE_A26.map(c => ({ nombre:c.nombre, niveles:c.niveles, nivel:null })), puntajeMaxA26, null);
   }
 
   document.getElementById('btnBackFromActividadA26').addEventListener('click', () => {
@@ -8413,23 +8415,23 @@
   document.getElementById('btnFinalizarA26').addEventListener('click', async () => {
     clearInterval(timerIntervalA26);
     const minutos = (Date.now() - inicioTiempoA26) / 60000;
-    const nivelPorFallos = (fallos) => fallos <= 0 ? 'logrado' : (fallos === 1 ? 'proceso' : 'no_logrado');
+    const nivelPorFallos = (fallos) => fallos <= 0 ? 'excelente' : (fallos === 1 ? 'bueno' : (fallos === 2 ? 'proceso' : 'insuficiente'));
     const C = CRITERIOS_BASE_A26;
-    const crit = (i, nivel) => ({ nombre: C[i].nombre, descripcion: C[i].descripcion, nivel });
+    const crit = (i, nivel) => ({ nombre: C[i].nombre, niveles: C[i].niveles, nivel });
     const criterios = [
-      crit(0, 'logrado'),
+      crit(0, 'excelente'),
       crit(1, nivelPorFallos(intentosA26.proyecto)),
       crit(2, nivelPorFallos(intentosA26.conexion)),
       crit(3, nivelPorFallos(intentosA26.encabezado)),
       crit(4, nivelPorFallos(intentosA26.detalle)),
       crit(5, nivelPorFallos(intentosA26.relaciones)),
-      crit(6, vistaVisitadaA26 ? 'logrado' : 'no_logrado'),
+      crit(6, vistaVisitadaA26 ? 'excelente' : 'insuficiente'),
       crit(7, nivelPorFallos(intentosA26.reflexion)),
-      crit(8, minutos <= tiempoEstimadoA26 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA26 * 2 ? 'proceso' : 'no_logrado')),
-      crit(9, 'logrado')
+      crit(8, minutos <= tiempoEstimadoA26 ? 'excelente' : (minutos <= tiempoEstimadoA26 * 1.5 ? 'bueno' : (minutos <= tiempoEstimadoA26 * 2 ? 'proceso' : 'insuficiente'))),
+      crit(9, 'excelente')
     ];
     const pesoUnidad = puntajeMaxA26 / criterios.length;
-    const pesosPorNivel = { logrado:1, proceso:0.5, no_logrado:0 };
+    const pesosPorNivel = { excelente:1, bueno:0.75, proceso:0.4, insuficiente:0 };
     let nota = 0;
     criterios.forEach(c => { nota += pesoUnidad * pesosPorNivel[c.nivel]; });
     nota = Math.round(nota * 100) / 100;
@@ -8437,7 +8439,7 @@
     document.getElementById('vistaEjercicioA26').classList.add('hidden');
     document.getElementById('vistaResultadoA26').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA26').classList.add('hidden');
-    renderRubrica('rubricaResultadoA26', criterios, puntajeMaxA26, nota);
+    renderRubricaDescriptiva('rubricaResultadoA26', criterios, puntajeMaxA26, nota);
     ultimoResultadoA26 = { criterios, nota, puntajeMaximo: puntajeMaxA26 };
 
     const proporcion = puntajeMaxA26 > 0 ? nota / puntajeMaxA26 : 0;
@@ -9212,7 +9214,7 @@
         document.getElementById('vistaInstrumentoA28').classList.add('hidden');
         document.getElementById('vistaEjercicioA28').classList.add('hidden');
         document.getElementById('vistaResultadoA28').classList.remove('hidden');
-        renderRubrica('rubricaResultadoA28', previa.criterios, previa.puntajeMaximo, previa.nota);
+        renderListaCotejo('rubricaResultadoA28', previa.criterios, previa.puntajeMaximo, previa.nota);
         if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA28', previa.detalle);
         ultimoResultadoA28 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
         document.getElementById('avisoYaCompletadaA28').classList.remove('hidden');
@@ -9226,7 +9228,7 @@
     document.getElementById('tiempoEstimadoAvisoA28').innerHTML =
       `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA28} minutos</b> para completar esta actividad una vez que la inicies.`;
     cargarRecursosActividad('A.2.8', 'recursosEstudianteA28');
-    renderRubrica('instrumentoPrevioA28', CRITERIOS_BASE_A28.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA28, null);
+    renderListaCotejo('instrumentoPrevioA28', CRITERIOS_BASE_A28.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA28, null);
   }
   document.getElementById('btnBackFromActividadA28').addEventListener('click', () => {
     clearInterval(timerIntervalA28);
@@ -9512,14 +9514,16 @@
       crit(8, minutos <= tiempoEstimadoA28 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA28 * 2 ? 'proceso' : 'no_logrado')),
       crit(9, 'logrado')
     ];
-    const peso = puntajeMaxA28 / criterios.length, pn = { logrado:1, proceso:0.5, no_logrado:0 };
+    // Lista de cotejo: cumple (logrado o con un solo error) / no cumple
+    criterios.forEach((c, i) => { c.nivel = (i === 8 ? minutos <= tiempoEstimadoA28 * 1.5 : (c.nivel === 'logrado' || c.nivel === 'proceso')) ? 'cumple' : 'no_cumple'; });
+    const peso = puntajeMaxA28 / criterios.length, pn = { cumple:1, no_cumple:0 };
     let nota = 0; criterios.forEach(c => { nota += peso * pn[c.nivel]; });
     nota = Math.round(nota * 100) / 100;
 
     document.getElementById('vistaEjercicioA28').classList.add('hidden');
     document.getElementById('vistaResultadoA28').classList.remove('hidden');
     document.getElementById('avisoYaCompletadaA28').classList.add('hidden');
-    renderRubrica('rubricaResultadoA28', criterios, puntajeMaxA28, nota);
+    renderListaCotejo('rubricaResultadoA28', criterios, puntajeMaxA28, nota);
     ultimoResultadoA28 = { criterios, nota, puntajeMaximo: puntajeMaxA28 };
     const prop = puntajeMaxA28 > 0 ? nota / puntajeMaxA28 : 0;
     mostrarLogro(prop >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', prop >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
