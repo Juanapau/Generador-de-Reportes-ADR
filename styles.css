@@ -1209,14 +1209,14 @@
   .editor-separador{ width:1px; align-self:stretch; background: var(--dark-border); margin:2px 2px; }
   body.light .editor-separador{ background:#dde5f6; }
 
-  .editor-fontsize{
+  .editor-fontsize, .editor-select-extra{
     padding:0 8px; height:34px; border-radius:8px; background: rgba(255,255,255,0.05);
     border:1px solid var(--dark-border); color:var(--dark-text); font-size:12.5px; font-family:inherit;
   }
-  body.light .editor-fontsize{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
+  body.light .editor-fontsize, body.light .editor-select-extra{ background:#fff; border:1px solid #dde5f6; color:var(--light-text); }
   /* El menú desplegable nativo del navegador siempre tiene fondo blanco, sin importar el tema,
      así que forzamos texto oscuro en las opciones para que sean legibles. */
-  .editor-fontsize option{ color:#1a1a1a; background:#ffffff; }
+  .editor-fontsize option, .editor-select-extra option{ color:#1a1a1a; background:#ffffff; }
 
   .editor-color-group{ position:relative; }
   .editor-color-toggle{ font-weight:800; font-size:14px; }
