@@ -82,11 +82,138 @@
       </div>`;
   }
 
+
+  // ---------- Mejoras del editor: tipo de fuente, interlineado y pegado limpio ----------
+  // Se aplica a cualquier editor enriquecido (RA o extra). Lo que se pega pierde el formato de origen
+  // (fuente, tamaño, interlineado, colores) y conserva solo la estructura (párrafos, listas, negrita,
+  // cursiva, subrayado, enlaces); luego la docente le da el formato con la barra.
+  const FUENTES_EDITOR_A = ['Nunito','Arial','Verdana','Tahoma','Trebuchet MS','Georgia','Times New Roman','Courier New'];
+  const INTERLINEADOS_EDITOR_A = ['1','1.15','1.3','1.5','1.8','2','2.5'];
+
+  function limpiarHtmlPegadoA_(html){
+    const origen = document.createElement('div');
+    origen.innerHTML = html;
+    origen.querySelectorAll('script,style,meta,link,title,head,xml,o\\:p').forEach(n => n.remove());
+    const BLOQUES = ['P','DIV','LI','H1','H2','H3','H4','H5','H6','TR','BLOCKQUOTE','PRE','SECTION','ARTICLE'];
+    function envolver(el, hijos){
+      const st = (el.getAttribute && el.getAttribute('style') || '').toLowerCase();
+      let h = hijos;
+      const tag = el.tagName;
+      const normal = /font-weight:\s*(normal|[1-5]00)/.test(st);
+      if(!normal && (tag === 'B' || tag === 'STRONG' || /h[1-6]/i.test(tag) || /font-weight:\s*(bold|[6-9]00)/.test(st))) h = `<b>${h}</b>`;
+      if(tag === 'I' || tag === 'EM' || /font-style:\s*italic/.test(st)) h = `<i>${h}</i>`;
+      if(tag === 'U' || /text-decoration[^;]*underline/.test(st)) h = `<u>${h}</u>`;
+      if(tag === 'S' || tag === 'STRIKE' || tag === 'DEL' || /text-decoration[^;]*line-through/.test(st)) h = `<s>${h}</s>`;
+      return h;
+    }
+    function recorrer(nodo){
+      if(nodo.nodeType === 3) return nodo.nodeValue.replace(/ /g,' ').replace(/[\r\n\t]+/g,' ').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      if(nodo.nodeType !== 1) return '';
+      const tag = nodo.tagName;
+      if(tag === 'BR') return '<br>';
+      if(tag === 'UL' || tag === 'OL'){
+        const items = Array.from(nodo.children).map(c => recorrer(c)).join('');
+        return `<${tag.toLowerCase()}>${items}</${tag.toLowerCase()}>`;
+      }
+      if(tag === 'LI'){
+        const interno = Array.from(nodo.childNodes).map(recorrer).join('').trim();
+        return `<li>${envolver(nodo, interno)}</li>`;
+      }
+      const interno = Array.from(nodo.childNodes).map(recorrer).join('');
+      if(tag === 'A' && nodo.getAttribute('href') && /^(https?:|mailto:)/i.test(nodo.getAttribute('href'))){
+        return `<a href="${nodo.getAttribute('href').replace(/"/g,'&quot;')}" target="_blank" rel="noopener">${interno}</a>`;
+      }
+      if(tag === 'TD' || tag === 'TH') return interno + ' ';
+      if(BLOQUES.includes(tag) || tag === 'TABLE'){
+        const t = interno.trim();
+        return t ? `<div>${envolver(nodo, t)}</div>` : '';
+      }
+      return envolver(nodo, interno);
+    }
+    let salida = Array.from(origen.childNodes).map(recorrer).join('');
+    // Quita etiquetas vacías y espacios repetidos
+    salida = salida.replace(/<(b|i|u|s)>\s*<\/\1>/g,'').replace(/ {2,}/g,' ');
+    return salida;
+  }
+
+  function mejorarEditorEnriquecidoA(card){
+    const editor = card.querySelector('.editor-contenido');
+    const selTam = card.querySelector('.editor-fontsize');
+    if(!editor || !selTam || card.querySelector('.editor-fuente')) return;
+    let rango = null;
+    const guardar = () => {
+      const sel = window.getSelection();
+      if(sel.rangeCount > 0 && editor.contains(sel.anchorNode)) rango = sel.getRangeAt(0);
+    };
+    const restaurar = () => {
+      if(rango){ const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(rango); }
+      editor.focus();
+      document.execCommand('styleWithCSS', false, false);
+    };
+    editor.addEventListener('mouseup', guardar);
+    editor.addEventListener('keyup', guardar);
+
+    const selFuente = document.createElement('select');
+    selFuente.className = 'editor-fontsize editor-fuente';
+    selFuente.title = 'Tipo de fuente';
+    selFuente.innerHTML = '<option value="">Fuente</option>' + FUENTES_EDITOR_A.map(f => `<option value="${f}" style="font-family:'${f}'">${f}</option>`).join('');
+    const selInter = document.createElement('select');
+    selInter.className = 'editor-fontsize editor-interlineado';
+    selInter.title = 'Interlineado (espacio entre líneas)';
+    selInter.innerHTML = '<option value="">Interlineado</option>' + INTERLINEADOS_EDITOR_A.map(v => `<option value="${v}">${v}</option>`).join('');
+    selTam.insertAdjacentElement('beforebegin', selFuente);
+    selTam.insertAdjacentElement('afterend', selInter);
+
+    [selFuente, selInter].forEach(sl => sl.addEventListener('mousedown', guardar));
+    selFuente.addEventListener('change', () => {
+      if(!selFuente.value) return;
+      restaurar();
+      document.execCommand('fontName', false, selFuente.value);
+      selFuente.value = '';
+    });
+
+    function bloquesSeleccionados(){
+      const sel = window.getSelection();
+      if(!sel.rangeCount) return [];
+      const r = sel.getRangeAt(0);
+      return Array.from(editor.querySelectorAll('p,div,li,h1,h2,h3,h4,h5,h6,blockquote'))
+        .filter(b => { try{ return r.intersectsNode(b); }catch(e){ return false; } });
+    }
+    selInter.addEventListener('change', () => {
+      if(!selInter.value) return;
+      restaurar();
+      let bloques = bloquesSeleccionados();
+      if(!bloques.length){
+        document.execCommand('formatBlock', false, 'div');
+        bloques = bloquesSeleccionados();
+      }
+      bloques.forEach(b => { b.style.lineHeight = selInter.value; });
+      selInter.value = '';
+      editor.dispatchEvent(new Event('input', { bubbles:true }));
+    });
+
+    // Pegado limpio: se descarta el formato de origen
+    editor.addEventListener('paste', (e) => {
+      const cd = e.clipboardData || window.clipboardData;
+      if(!cd) return;
+      e.preventDefault();
+      const html = cd.getData('text/html');
+      if(html){
+        document.execCommand('insertHTML', false, limpiarHtmlPegadoA_(html));
+      } else {
+        const texto = cd.getData('text/plain').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        document.execCommand('insertHTML', false, texto.split(/\r?\n/).map(l => `<div>${l || '<br>'}</div>`).join(''));
+      }
+      editor.dispatchEvent(new Event('input', { bubbles:true }));
+    });
+  }
+
   // Conecta TODA la lógica del editor de texto enriquecido dentro de un contenedor dado.
   // Reutilizable por cualquier tarjeta (RA o extra) que use construirEditorEnunciadoHTML().
   function conectarEditorEnunciado(card){
     const editorContenido = card.querySelector('.editor-contenido');
     if(!editorContenido) return;
+    mejorarEditorEnriquecidoA(card);
     let seleccionGuardadaA = null;
 
     function guardarSeleccionEditor(){
@@ -482,6 +609,7 @@
       const btn = card.querySelector('.btn-save-act');
       const okMsg = card.querySelector('.save-ok-msg');
       const editorContenido = card.querySelector('.editor-contenido');
+      mejorarEditorEnriquecidoA(card);
       let seleccionGuardadaA = null;
 
       function guardarSeleccionEditor(){
