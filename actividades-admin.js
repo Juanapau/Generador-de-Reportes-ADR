@@ -21,11 +21,7 @@
           <button type="button" class="editor-btn" data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
 
           <select class="editor-fontsize" title="Tamaño de fuente">
-            <option value="">Tamaño</option>
-            <option value="2">Pequeño</option>
-            <option value="3">Normal</option>
-            <option value="5">Grande</option>
-            <option value="7">Muy grande</option>
+            <option value="">Tamaño</option><option value="12">12</option><option value="14">14</option><option value="16">16</option><option value="18">18</option><option value="20">20</option><option value="24">24</option><option value="28">28</option><option value="32">32</option><option value="36">36</option>
           </select>
 
           <span class="editor-separador"></span>
@@ -82,6 +78,31 @@
       </div>`;
   }
 
+
+
+  // Aplica un tamaño en píxeles al texto seleccionado (execCommand solo admite 1-7, así que se usa 7 y se convierte).
+  function aplicarTamanoPxA_(editor, px){
+    document.execCommand('fontSize', false, '7');
+    const nuevos = [];
+    editor.querySelectorAll('font[size="7"]').forEach(f => {
+      const span = document.createElement('span');
+      span.style.fontSize = px + 'px';
+      while(f.firstChild) span.appendChild(f.firstChild);
+      f.replaceWith(span);
+      nuevos.push(span);
+    });
+    if(nuevos.length){
+      const r = document.createRange();
+      r.setStartBefore(nuevos[0]); r.setEndAfter(nuevos[nuevos.length-1]);
+      const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    }
+    editor.querySelectorAll('span[style*="font-size"] span[style*="font-size"]').forEach(inner => {
+      // un tamaño dentro de otro: se queda solo el más interno
+      const padre = inner.parentElement;
+      if(padre && padre.childNodes.length === 1) padre.style.removeProperty('font-size');
+    });
+    editor.dispatchEvent(new Event('input', { bubbles:true }));
+  }
 
   // ---------- Mejoras del editor: tipo de fuente, interlineado y pegado limpio ----------
   // Se aplica a cualquier editor enriquecido (RA o extra). Lo que se pega pierde el formato de origen
@@ -154,11 +175,11 @@
     editor.addEventListener('keyup', guardar);
 
     const selFuente = document.createElement('select');
-    selFuente.className = 'editor-fontsize editor-fuente';
+    selFuente.className = 'editor-select-extra editor-fuente';
     selFuente.title = 'Tipo de fuente';
     selFuente.innerHTML = '<option value="">Fuente</option>' + FUENTES_EDITOR_A.map(f => `<option value="${f}" style="font-family:'${f}'">${f}</option>`).join('');
     const selInter = document.createElement('select');
-    selInter.className = 'editor-fontsize editor-interlineado';
+    selInter.className = 'editor-select-extra editor-interlineado';
     selInter.title = 'Interlineado (espacio entre líneas)';
     selInter.innerHTML = '<option value="">Interlineado</option>' + INTERLINEADOS_EDITOR_A.map(v => `<option value="${v}">${v}</option>`).join('');
     selTam.insertAdjacentElement('beforebegin', selFuente);
@@ -272,7 +293,7 @@
       selectTamano.addEventListener('change', () => {
         if(!selectTamano.value) return;
         restaurarSeleccionEditor();
-        document.execCommand('fontSize', false, selectTamano.value);
+        aplicarTamanoPxA_(card.querySelector('.editor-contenido'), selectTamano.value);
         selectTamano.value = '';
       });
     }
@@ -454,11 +475,7 @@
             <button type="button" class="editor-btn" data-cmd="strikeThrough" title="Tachado"><s>T</s></button>
 
             <select class="editor-fontsize" title="Tamaño de fuente">
-              <option value="">Tamaño</option>
-              <option value="2">Pequeño</option>
-              <option value="3">Normal</option>
-              <option value="5">Grande</option>
-              <option value="7">Muy grande</option>
+              <option value="">Tamaño</option><option value="12">12</option><option value="14">14</option><option value="16">16</option><option value="18">18</option><option value="20">20</option><option value="24">24</option><option value="28">28</option><option value="32">32</option><option value="36">36</option>
             </select>
 
             <span class="editor-separador"></span>
@@ -680,7 +697,7 @@
         selectTamano.addEventListener('change', () => {
           if(!selectTamano.value) return;
           restaurarSeleccionEditor();
-          document.execCommand('fontSize', false, selectTamano.value);
+          aplicarTamanoPxA_(card.querySelector('.editor-contenido'), selectTamano.value);
           selectTamano.value = '';
         });
       }
