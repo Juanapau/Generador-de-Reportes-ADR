@@ -9562,3 +9562,431 @@
   });
 
   registrarActividadInteractiva('A.2.8', abrirActividadA28);
+
+// ============================================================================
+// A.2.9 — APLICA FORMATOS DE TEXTO SIGUIENDO UN ESTILO DE DISEÑO INSTITUCIONAL
+// ============================================================================
+  // Individual. Caso: reporte "Pedidos de noviembre" de DISTRIBUIDORA CARIBE SRL (datos incluidos
+  // aquí, no requiere hojas nuevas). El estudiante aplica fuente, tamaño y color a cada una de las
+  // 5 secciones según el Manual de estilo de la empresa, revisa el reporte completo y reflexiona.
+  // Se apoya en "Estilo_de_Diseno_Institucional_A29.pdf". Instrumento: Rúbrica (descriptiva).
+
+  const EC_A29 = 'EC6.2.2';
+  const FUENTES_A29 = ['Arial', 'Times New Roman', 'Courier New', 'Verdana', 'Georgia', 'Trebuchet MS'];
+  const TAMANOS_A29 = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24];
+  const COLORES_A29 = [
+    { id:'azul', nombre:'Azul institucional', hex:'#1F3A5F' },
+    { id:'gris-oscuro', nombre:'Gris oscuro', hex:'#444444' },
+    { id:'gris-medio', nombre:'Gris medio', hex:'#8A8A8A' },
+    { id:'negro', nombre:'Negro', hex:'#111111' },
+    { id:'rojo', nombre:'Rojo', hex:'#C0152A' },
+    { id:'verde', nombre:'Verde', hex:'#1E7B4F' },
+    { id:'dorado', nombre:'Dorado', hex:'#B8860B' },
+    { id:'naranja', nombre:'Naranja', hex:'#E67E22' }
+  ];
+  const colorPorIdA29_ = (id) => COLORES_A29.find(c => c.id === id);
+  const SECCIONES_A29 = [
+    { id:'encReporte', nombre:'Encabezado de reporte' },
+    { id:'encPagina', nombre:'Encabezado de página' },
+    { id:'detalle', nombre:'Línea de detalle' },
+    { id:'piePagina', nombre:'Pie de página' },
+    { id:'pieReporte', nombre:'Pie de reporte' }
+  ];
+  // Lo que pide el Manual de estilo (respuesta correcta). El pie de reporte se define por relación.
+  const ESTILO_A29 = {
+    encReporte:{ fuente:'Times New Roman', tam:20, color:'azul' },
+    encPagina:{ fuente:'Arial', tam:11, color:'gris-oscuro' },
+    detalle:{ fuente:'Arial', tam:10, color:'negro' },
+    piePagina:{ fuente:'Courier New', tam:8, color:'gris-medio' },
+    pieReporte:{ fuente:'Times New Roman', tam:12, color:'azul' }
+  };
+  const MANUAL_A29 = [
+    { sec:'encReporte', fuente:'Times New Roman', tam:'20 pt', color:'Azul institucional' },
+    { sec:'encPagina', fuente:'Arial', tam:'11 pt', color:'Gris oscuro' },
+    { sec:'detalle', fuente:'Arial', tam:'10 pt', color:'Negro' },
+    { sec:'piePagina', fuente:'Courier New', tam:'8 pt', color:'Gris medio' },
+    { sec:'pieReporte', fuente:'La misma del encabezado de reporte', tam:'12 pt', color:'El mismo del encabezado de reporte' }
+  ];
+  const PEDIDOS_A29 = [
+    ['P-101','Colmado Los Pinos','03/11/2026',18500],
+    ['P-102','Farmacia Central','05/11/2026',9750],
+    ['P-103','Supermercado Eva','08/11/2026',42300],
+    ['P-104','Ferretería Díaz','12/11/2026',15200],
+    ['P-105','Colmado La Esquina','15/11/2026',7800],
+    ['P-106','Minimarket Sol','19/11/2026',26450]
+  ];
+  const totalPedidosA29_ = () => PEDIDOS_A29.reduce((s, p) => s + p[3], 0);
+  const fmtMontoA29_ = (v) => 'RD$' + (Number(v) || 0).toLocaleString('es-DO', { minimumFractionDigits:2 });
+  const escA29_ = (t) => String(t === null || t === undefined ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const nomSecA29_ = (id) => SECCIONES_A29.find(s => s.id === id).nombre;
+
+  const ETAPAS_A29 = [
+    { id:'formato', corto:'Dar formato', icono:'fa-palette' },
+    { id:'revisar', corto:'Revisar', icono:'fa-list-check' },
+    { id:'reflexion', corto:'Reflexión', icono:'fa-comments' }
+  ];
+
+  const CRITERIOS_BASE_A29 = [
+    { key:'participacion', nombre:'1. Participación activa', niveles:{ excelente:'Participa activamente desde el inicio de la actividad.', bueno:'Participa la mayor parte del tiempo.', proceso:'Participa de forma limitada o intermitente.', insuficiente:'No participa en la actividad.' } },
+    { key:'encReporte', nombre:'2. Formato del encabezado de reporte', niveles:{ excelente:'Aplica la fuente, el tamaño y el color que pide el manual a la primera.', bueno:'Aplica el formato correcto con un reintento.', proceso:'Aplica el formato correcto tras dos reintentos.', insuficiente:'No logra aplicar el formato que pide el manual.' } },
+    { key:'encPagina', nombre:'3. Formato del encabezado de página', niveles:{ excelente:'Aplica la fuente, el tamaño y el color que pide el manual a la primera.', bueno:'Aplica el formato correcto con un reintento.', proceso:'Aplica el formato correcto tras dos reintentos.', insuficiente:'No logra aplicar el formato que pide el manual.' } },
+    { key:'detalle', nombre:'4. Formato de la línea de detalle', niveles:{ excelente:'Aplica la fuente, el tamaño y el color que pide el manual a la primera.', bueno:'Aplica el formato correcto con un reintento.', proceso:'Aplica el formato correcto tras dos reintentos.', insuficiente:'No logra aplicar el formato que pide el manual.' } },
+    { key:'piePagina', nombre:'5. Formato del pie de página', niveles:{ excelente:'Aplica la fuente, el tamaño y el color que pide el manual a la primera.', bueno:'Aplica el formato correcto con un reintento.', proceso:'Aplica el formato correcto tras dos reintentos.', insuficiente:'No logra aplicar el formato que pide el manual.' } },
+    { key:'pieReporte', nombre:'6. Formato del pie de reporte', niveles:{ excelente:'Deduce del manual la fuente y el color, y aplica el formato completo a la primera.', bueno:'Aplica el formato correcto con un reintento.', proceso:'Aplica el formato correcto tras dos reintentos.', insuficiente:'No logra deducir ni aplicar el formato del pie de reporte.' } },
+    { key:'revision', nombre:'7. Revisión del reporte formateado', niveles:{ excelente:'Responde correctamente las 3 preguntas sobre el reporte a la primera.', bueno:'Responde correctamente con un reintento.', proceso:'Responde correctamente tras varios reintentos.', insuficiente:'No logra interpretar el estilo del reporte terminado.' } },
+    { key:'reflexion', nombre:'8. Reflexión sobre el estilo institucional', niveles:{ excelente:'Explica con claridad por qué una empresa usa un estilo único en sus reportes.', bueno:'Explica la idea con un reintento o de forma general.', proceso:'Ofrece una explicación breve o poco clara.', insuficiente:'No logra explicar la importancia del estilo institucional.' } },
+    { key:'tiempo', nombre:'9. Cumplimiento del tiempo', niveles:{ excelente:'Completa la actividad dentro del tiempo estimado.', bueno:'Completa la actividad con un ligero retraso.', proceso:'Completa la actividad con un retraso considerable.', insuficiente:'Excede ampliamente el tiempo estimado.' } },
+    { key:'prolijidad', nombre:'10. Orden y prolijidad', niveles:{ excelente:'Desarrolla la actividad de forma ordenada y completa.', bueno:'Desarrolla la actividad con pequeños desórdenes.', proceso:'Desarrolla la actividad de forma desordenada.', insuficiente:'La actividad queda incompleta o sin orden.' } }
+  ];
+
+  let cfgA29 = {}, okA29 = {}, fallosA29 = {}, pasoA29 = 0, secActivaA29 = 'encReporte';
+  let verifOkA29 = false, reflexionOkA29 = false, respVerifA29 = {}, reflexionA29 = { texto:'', oral:false };
+  let ordenFuentesA29 = [], opcionesVerifA29 = null;
+  let ultimoResultadoA29 = null, puntajeMaxA29 = 0, tiempoEstimadoA29 = 10, inicioTiempoA29 = null, timerIntervalA29 = null;
+
+  function reiniciarEstadoA29_(){
+    cfgA29 = {}; SECCIONES_A29.forEach(s => { cfgA29[s.id] = { fuente:'', tam:'', color:'' }; });
+    okA29 = {}; fallosA29 = { encReporte:0, encPagina:0, detalle:0, piePagina:0, pieReporte:0, revision:0, reflexion:0 };
+    pasoA29 = 0; secActivaA29 = 'encReporte'; verifOkA29 = false; reflexionOkA29 = false;
+    respVerifA29 = {}; reflexionA29 = { texto:'', oral:false };
+    ordenFuentesA29 = barajar([...FUENTES_A29]);
+    opcionesVerifA29 = {
+      pares: barajar([
+        { id:'encRep-pieRep', texto:'Encabezado de reporte y pie de reporte' },
+        { id:'encPag-det', texto:'Encabezado de página y línea de detalle' },
+        { id:'det-piePag', texto:'Línea de detalle y pie de página' },
+        { id:'encPag-piePag', texto:'Encabezado de página y pie de página' }
+      ]),
+      secciones: barajar(SECCIONES_A29.map(s => ({ id:s.id, texto:s.nombre })))
+    };
+  }
+  const estiloSecA29_ = (id) => {
+    const c = cfgA29[id] || {};
+    const col = colorPorIdA29_(c.color);
+    return [c.fuente ? `font-family:'${c.fuente}'` : '', c.tam ? `font-size:${c.tam}pt` : '', col ? `color:${col.hex}` : ''].filter(Boolean).join(';');
+  };
+
+  // ---------- Validación ----------
+  function validarSeccionA29_(sec){
+    const c = cfgA29[sec], e = ESTILO_A29[sec];
+    const malas = [];
+    if(c.fuente !== e.fuente) malas.push('la <b>fuente</b>');
+    if(Number(c.tam) !== e.tam) malas.push('el <b>tamaño</b>');
+    if(c.color !== e.color) malas.push('el <b>color</b>');
+    return malas;
+  }
+  function limiteA29_(){
+    if(!SECCIONES_A29.every(s => okA29[s.id])) return 0;
+    if(!verifOkA29) return 1;
+    return 2;
+  }
+
+  // ---------- Apertura ----------
+  async function abrirActividadA29(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA29 = puntajeMaximo;
+    tiempoEstimadoA29 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA29').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA29').classList.remove('hidden');
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.9') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA29').classList.add('hidden');
+        document.getElementById('vistaEjercicioA29').classList.add('hidden');
+        document.getElementById('vistaResultadoA29').classList.remove('hidden');
+        renderRubricaDescriptiva('rubricaResultadoA29', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA29', previa.detalle);
+        ultimoResultadoA29 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA29').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar */ }
+    document.getElementById('avisoYaCompletadaA29').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA29').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA29').classList.add('hidden');
+    document.getElementById('vistaResultadoA29').classList.add('hidden');
+    document.getElementById('tiempoEstimadoAvisoA29').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA29} minutos</b> para completar esta actividad una vez que la inicies.`;
+    cargarRecursosActividad('A.2.9', 'recursosEstudianteA29');
+    renderRubricaDescriptiva('instrumentoPrevioA29', CRITERIOS_BASE_A29.map(c => ({ nombre:c.nombre, niveles:c.niveles, nivel:null })), puntajeMaxA29, null);
+  }
+  document.getElementById('btnBackFromActividadA29').addEventListener('click', () => {
+    clearInterval(timerIntervalA29);
+    document.getElementById('panelActividadA29').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+  document.getElementById('btnComenzarA29').addEventListener('click', () => {
+    reiniciarEstadoA29_();
+    document.getElementById('vistaInstrumentoA29').classList.add('hidden');
+    document.getElementById('vistaEjercicioA29').classList.remove('hidden');
+    document.getElementById('seccionFinalA29').classList.add('hidden');
+    pintarPasoA29_();
+    inicioTiempoA29 = Date.now();
+    clearInterval(timerIntervalA29);
+    timerIntervalA29 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA29) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0'), ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA29').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA29} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Estructura ----------
+  function irAPasoA29_(n){ if(n < 0 || n > limiteA29_()) return; pasoA29 = n; pintarPasoA29_(); }
+  function stepperA29_(){
+    const limite = limiteA29_();
+    const hecho = [SECCIONES_A29.every(s => okA29[s.id]), verifOkA29, reflexionOkA29];
+    return `<div class="stepper-a25" id="stepperA29">${ETAPAS_A29.map((e, i) => `
+      <button type="button" class="paso-a25 ${i === pasoA29 ? 'activo' : ''} ${hecho[i] ? 'hecho' : ''} ${i > limite ? 'bloqueado' : ''}" data-paso="${i}" ${i > limite ? 'disabled' : ''}>
+        <span class="num">${hecho[i] && i !== pasoA29 ? '<i class="fa-solid fa-check"></i>' : i + 1}</span><span class="txt">${e.corto}</span></button>`).join('')}</div>`;
+  }
+  function conectarStepperA29_(){ document.querySelectorAll('#stepperA29 .paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA29_(Number(b.dataset.paso)))); }
+  function refrescarStepperA29_(){
+    const st = document.getElementById('stepperA29'); if(!st) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = stepperA29_(); st.replaceWith(tmp.firstElementChild); conectarStepperA29_();
+  }
+  function pintarPasoA29_(){
+    document.getElementById('disenadorReporteA29').innerHTML = stepperA29_() + '<div id="cuerpoPasoA29"></div>';
+    document.getElementById('seccionFinalA29').classList.add('hidden');
+    conectarStepperA29_();
+    if(pasoA29 === 0) pintarFormatoA29_();
+    else if(pasoA29 === 1) pintarRevisarA29_();
+    else pintarReflexionA29_();
+  }
+
+  // ---------- Reporte (vista) ----------
+  function reporteHtmlA29_(activa){
+    const st = (id) => `style="${estiloSecA29_(id)}"`;
+    const cls = (id) => `sec-a29 ${activa === id ? 'sec-activa-a29' : ''}`;
+    return `<div class="hoja-a29">
+      <div class="${cls('encReporte')}" ${st('encReporte')}><div>Distribuidora Caribe SRL</div><div>Pedidos de noviembre</div></div>
+      <div class="${cls('encPagina')} fila-a29" ${st('encPagina')}><span>Pedido</span><span>Cliente</span><span>Fecha</span><span>Monto</span></div>
+      <div class="${cls('detalle')}" ${st('detalle')}>${PEDIDOS_A29.map(p => `<div class="fila-a29"><span>${p[0]}</span><span>${p[1]}</span><span>${p[2]}</span><span>${fmtMontoA29_(p[3])}</span></div>`).join('')}</div>
+      <div class="${cls('pieReporte')} fila-a29" ${st('pieReporte')}><span>Total de pedidos: ${PEDIDOS_A29.length}</span><span>Monto total: ${fmtMontoA29_(totalPedidosA29_())}</span></div>
+      <div class="${cls('piePagina')} fila-a29" ${st('piePagina')}><span>Página 1 de 1</span><span>Impreso: ${formatearFechaCortaSinHora_(new Date())}</span></div>
+    </div>`;
+  }
+
+  // ---------- Paso 1: dar formato ----------
+  function manualHtmlA29_(){
+    return `<div class="caso-a110-card" style="max-width:100%; margin:0 0 12px;">
+      <div class="caja-diseno-titulo"><i class="fa-solid fa-book-open"></i> Manual de estilo de DISTRIBUIDORA CARIBE SRL</div>
+      <div style="font-size:13.5px; margin-bottom:8px;">Todos los reportes de la empresa deben verse así:</div>
+      <div class="tabla-scroll-a29"><table class="tabla-manual-a29">
+        <thead><tr><th>Sección</th><th>Fuente</th><th>Tamaño</th><th>Color</th></tr></thead>
+        <tbody>${MANUAL_A29.map(m => `<tr><td><b>${nomSecA29_(m.sec)}</b></td><td>${m.fuente}</td><td>${m.tam}</td><td>${m.color}</td></tr>`).join('')}</tbody>
+      </table></div></div>`;
+  }
+  function chipsColorA29_(sec){
+    const c = cfgA29[sec];
+    return COLORES_A29.map(col => `<button type="button" class="chip-color-a29 ${c.color === col.id ? 'sel' : ''}" data-color="${col.id}" title="${col.nombre}"><i style="background:${col.hex}"></i><span>${col.nombre}</span></button>`).join('');
+  }
+  function pintarFormatoA29_(){
+    document.getElementById('cuerpoPasoA29').innerHTML = `
+      ${manualHtmlA29_()}
+      <div class="a25-layout">
+        <div class="a25-panel">
+          <div class="tabs-sec-a29" id="tabsSecA29"></div>
+          <div class="caja-diseno-a21" id="panelFormatoA29"></div>
+          <div id="feedbackA29"></div>
+          <div class="nav-pasos" style="margin-top:14px;">
+            <button type="button" class="btn-nav-paso btn-nav-paso-primario ${SECCIONES_A29.every(s => okA29[s.id]) ? '' : 'hidden'}" id="btnSigA29">Ver el reporte completo <i class="fa-solid fa-arrow-right"></i></button>
+          </div>
+        </div>
+        <div class="a25-preview" id="previewA29"></div>
+      </div>`;
+    pintarTabsA29_(); pintarPanelFormatoA29_(); pintarPreviewA29_();
+    document.getElementById('btnSigA29').addEventListener('click', () => irAPasoA29_(1));
+  }
+  function pintarTabsA29_(){
+    const cont = document.getElementById('tabsSecA29'); if(!cont) return;
+    cont.innerHTML = SECCIONES_A29.map(s => `<button type="button" class="tab-sec-a29 ${s.id === secActivaA29 ? 'activa' : ''} ${okA29[s.id] ? 'ok' : ''}" data-sec="${s.id}">${okA29[s.id] ? '<i class="fa-solid fa-circle-check"></i> ' : ''}${s.nombre}</button>`).join('');
+    cont.querySelectorAll('.tab-sec-a29').forEach(b => b.addEventListener('click', () => {
+      secActivaA29 = b.dataset.sec; document.getElementById('feedbackA29').innerHTML = '';
+      pintarTabsA29_(); pintarPanelFormatoA29_(); pintarPreviewA29_();
+    }));
+  }
+  function pintarPanelFormatoA29_(){
+    const sec = secActivaA29, c = cfgA29[sec];
+    document.getElementById('panelFormatoA29').innerHTML = `
+      <div class="caja-diseno-titulo"><i class="fa-solid fa-palette"></i> Formato de: ${nomSecA29_(sec)} ${okA29[sec] ? '<span class="ok-zona-a28"><i class="fa-solid fa-circle-check"></i> Correcto</span>' : ''}</div>
+      <label class="etiqueta-a25" style="margin-top:0;">Fuente</label>
+      <select class="input-generico" id="selFuenteA29"><option value="">Elige una fuente...</option>${ordenFuentesA29.map(f => `<option value="${f}" ${c.fuente === f ? 'selected' : ''}>${f}</option>`).join('')}</select>
+      <label class="etiqueta-a25">Tamaño (en puntos)</label>
+      <select class="input-generico" id="selTamA29"><option value="">Elige un tamaño...</option>${TAMANOS_A29.map(t => `<option value="${t}" ${Number(c.tam) === t ? 'selected' : ''}>${t} pt</option>`).join('')}</select>
+      <label class="etiqueta-a25">Color del texto</label>
+      <div class="chips-color-a29" id="chipsColorA29">${chipsColorA29_(sec)}</div>
+      <button type="button" class="btn btn-primary" id="btnConfirmarA29" style="width:auto; padding:10px 20px; margin-top:14px;"><i class="fa-solid fa-check"></i> Confirmar esta sección</button>`;
+    const cambio = () => {
+      okA29[sec] = false;
+      pintarTabsA29_(); pintarPreviewA29_(); refrescarStepperA29_();
+      const sg = document.getElementById('btnSigA29'); if(sg) sg.classList.add('hidden');
+      const ti = document.querySelector('#panelFormatoA29 .caja-diseno-titulo .ok-zona-a28'); if(ti) ti.remove();
+    };
+    document.getElementById('selFuenteA29').addEventListener('change', (e) => { c.fuente = e.target.value; cambio(); });
+    document.getElementById('selTamA29').addEventListener('change', (e) => { c.tam = e.target.value; cambio(); });
+    document.querySelectorAll('#chipsColorA29 .chip-color-a29').forEach(b => b.addEventListener('click', () => {
+      c.color = b.dataset.color;
+      document.querySelectorAll('#chipsColorA29 .chip-color-a29').forEach(x => x.classList.toggle('sel', x === b));
+      cambio();
+    }));
+    document.getElementById('btnConfirmarA29').addEventListener('click', confirmarSeccionA29_);
+  }
+  function pintarPreviewA29_(){
+    const cont = document.getElementById('previewA29'); if(!cont) return;
+    cont.innerHTML = `<div class="hoja-etiqueta-a25"><i class="fa-solid fa-file-lines"></i> Así se ve tu reporte (la sección que editas está resaltada)</div>${reporteHtmlA29_(secActivaA29)}`;
+  }
+  function confirmarSeccionA29_(){
+    const sec = secActivaA29, malas = validarSeccionA29_(sec), fb = document.getElementById('feedbackA29');
+    if(malas.length){
+      if(!okA29['_hecho_' + sec]) fallosA29[sec]++;
+      okA29[sec] = false;
+      fb.innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:8px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div><b>${nomSecA29_(sec)}:</b> revisa ${malas.join(', ')} en el Manual de estilo. Vuelve a leer la fila de esta sección y corrige solo eso.</div></div>`;
+      pintarTabsA29_(); refrescarStepperA29_(); return;
+    }
+    okA29[sec] = true; okA29['_hecho_' + sec] = true;
+    const pendiente = SECCIONES_A29.find(s => !okA29[s.id]);
+    if(pendiente){
+      fb.innerHTML = `<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡${nomSecA29_(sec)} correcto!</b> Sigue con: <b>${pendiente.nombre}</b>.</div></div>`;
+      secActivaA29 = pendiente.id;
+    } else {
+      fb.innerHTML = '<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Formato completo!</b> Las 5 secciones siguen el manual. Pasa a revisar el reporte.</div></div>';
+      document.getElementById('btnSigA29').classList.remove('hidden');
+    }
+    pintarTabsA29_(); pintarPanelFormatoA29_(); pintarPreviewA29_(); refrescarStepperA29_();
+  }
+
+  // ---------- Paso 2: revisar ----------
+  const PREGUNTAS_VERIF_A29 = () => {
+    const num = (n) => ({ id:String(n), texto:String(n) });
+    return [
+      { id:'fuentes', texto:'¿Cuántas fuentes (tipos de letra) distintas usa el reporte?', opciones:[1,2,3,4,5].map(num), correcta:'3' },
+      { id:'pequeno', texto:'¿Qué sección tiene el texto más pequeño?', opciones:opcionesVerifA29.secciones, correcta:'piePagina' },
+      { id:'color', texto:'¿Qué dos secciones usan el mismo color de texto?', opciones:opcionesVerifA29.pares, correcta:'encRep-pieRep' }
+    ];
+  };
+  function pintarRevisarA29_(){
+    const preg = PREGUNTAS_VERIF_A29();
+    document.getElementById('cuerpoPasoA29').innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 12px;"><button type="button" class="btn-nav-paso" id="btnAntA29"><i class="fa-solid fa-arrow-left"></i> Volver al formato</button></div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-eye"></i> <b>Este es tu reporte con el estilo de la empresa.</b> Obsérvalo sección por sección, compara las fuentes, los tamaños y los colores, y responde las 3 preguntas.</div>
+      ${reporteHtmlA29_(null)}
+      <div class="section-heading" style="font-size:18px; margin-top:18px;">Revisa lo que ves</div>
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        ${preg.map(q => `<div class="afirmacion-a24"><span><b>${q.texto}</b></span>
+          <select class="input-generico sel-verif-a29" data-q="${q.id}" ${verifOkA29 ? 'disabled' : ''}><option value="">Selecciona...</option>
+          ${q.opciones.map(o => `<option value="${o.id}" ${respVerifA29[q.id] === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}</select></div>`).join('')}
+        <div id="fbVerifA29"></div>
+      </div>
+      ${verifOkA29 ? '<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Revisión correcta!</b> Interpretaste bien el estilo del reporte.</div></div><div class="nav-pasos" style="margin-top:12px;"><button type="button" class="btn-nav-paso btn-nav-paso-primario" id="btnSigA29">Ir a la reflexión <i class="fa-solid fa-arrow-right"></i></button></div>' : '<button type="button" class="btn btn-primary" id="btnConfVerifA29" style="width:auto; padding:12px 28px;"><i class="fa-solid fa-check"></i> Confirmar</button>'}`;
+    document.getElementById('btnAntA29').addEventListener('click', () => irAPasoA29_(0));
+    document.querySelectorAll('.sel-verif-a29').forEach(s => s.addEventListener('change', () => { respVerifA29[s.dataset.q] = s.value; }));
+    const b = document.getElementById('btnConfVerifA29');
+    if(b) b.addEventListener('click', () => {
+      if(preg.some(q => !respVerifA29[q.id])){
+        document.getElementById('fbVerifA29').innerHTML = '<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Responde las 3 preguntas antes de confirmar.</div></div>';
+        return;
+      }
+      const malas = preg.filter(q => respVerifA29[q.id] !== q.correcta);
+      if(!malas.length){ verifOkA29 = true; pintarRevisarA29_(); refrescarStepperA29_(); return; }
+      fallosA29.revision++;
+      document.getElementById('fbVerifA29').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${malas.length} respuesta(s) no coinciden con el reporte. Vuelve a mirarlo con calma: revisa <b>${malas.map(q => '"' + q.texto + '"').join(', ')}</b>.</div></div>`;
+    });
+    const s = document.getElementById('btnSigA29'); if(s) s.addEventListener('click', () => irAPasoA29_(2));
+  }
+
+  // ---------- Paso 3: reflexión ----------
+  function pintarReflexionA29_(){
+    const r = reflexionA29;
+    document.getElementById('cuerpoPasoA29').innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 14px;"><button type="button" class="btn-nav-paso" id="btnAntA29"><i class="fa-solid fa-arrow-left"></i> Volver a la revisión</button></div>
+      <div class="section-heading" style="font-size:18px;">Reflexión</div>
+      ${reflexionOkA29 ? '<div class="empty-note"><i class="fa-solid fa-circle-check"></i> ¡Listo! Ya puedes finalizar la actividad.</div>' : ''}
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        <label style="display:block; font-size:13px; font-weight:700; margin-bottom:6px;">¿Por qué una empresa define un solo estilo de diseño (fuente, tamaño y color) para todos sus reportes, en lugar de dejar que cada persona les dé el formato a su gusto?</label>
+        <textarea class="input-generico celda-respuesta-a15" id="txtReflexionA29" rows="4" placeholder="Escribe tu reflexión con tus propias palabras..." ${reflexionOkA29 ? 'disabled' : ''}>${escA29_(r.texto)}</textarea>
+        <div id="feedbackReflexionA29"></div>
+      </div>
+      <label class="check-pareja-a25"><input type="checkbox" id="chkOralA29" ${r.oral ? 'checked' : ''} ${reflexionOkA29 ? 'disabled' : ''}> Comenté en voz alta con un compañero o con la maestra por qué es importante respetar el Manual de estilo.</label>
+      <div id="feedbackGeneralA29"></div>
+      ${reflexionOkA29 ? '' : '<button type="button" class="btn btn-primary" id="btnConfirmarReflexionA29" style="width:auto; padding:12px 28px; margin-top:12px;"><i class="fa-solid fa-check"></i> Confirmar</button>'}`;
+    document.getElementById('btnAntA29').addEventListener('click', () => irAPasoA29_(1));
+    document.getElementById('txtReflexionA29').addEventListener('input', (e) => { r.texto = e.target.value; });
+    document.getElementById('chkOralA29').addEventListener('change', (e) => { r.oral = e.target.checked; });
+    const btn = document.getElementById('btnConfirmarReflexionA29');
+    if(btn) btn.addEventListener('click', verificarReflexionA29_);
+    document.getElementById('seccionFinalA29').classList.toggle('hidden', !reflexionOkA29);
+  }
+  function verificarReflexionA29_(){
+    const r = reflexionA29;
+    const caja = (m) => `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${m}</div></div>`;
+    const texto = normalizarTextoA15_(r.texto || '');
+    const claves = ['estilo', 'imagen', 'identidad', 'uniform', 'mismo', 'igual', 'consisten', 'profesional', 'reconoc', 'institu', 'formato', 'orden', 'coheren', 'marca'].filter(k => texto.includes(k)).length;
+    if(!(contarPalabrasRealesA15_(r.texto || '') >= 15 && claves >= 2)){
+      if(!okA29._hechoReflexion) fallosA29.reflexion++;
+      document.getElementById('feedbackReflexionA29').innerHTML = caja('Tu reflexión necesita más detalle: usa al menos 15 palabras y explica qué gana la empresa con un <b>mismo estilo</b> en todos sus reportes (por ejemplo, su <b>imagen</b>, el <b>orden</b> o que se reconozcan como suyos).');
+      return;
+    }
+    document.getElementById('feedbackReflexionA29').innerHTML = '';
+    if(!r.oral){
+      document.getElementById('feedbackGeneralA29').innerHTML = caja('Marca la casilla: antes de finalizar, comenta en voz alta por qué es importante respetar el manual de estilo.');
+      return;
+    }
+    reflexionOkA29 = true; okA29._hechoReflexion = true;
+    pintarReflexionA29_();
+    refrescarStepperA29_();
+  }
+
+  // ---------- Finalizar ----------
+  document.getElementById('btnFinalizarA29').addEventListener('click', async () => {
+    clearInterval(timerIntervalA29);
+    const minutos = (Date.now() - inicioTiempoA29) / 60000;
+    const nivel = (f) => f <= 0 ? 'excelente' : (f === 1 ? 'bueno' : (f === 2 ? 'proceso' : 'insuficiente'));
+    const C = CRITERIOS_BASE_A29;
+    const crit = (i, n) => ({ nombre:C[i].nombre, niveles:C[i].niveles, nivel:n });
+    const criterios = [
+      crit(0, 'excelente'), crit(1, nivel(fallosA29.encReporte)), crit(2, nivel(fallosA29.encPagina)), crit(3, nivel(fallosA29.detalle)),
+      crit(4, nivel(fallosA29.piePagina)), crit(5, nivel(fallosA29.pieReporte)), crit(6, nivel(fallosA29.revision)), crit(7, nivel(fallosA29.reflexion)),
+      crit(8, minutos <= tiempoEstimadoA29 ? 'excelente' : (minutos <= tiempoEstimadoA29 * 1.5 ? 'bueno' : (minutos <= tiempoEstimadoA29 * 2 ? 'proceso' : 'insuficiente'))),
+      crit(9, 'excelente')
+    ];
+    const peso = puntajeMaxA29 / criterios.length, pn = { excelente:1, bueno:0.75, proceso:0.4, insuficiente:0 };
+    let nota = 0; criterios.forEach(c => { nota += peso * pn[c.nivel]; });
+    nota = Math.round(nota * 100) / 100;
+
+    document.getElementById('vistaEjercicioA29').classList.add('hidden');
+    document.getElementById('vistaResultadoA29').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA29').classList.add('hidden');
+    renderRubricaDescriptiva('rubricaResultadoA29', criterios, puntajeMaxA29, nota);
+    ultimoResultadoA29 = { criterios, nota, puntajeMaximo: puntajeMaxA29 };
+    const prop = puntajeMaxA29 > 0 ? nota / puntajeMaxA29 : 0;
+    mostrarLogro(prop >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', prop >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(prop >= 0.8) dispararConfeti();
+
+    const it = (pregunta, tuRespuesta, correcta) => ({ pregunta, tuRespuesta, correcta });
+    const descCfg = (id) => { const c = cfgA29[id], col = colorPorIdA29_(c.color); return `${c.fuente || '—'}, ${c.tam || '—'} pt, ${col ? col.nombre : '—'}`; };
+    const preg = PREGUNTAS_VERIF_A29();
+    const detalle = [
+      { titulo:'Formato aplicado según el Manual de estilo', items: SECCIONES_A29.map(s => it(s.nombre, descCfg(s.id), fallosA29[s.id] === 0)) },
+      { titulo:'Revisión y reflexión', items:[
+        ...preg.map(q => it(q.texto, (q.opciones.find(o => o.id === respVerifA29[q.id]) || {}).texto || 'Sin responder', respVerifA29[q.id] === q.correcta)),
+        it('Reflexión sobre el estilo institucional', reflexionA29.texto || 'Sin responder', fallosA29.reflexion === 0)
+      ] }
+    ];
+    ultimoResultadoA29.detalle = detalle;
+    renderDesgloseColoreado('resultadoDesgloseA29', detalle);
+    try{
+      await apiPost({ action:'guardarCalificacion', usuario: currentUser.usuario, codigo:'A.2.9', ra:'RA2', ec: EC_A29, nota, puntajeMaximo: puntajeMaxA29, criterios, detalle });
+    }catch(err){ console.error('No se pudo guardar la calificación', err); }
+  });
+  document.getElementById('btnDescargarPdfA29').addEventListener('click', () => {
+    if(!ultimoResultadoA29) return;
+    generarPdfResultado('A.2.9', ultimoResultadoA29.criterios, ultimoResultadoA29.nota, ultimoResultadoA29.puntajeMaximo, EC_A29, 'RA2', ultimoResultadoA29.detalle);
+  });
+  document.getElementById('btnVolverMisActA29').addEventListener('click', () => {
+    document.getElementById('panelActividadA29').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.9', abrirActividadA29);
