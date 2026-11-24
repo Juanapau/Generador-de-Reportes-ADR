@@ -1808,3 +1808,26 @@
 .bloque-zona-a28:last-child{border-bottom:0;}
 .ok-zona-a28{font-size:12.5px;color:#2e8b57;font-weight:700;}
 .estado-zona-a28{min-height:0;margin-top:4px;}
+
+/* ===== A.2.9 — estilo de diseño institucional ===== */
+.tabla-scroll-a29{overflow-x:auto;}
+.tabla-manual-a29{width:100%;border-collapse:collapse;font-size:13px;}
+.tabla-manual-a29 th,.tabla-manual-a29 td{padding:6px 9px;border:1px solid var(--dark-border);text-align:left;}
+.tabla-manual-a29 th{background:rgba(255,255,255,.06);font-size:12px;}
+body.light .tabla-manual-a29 th,body.light .tabla-manual-a29 td{border-color:#dde5f6;}
+body.light .tabla-manual-a29 th{background:#eef2fb;}
+.tabs-sec-a29{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 10px;}
+.tab-sec-a29{padding:7px 11px;border-radius:8px;border:1px solid var(--dark-border);background:transparent;color:inherit;font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;}
+.tab-sec-a29.activa{border-color:var(--dark-blue-accent);background:rgba(90,150,240,.16);}
+.tab-sec-a29.ok{color:#2e8b57;}
+.chips-color-a29{display:flex;flex-wrap:wrap;gap:6px;}
+.chip-color-a29{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;border:2px solid var(--dark-border);background:transparent;color:inherit;font:inherit;font-size:12.5px;cursor:pointer;}
+.chip-color-a29 i{display:inline-block;width:14px;height:14px;border-radius:50%;border:1px solid rgba(127,127,127,.6);}
+.chip-color-a29.sel{border-color:var(--dark-blue-accent);background:rgba(90,150,240,.16);font-weight:800;}
+.hoja-a29{background:#fff;color:#111;border:2px solid #12294a;border-radius:6px;max-width:760px;margin:0 auto 6px;overflow:hidden;font-size:10pt;}
+.hoja-a29 .sec-a29{padding:7px 14px;border-bottom:1px solid #e2e8f0;}
+.hoja-a29 .fila-a29,.hoja-a29 .sec-a29.fila-a29{display:flex;justify-content:space-between;gap:10px;}
+.hoja-a29 .sec-a29 .fila-a29{padding:2px 0;}
+.hoja-a29 .fila-a29 span{flex:1;}
+.hoja-a29 .fila-a29 span:last-child{text-align:right;}
+.hoja-a29 .sec-activa-a29{outline:2px dashed #e08a00;outline-offset:-3px;background:#fff8e6;}
