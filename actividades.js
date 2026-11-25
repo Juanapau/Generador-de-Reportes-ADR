@@ -9990,3 +9990,406 @@
   });
 
   registrarActividadInteractiva('A.2.9', abrirActividadA29);
+
+// ============================================================================
+// A.2.10 — AJUSTA EL ANCHO DE COLUMNAS Y ALINEA LOS DATOS DE UN REPORTE
+// ============================================================================
+  // Individual. Caso: "Lista de artículos en existencia" de la Ferretería El Constructor (datos
+  // incluidos aquí, no requiere hojas nuevas). El estudiante ajusta el ancho de 6 columnas y
+  // alinea títulos y datos según buenas prácticas, y verifica el porqué de esas prácticas.
+  // Se apoya en "Ancho_y_Alineacion_de_Columnas_A210.pdf". Instrumento: Escala de valoración.
+
+  const EC_A210 = 'EC6.2.2';
+  const PX_CM_A210 = 36;
+  const ANCHOS_A210 = [1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 7, 8];
+  const TOLERANCIA_A210 = 1.0;          // cm de holgura permitidos por encima de lo necesario
+  const ANCHO_INICIAL_A210 = 3;
+  const COLUMNAS_A210 = [
+    { id:'codigo', nombre:'Código', tipo:'texto', permit:['izquierda', 'centro'] },
+    { id:'articulo', nombre:'Artículo', tipo:'texto', permit:['izquierda'] },
+    { id:'unidad', nombre:'Unidad', tipo:'texto', permit:['izquierda', 'centro'] },
+    { id:'cantidad', nombre:'Cantidad', tipo:'numero', permit:['derecha'] },
+    { id:'precio', nombre:'Precio', tipo:'numero', permit:['derecha'] },
+    { id:'total', nombre:'Total', tipo:'numero', permit:['derecha'] }
+  ];
+  const ARTICULOS_A210 = [
+    ['FER-001', 'Cemento gris 42.5 kg', 'Saco', 120, 685],
+    ['FER-014', 'Varilla 3/8" x 20 pies', 'Unidad', 340, 410.5],
+    ['FER-022', 'Pintura blanca 1 galón', 'Galón', 48, 1250],
+    ['FER-031', 'Block de 6 pulgadas', 'Unidad', 1500, 38.75],
+    ['FER-040', 'Arena lavada', 'Metro', 25, 1850],
+    ['FER-052', 'Clavos de 2 pulgadas', 'Libra', 600, 42],
+    ['FER-063', 'Cable eléctrico #12', 'Rollo', 15, 3200],
+    ['FER-075', 'Tubo PVC 1/2 pulgada', 'Unidad', 210, 95.5]
+  ];
+  const fmtMontoA210_ = (v) => 'RD$' + (Number(v) || 0).toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
+  const celdasA210_ = (f) => [f[0], f[1], f[2], f[3].toLocaleString('en-US'), fmtMontoA210_(f[4]), fmtMontoA210_(f[3] * f[4])];
+  const escA210_ = (t) => String(t === null || t === undefined ? '' : t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const ETIQ_ALIN_A210 = { izquierda:'Izquierda', centro:'Centro', derecha:'Derecha' };
+  const ALIN_CSS_A210 = { izquierda:'left', centro:'center', derecha:'right' };
+
+  // Ancho que necesita cada columna (el dato más largo, título incluido), medido con la misma fuente de la vista.
+  let medidasA210 = null, paginaCmA210 = 18;
+  function calcularMedidasA210_(){
+    if(medidasA210) return;
+    const ctx = document.createElement('canvas').getContext('2d');
+    const filas = ARTICULOS_A210.map(celdasA210_);
+    medidasA210 = {};
+    let sumaMin = 0;
+    COLUMNAS_A210.forEach((col, i) => {
+      ctx.font = 'bold 12px Arial';
+      let px = ctx.measureText(col.nombre).width;
+      ctx.font = '12px Arial';
+      filas.forEach(f => { px = Math.max(px, ctx.measureText(f[i]).width); });
+      const necesario = (px + 14) / PX_CM_A210;          // 14 px = relleno de la celda
+      const minimo = ANCHOS_A210.find(a => a >= necesario) || ANCHOS_A210[ANCHOS_A210.length - 1];
+      medidasA210[col.id] = { necesario, minimo, maximo: necesario + TOLERANCIA_A210 };
+      sumaMin += minimo;
+    });
+    paginaCmA210 = Math.ceil((sumaMin + 2) * 2) / 2;      // ancho útil de la hoja
+  }
+
+  const CRITERIOS_BASE_A210 = [
+    { key:'participacion', nombre:'1. Participación activa', descripcion:'Participa en la actividad desde el inicio y trabaja con orden.' },
+    { key:'anchoTexto', nombre:'2. Ancho de las columnas de texto', descripcion:'Ajusta Código, Artículo y Unidad para que se lean completos sin dejar espacio de más.' },
+    { key:'anchoNum', nombre:'3. Ancho de las columnas numéricas', descripcion:'Ajusta Cantidad, Precio y Total para que se lean completas sin dejar espacio de más.' },
+    { key:'anchoTotal', nombre:'4. Ancho total dentro de la hoja', descripcion:'Logra que la suma de los anchos quepa en el ancho útil de la hoja.' },
+    { key:'alinTexto', nombre:'5. Alineación de los textos', descripcion:'Alinea los datos de texto como lo indican las buenas prácticas de presentación.' },
+    { key:'alinNum', nombre:'6. Alineación de las cifras', descripcion:'Alinea las cifras de modo que puedan compararse de un vistazo.' },
+    { key:'alinTitulos', nombre:'7. Alineación de los títulos', descripcion:'Alinea el título de cada columna igual que los datos que tiene debajo.' },
+    { key:'verif', nombre:'8. Verificación de buenas prácticas', descripcion:'Explica correctamente por qué se ajusta el ancho y se alinea de esa forma.' },
+    { key:'tiempo', nombre:'9. Cumplimiento del tiempo', descripcion:'Completa la actividad dentro del tiempo estimado.' },
+    { key:'prolijidad', nombre:'10. Orden y prolijidad', descripcion:'Desarrolla la actividad de forma ordenada y completa.' }
+  ];
+
+  let anchosA210 = {}, alinTitA210 = {}, alinDatA210 = {}, okA210 = {}, fallosA210 = {}, pasoA210 = 0;
+  let anchosOkA210 = false, alinOkA210 = false, verifOkA210 = false, colsMalasA210 = [];
+  let respVerifA210 = {}, opcionesVerifA210 = null;
+  let ultimoResultadoA210 = null, puntajeMaxA210 = 0, tiempoEstimadoA210 = 10, inicioTiempoA210 = null, timerIntervalA210 = null;
+
+  function reiniciarEstadoA210_(){
+    calcularMedidasA210_();
+    anchosA210 = {}; alinTitA210 = {}; alinDatA210 = {};
+    COLUMNAS_A210.forEach(c => { anchosA210[c.id] = ANCHO_INICIAL_A210; alinTitA210[c.id] = 'centro'; alinDatA210[c.id] = 'centro'; });
+    okA210 = {};
+    fallosA210 = { anchoTexto:0, anchoNum:0, anchoTotal:0, alinTexto:0, alinNum:0, alinTitulos:0, verif:0 };
+    pasoA210 = 0; anchosOkA210 = false; alinOkA210 = false; verifOkA210 = false; colsMalasA210 = []; respVerifA210 = {};
+    opcionesVerifA210 = {
+      q1: barajar([
+        { id:'a', texto:'Para que las unidades, decenas y centenas queden en la misma posición y las cifras se puedan comparar de un vistazo' },
+        { id:'b', texto:'Porque la derecha es el lado donde empiezan los números' },
+        { id:'c', texto:'Para que las cifras ocupen menos espacio en la hoja' },
+        { id:'d', texto:'Porque el programa generador lo exige' }
+      ]),
+      q2: barajar([
+        { id:'a', texto:'El dato se corta y el lector no puede ver su valor completo' },
+        { id:'b', texto:'La columna se oculta del reporte' },
+        { id:'c', texto:'El reporte se imprime en dos hojas' },
+        { id:'d', texto:'No pasa nada: el programa la ajusta solo' }
+      ]),
+      q3: barajar([
+        { id:'a', texto:'Para que se vea claramente a qué columna pertenece cada dato' },
+        { id:'b', texto:'Porque, si no, el reporte no se puede ejecutar' },
+        { id:'c', texto:'Para que el título ocupe menos espacio' },
+        { id:'d', texto:'Porque el título también es una cifra' }
+      ])
+    };
+  }
+  const sumaAnchosA210_ = () => COLUMNAS_A210.reduce((s, c) => s + Number(anchosA210[c.id]), 0);
+  const cmTxtA210_ = (v) => String(v).replace('.', ',');
+
+  // ---------- Validaciones ----------
+  function validarAnchosA210_(){
+    const msgs = [], malas = [], cat = { anchoTexto:[], anchoNum:[], anchoTotal:[] };
+    COLUMNAS_A210.forEach(col => {
+      const m = medidasA210[col.id], w = Number(anchosA210[col.id]), k = col.tipo === 'texto' ? 'anchoTexto' : 'anchoNum';
+      if(w < m.necesario){ cat[k].push(col.id); malas.push(col.id); msgs.push(`<b>${col.nombre}</b> corta su contenido: necesita más ancho.`); }
+      else if(w > m.maximo){ cat[k].push(col.id); malas.push(col.id); msgs.push(`<b>${col.nombre}</b> deja demasiado espacio vacío: puedes reducirla.`); }
+    });
+    if(sumaAnchosA210_() > paginaCmA210){ cat.anchoTotal.push('total'); msgs.push(`El reporte mide <b>${cmTxtA210_(sumaAnchosA210_())} cm</b> y la hoja solo tiene <b>${cmTxtA210_(paginaCmA210)} cm</b> útiles: se pasa del margen.`); }
+    return { msgs, malas, cat };
+  }
+  function validarAlinA210_(){
+    const msgs = [], malas = [], cat = { alinTexto:[], alinNum:[], alinTitulos:[] };
+    COLUMNAS_A210.forEach(col => {
+      if(!col.permit.includes(alinDatA210[col.id])){
+        const k = col.tipo === 'texto' ? 'alinTexto' : 'alinNum';
+        cat[k].push(col.id); malas.push(col.id);
+        msgs.push(col.tipo === 'texto' ? `Los datos de <b>${col.nombre}</b> son texto: revisa su alineación.` : `<b>${col.nombre}</b> contiene cifras: revisa su alineación para que puedan compararse.`);
+      }
+      if(alinTitA210[col.id] !== alinDatA210[col.id]){ cat.alinTitulos.push(col.id); malas.push(col.id); msgs.push(`El título de <b>${col.nombre}</b> no está alineado como sus datos.`); }
+    });
+    return { msgs, malas, cat };
+  }
+  function limiteA210_(){ if(!anchosOkA210) return 0; if(!alinOkA210) return 1; return 2; }
+
+  // ---------- Apertura ----------
+  async function abrirActividadA210(puntajeMaximo, tiempoEstimado, enunciado){
+    puntajeMaxA210 = puntajeMaximo;
+    tiempoEstimadoA210 = tiempoEstimado || 10;
+    document.getElementById('enunciadoActivoA210').innerHTML = limpiarColoresCasiBlancos(enunciado) || '';
+    document.getElementById('panelMisActividades').classList.add('hidden');
+    document.getElementById('panelActividadA210').classList.remove('hidden');
+    try{
+      const data = await apiGet({ action:'listarCalificaciones', usuario: currentUser.usuario });
+      const previa = data.success ? data.calificaciones.find(c => c.codigo === 'A.2.10') : null;
+      if(previa){
+        document.getElementById('vistaInstrumentoA210').classList.add('hidden');
+        document.getElementById('vistaEjercicioA210').classList.add('hidden');
+        document.getElementById('vistaResultadoA210').classList.remove('hidden');
+        renderRubrica('rubricaResultadoA210', previa.criterios, previa.puntajeMaximo, previa.nota);
+        if(previa.detalle && previa.detalle.length) renderDesgloseColoreado('resultadoDesgloseA210', previa.detalle);
+        ultimoResultadoA210 = { criterios: previa.criterios, nota: previa.nota, puntajeMaximo: previa.puntajeMaximo, detalle: previa.detalle };
+        document.getElementById('avisoYaCompletadaA210').classList.remove('hidden');
+        return;
+      }
+    }catch(err){ /* si falla la verificación, se permite continuar */ }
+    document.getElementById('avisoYaCompletadaA210').classList.add('hidden');
+    document.getElementById('vistaInstrumentoA210').classList.remove('hidden');
+    document.getElementById('vistaEjercicioA210').classList.add('hidden');
+    document.getElementById('vistaResultadoA210').classList.add('hidden');
+    document.getElementById('tiempoEstimadoAvisoA210').innerHTML =
+      `<i class="fa-solid fa-hourglass-half"></i> Tendrás aproximadamente <b>${tiempoEstimadoA210} minutos</b> para completar esta actividad una vez que la inicies.`;
+    cargarRecursosActividad('A.2.10', 'recursosEstudianteA210');
+    renderRubrica('instrumentoPrevioA210', CRITERIOS_BASE_A210.map(c => ({ nombre:c.nombre, descripcion:c.descripcion, nivel:null })), puntajeMaxA210, null);
+  }
+  document.getElementById('btnBackFromActividadA210').addEventListener('click', () => {
+    clearInterval(timerIntervalA210);
+    document.getElementById('panelActividadA210').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+  });
+  document.getElementById('btnComenzarA210').addEventListener('click', () => {
+    reiniciarEstadoA210_();
+    document.getElementById('vistaInstrumentoA210').classList.add('hidden');
+    document.getElementById('vistaEjercicioA210').classList.remove('hidden');
+    document.getElementById('seccionFinalA210').classList.add('hidden');
+    pintarPasoA210_();
+    inicioTiempoA210 = Date.now();
+    clearInterval(timerIntervalA210);
+    timerIntervalA210 = setInterval(() => {
+      const seg = Math.floor((Date.now() - inicioTiempoA210) / 1000);
+      const mm = String(Math.floor(seg/60)).padStart(2,'0'), ss = String(seg%60).padStart(2,'0');
+      document.getElementById('timerA210').innerHTML = `<i class="fa-solid fa-stopwatch"></i> ${mm}:${ss} <span style="opacity:.7; font-weight:400;">(tienes ${tiempoEstimadoA210} min aprox.)</span>`;
+    }, 1000);
+  });
+
+  // ---------- Estructura ----------
+  const ETAPAS_A210 = ['Ajustar ancho', 'Alinear', 'Verificar'];
+  function irAPasoA210_(n){ if(n < 0 || n > limiteA210_()) return; pasoA210 = n; pintarPasoA210_(); }
+  function stepperA210_(){
+    const limite = limiteA210_(), hecho = [anchosOkA210, alinOkA210, verifOkA210];
+    return `<div class="stepper-a25" id="stepperA210">${ETAPAS_A210.map((e, i) => `
+      <button type="button" class="paso-a25 ${i === pasoA210 ? 'activo' : ''} ${hecho[i] ? 'hecho' : ''} ${i > limite ? 'bloqueado' : ''}" data-paso="${i}" ${i > limite ? 'disabled' : ''}>
+        <span class="num">${hecho[i] && i !== pasoA210 ? '<i class="fa-solid fa-check"></i>' : i + 1}</span><span class="txt">${e}</span></button>`).join('')}</div>`;
+  }
+  function conectarStepperA210_(){ document.querySelectorAll('#stepperA210 .paso-a25').forEach(b => b.addEventListener('click', () => irAPasoA210_(Number(b.dataset.paso)))); }
+  function refrescarStepperA210_(){
+    const st = document.getElementById('stepperA210'); if(!st) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = stepperA210_(); st.replaceWith(tmp.firstElementChild); conectarStepperA210_();
+  }
+  function pintarPasoA210_(){
+    document.getElementById('disenadorReporteA210').innerHTML = stepperA210_() + '<div id="cuerpoPasoA210"></div>';
+    document.getElementById('seccionFinalA210').classList.add('hidden');
+    conectarStepperA210_();
+    if(pasoA210 === 0) pintarAnchosA210_();
+    else if(pasoA210 === 1) pintarAlinA210_();
+    else pintarVerifA210_();
+  }
+
+  // ---------- Reporte (vista) ----------
+  function reporteHtmlA210_(){
+    const filas = ARTICULOS_A210.map(celdasA210_);
+    const wPag = paginaCmA210 * PX_CM_A210, wTab = sumaAnchosA210_() * PX_CM_A210;
+    const celda = (col, txt, esTit) => {
+      const al = esTit ? alinTitA210[col.id] : alinDatA210[col.id];
+      const mala = colsMalasA210.includes(col.id) ? ' col-mala-a210' : '';
+      return `<div class="celda-a210${esTit ? ' tit-a210' : ''}${mala}" style="width:${anchosA210[col.id] * PX_CM_A210}px; text-align:${ALIN_CSS_A210[al]};">${escA210_(txt)}</div>`;
+    };
+    return `<div class="etiqueta-ancho-a210"><span>Ferretería El Constructor — Lista de artículos en existencia</span><span class="${sumaAnchosA210_() > paginaCmA210 ? 'excede' : ''}">Ancho usado: <b>${cmTxtA210_(sumaAnchosA210_())} cm</b> de <b>${cmTxtA210_(paginaCmA210)} cm</b> útiles</span></div>
+      <div class="scroll-a210"><div class="hoja-a210" style="width:${Math.max(wPag, wTab) + 2}px;">
+        <div class="margen-a210" style="left:${wPag}px;" title="Límite de la hoja"></div>
+        <div class="fila-a210 fila-tit-a210">${COLUMNAS_A210.map(c => celda(c, c.nombre, true)).join('')}</div>
+        ${filas.map(f => `<div class="fila-a210">${COLUMNAS_A210.map((c, i) => celda(c, f[i], false)).join('')}</div>`).join('')}
+      </div></div>
+      <div style="font-size:11.5px; opacity:.7; margin-top:4px;"><i class="fa-solid fa-ruler-horizontal"></i> La línea roja punteada marca el borde de la hoja.</div>`;
+  }
+  function repintarReporteA210_(){ const c = document.getElementById('reporteA210'); if(c) c.innerHTML = reporteHtmlA210_(); }
+
+  // ---------- Paso 1: ancho ----------
+  function pintarAnchosA210_(){
+    document.getElementById('cuerpoPasoA210').innerHTML = `
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-ruler-horizontal"></i> El reporte llegó con las 6 columnas del mismo ancho. <b>Ajusta el ancho de cada una</b> para que su contenido se lea completo, sin desperdiciar espacio y sin pasarte del borde de la hoja.</div>
+      <div id="reporteA210" class="reporte-a210"></div>
+      <div class="caja-diseno-a21" style="margin-top:14px;">
+        <div class="caja-diseno-titulo"><i class="fa-solid fa-arrows-left-right"></i> Ancho de cada columna</div>
+        <div class="grid-controles-a210">${COLUMNAS_A210.map(c => `<div class="ctrl-a210"><label for="selAncho-${c.id}">${c.nombre}</label>
+          <select class="input-generico sel-ancho-a210" id="selAncho-${c.id}" data-col="${c.id}" ${anchosOkA210 ? 'disabled' : ''}>${ANCHOS_A210.map(a => `<option value="${a}" ${Number(anchosA210[c.id]) === a ? 'selected' : ''}>${cmTxtA210_(a)} cm</option>`).join('')}</select></div>`).join('')}
+        </div>
+      </div>
+      <div id="feedbackA210"></div>
+      <div class="nav-pasos" style="margin-top:14px;">
+        ${anchosOkA210 ? '' : '<button type="button" class="btn btn-primary" id="btnConfirmarA210" style="width:auto; padding:11px 22px;"><i class="fa-solid fa-check"></i> Confirmar anchos</button>'}
+        <button type="button" class="btn-nav-paso btn-nav-paso-primario ${anchosOkA210 ? '' : 'hidden'}" id="btnSigA210">Ir a alinear <i class="fa-solid fa-arrow-right"></i></button>
+      </div>`;
+    repintarReporteA210_();
+    document.querySelectorAll('.sel-ancho-a210').forEach(s => s.addEventListener('change', () => {
+      anchosA210[s.dataset.col] = Number(s.value); colsMalasA210 = []; repintarReporteA210_();
+    }));
+    const b = document.getElementById('btnConfirmarA210'); if(b) b.addEventListener('click', confirmarAnchosA210_);
+    document.getElementById('btnSigA210').addEventListener('click', () => irAPasoA210_(1));
+  }
+  function confirmarAnchosA210_(){
+    const v = validarAnchosA210_();
+    Object.keys(v.cat).forEach(k => {
+      if(v.cat[k].length){ if(!okA210['_hecho_' + k]) fallosA210[k]++; }
+      else okA210['_hecho_' + k] = true;
+    });
+    colsMalasA210 = v.malas; repintarReporteA210_();
+    const fb = document.getElementById('feedbackA210');
+    if(v.msgs.length){
+      fb.innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:8px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${v.msgs.join('<br>')}</div></div>`;
+      return;
+    }
+    anchosOkA210 = true;
+    fb.innerHTML = '<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Anchos correctos!</b> Todo se lee completo y cabe en la hoja. Pasa a alinear.</div></div>';
+    document.querySelectorAll('.sel-ancho-a210').forEach(s => { s.disabled = true; });
+    const bc = document.getElementById('btnConfirmarA210'); if(bc) bc.remove();
+    document.getElementById('btnSigA210').classList.remove('hidden');
+    refrescarStepperA210_();
+  }
+
+  // ---------- Paso 2: alinear ----------
+  function pintarAlinA210_(){
+    const opts = (sel) => Object.keys(ETIQ_ALIN_A210).map(k => `<option value="${k}" ${sel === k ? 'selected' : ''}>${ETIQ_ALIN_A210[k]}</option>`).join('');
+    document.getElementById('cuerpoPasoA210').innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 12px;"><button type="button" class="btn-nav-paso" id="btnAntA210"><i class="fa-solid fa-arrow-left"></i> Volver a los anchos</button></div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-align-left"></i> Ahora decide cómo se <b>alinea</b> el <b>título</b> y los <b>datos</b> de cada columna. Piensa en el tipo de dato que contiene cada una.</div>
+      <div id="reporteA210" class="reporte-a210"></div>
+      <div class="caja-diseno-a21" style="margin-top:14px;">
+        <div class="caja-diseno-titulo"><i class="fa-solid fa-align-center"></i> Alineación de cada columna</div>
+        <div class="tabla-alin-a210">
+          <div class="cab-a210"><span>Columna</span><span>Título</span><span>Datos</span></div>
+          ${COLUMNAS_A210.map(c => `<div class="fila-alin-a210"><b>${c.nombre}</b>
+            <select class="input-generico sel-alin-a210" data-col="${c.id}" data-que="tit" ${alinOkA210 ? 'disabled' : ''}>${opts(alinTitA210[c.id])}</select>
+            <select class="input-generico sel-alin-a210" data-col="${c.id}" data-que="dat" ${alinOkA210 ? 'disabled' : ''}>${opts(alinDatA210[c.id])}</select></div>`).join('')}
+        </div>
+      </div>
+      <div id="feedbackA210"></div>
+      <div class="nav-pasos" style="margin-top:14px;">
+        ${alinOkA210 ? '' : '<button type="button" class="btn btn-primary" id="btnConfirmarA210" style="width:auto; padding:11px 22px;"><i class="fa-solid fa-check"></i> Confirmar alineación</button>'}
+        <button type="button" class="btn-nav-paso btn-nav-paso-primario ${alinOkA210 ? '' : 'hidden'}" id="btnSigA210">Ir a verificar <i class="fa-solid fa-arrow-right"></i></button>
+      </div>`;
+    repintarReporteA210_();
+    document.getElementById('btnAntA210').addEventListener('click', () => irAPasoA210_(0));
+    document.querySelectorAll('.sel-alin-a210').forEach(s => s.addEventListener('change', () => {
+      (s.dataset.que === 'tit' ? alinTitA210 : alinDatA210)[s.dataset.col] = s.value; colsMalasA210 = []; repintarReporteA210_();
+    }));
+    const b = document.getElementById('btnConfirmarA210'); if(b) b.addEventListener('click', confirmarAlinA210_);
+    document.getElementById('btnSigA210').addEventListener('click', () => irAPasoA210_(2));
+  }
+  function confirmarAlinA210_(){
+    const v = validarAlinA210_();
+    Object.keys(v.cat).forEach(k => {
+      if(v.cat[k].length){ if(!okA210['_hecho_' + k]) fallosA210[k]++; }
+      else okA210['_hecho_' + k] = true;
+    });
+    colsMalasA210 = v.malas; repintarReporteA210_();
+    const fb = document.getElementById('feedbackA210');
+    if(v.msgs.length){
+      fb.innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:8px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${[...new Set(v.msgs)].join('<br>')}</div></div>`;
+      return;
+    }
+    alinOkA210 = true;
+    fb.innerHTML = '<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Alineación correcta!</b> Pasa a verificar.</div></div>';
+    document.querySelectorAll('.sel-alin-a210').forEach(s => { s.disabled = true; });
+    const bc = document.getElementById('btnConfirmarA210'); if(bc) bc.remove();
+    document.getElementById('btnSigA210').classList.remove('hidden');
+    refrescarStepperA210_();
+  }
+
+  // ---------- Paso 3: verificar ----------
+  const PREGUNTAS_VERIF_A210 = () => [
+    { id:'q1', texto:'¿Por qué las cifras (cantidades y montos) se alinean a la derecha?', opciones:opcionesVerifA210.q1, correcta:'a' },
+    { id:'q2', texto:'¿Qué problema produce una columna más estrecha de lo que necesita su contenido?', opciones:opcionesVerifA210.q2, correcta:'a' },
+    { id:'q3', texto:'¿Por qué el título de cada columna se alinea igual que sus datos?', opciones:opcionesVerifA210.q3, correcta:'a' }
+  ];
+  function pintarVerifA210_(){
+    const preg = PREGUNTAS_VERIF_A210();
+    document.getElementById('cuerpoPasoA210').innerHTML = `
+      <div class="nav-pasos" style="margin:0 0 12px;"><button type="button" class="btn-nav-paso" id="btnAntA210"><i class="fa-solid fa-arrow-left"></i> Volver a alinear</button></div>
+      <div class="empty-note" style="margin-top:0;"><i class="fa-solid fa-eye"></i> <b>Este es tu reporte terminado.</b> Obsérvalo y responde por qué las buenas prácticas de presentación son como son.</div>
+      <div id="reporteA210" class="reporte-a210"></div>
+      <div class="section-heading" style="font-size:18px; margin-top:18px;">Verifica lo que aprendiste</div>
+      <div class="caso-a110-card" style="max-width:100%; margin-bottom:16px;">
+        ${preg.map(q => `<div class="afirmacion-a24" style="align-items:flex-start;"><span><b>${q.texto}</b></span>
+          <select class="input-generico sel-verif-a210" data-q="${q.id}" style="max-width:100%;" ${verifOkA210 ? 'disabled' : ''}><option value="">Selecciona...</option>
+          ${q.opciones.map(o => `<option value="${o.id}" ${respVerifA210[q.id] === o.id ? 'selected' : ''}>${o.texto}</option>`).join('')}</select></div>`).join('')}
+        <div id="fbVerifA210"></div>
+      </div>
+      ${verifOkA210 ? '<div class="exito-a25"><i class="fa-solid fa-circle-check"></i><div><b>¡Verificación correcta!</b> Ya puedes finalizar la actividad.</div></div>' : '<button type="button" class="btn btn-primary" id="btnConfVerifA210" style="width:auto; padding:12px 28px;"><i class="fa-solid fa-check"></i> Confirmar</button>'}`;
+    colsMalasA210 = []; repintarReporteA210_();
+    document.getElementById('btnAntA210').addEventListener('click', () => irAPasoA210_(1));
+    document.querySelectorAll('.sel-verif-a210').forEach(s => s.addEventListener('change', () => { respVerifA210[s.dataset.q] = s.value; }));
+    const b = document.getElementById('btnConfVerifA210');
+    if(b) b.addEventListener('click', () => {
+      if(preg.some(q => !respVerifA210[q.id])){
+        document.getElementById('fbVerifA210').innerHTML = '<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>Responde las 3 preguntas antes de confirmar.</div></div>';
+        return;
+      }
+      const malas = preg.filter(q => respVerifA210[q.id] !== q.correcta);
+      if(!malas.length){ verifOkA210 = true; pintarVerifA210_(); refrescarStepperA210_(); return; }
+      fallosA210.verif++;
+      document.getElementById('fbVerifA210').innerHTML = `<div class="advertencia-sitio-falso" style="max-width:100%; margin:10px 0;"><i class="fa-solid fa-triangle-exclamation"></i><div>${malas.length} respuesta(s) no son correctas. Mira de nuevo tu reporte y piensa qué se ve mejor y por qué: revisa <b>${malas.map(q => '"' + q.texto + '"').join(', ')}</b>.</div></div>`;
+    });
+    document.getElementById('seccionFinalA210').classList.toggle('hidden', !verifOkA210);
+  }
+
+  // ---------- Finalizar ----------
+  document.getElementById('btnFinalizarA210').addEventListener('click', async () => {
+    clearInterval(timerIntervalA210);
+    const minutos = (Date.now() - inicioTiempoA210) / 60000;
+    const nivel = (f) => f <= 0 ? 'logrado' : (f === 1 ? 'proceso' : 'no_logrado');
+    const C = CRITERIOS_BASE_A210;
+    const crit = (i, n) => ({ nombre:C[i].nombre, descripcion:C[i].descripcion, nivel:n });
+    const criterios = [
+      crit(0, 'logrado'), crit(1, nivel(fallosA210.anchoTexto)), crit(2, nivel(fallosA210.anchoNum)), crit(3, nivel(fallosA210.anchoTotal)),
+      crit(4, nivel(fallosA210.alinTexto)), crit(5, nivel(fallosA210.alinNum)), crit(6, nivel(fallosA210.alinTitulos)), crit(7, nivel(fallosA210.verif)),
+      crit(8, minutos <= tiempoEstimadoA210 * 1.5 ? 'logrado' : (minutos <= tiempoEstimadoA210 * 2 ? 'proceso' : 'no_logrado')),
+      crit(9, 'logrado')
+    ];
+    const peso = puntajeMaxA210 / criterios.length, pn = { logrado:1, proceso:0.5, no_logrado:0 };
+    let nota = 0; criterios.forEach(c => { nota += peso * pn[c.nivel]; });
+    nota = Math.round(nota * 100) / 100;
+
+    document.getElementById('vistaEjercicioA210').classList.add('hidden');
+    document.getElementById('vistaResultadoA210').classList.remove('hidden');
+    document.getElementById('avisoYaCompletadaA210').classList.add('hidden');
+    renderRubrica('rubricaResultadoA210', criterios, puntajeMaxA210, nota);
+    ultimoResultadoA210 = { criterios, nota, puntajeMaximo: puntajeMaxA210 };
+    const prop = puntajeMaxA210 > 0 ? nota / puntajeMaxA210 : 0;
+    mostrarLogro(prop >= 0.8 ? '¡Excelente trabajo! Actividad completada' : 'Actividad completada', prop >= 0.8 ? 'fa-trophy' : 'fa-circle-check');
+    if(prop >= 0.8) dispararConfeti();
+
+    const it = (pregunta, tuRespuesta, correcta) => ({ pregunta, tuRespuesta, correcta });
+    const preg = PREGUNTAS_VERIF_A210();
+    const detalle = [
+      { titulo:'Ancho y alineación de las columnas', items: COLUMNAS_A210.map(c => it(c.nombre, `${cmTxtA210_(anchosA210[c.id])} cm · título ${ETIQ_ALIN_A210[alinTitA210[c.id]].toLowerCase()} · datos ${ETIQ_ALIN_A210[alinDatA210[c.id]].toLowerCase()}`, true)) },
+      { titulo:'Verificación de buenas prácticas', items: preg.map(q => it(q.texto, (q.opciones.find(o => o.id === respVerifA210[q.id]) || {}).texto || 'Sin responder', respVerifA210[q.id] === q.correcta)) }
+    ];
+    ultimoResultadoA210.detalle = detalle;
+    renderDesgloseColoreado('resultadoDesgloseA210', detalle);
+    try{
+      await apiPost({ action:'guardarCalificacion', usuario: currentUser.usuario, codigo:'A.2.10', ra:'RA2', ec: EC_A210, nota, puntajeMaximo: puntajeMaxA210, criterios, detalle });
+    }catch(err){ console.error('No se pudo guardar la calificación', err); }
+  });
+  document.getElementById('btnDescargarPdfA210').addEventListener('click', () => {
+    if(!ultimoResultadoA210) return;
+    generarPdfResultado('A.2.10', ultimoResultadoA210.criterios, ultimoResultadoA210.nota, ultimoResultadoA210.puntajeMaximo, EC_A210, 'RA2', ultimoResultadoA210.detalle);
+  });
+  document.getElementById('btnVolverMisActA210').addEventListener('click', () => {
+    document.getElementById('panelActividadA210').classList.add('hidden');
+    document.getElementById('panelMisActividades').classList.remove('hidden');
+    cargarMisActividades();
+  });
+
+  registrarActividadInteractiva('A.2.10', abrirActividadA210);
