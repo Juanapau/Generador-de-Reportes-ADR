@@ -1831,3 +1831,20 @@ body.light .tabla-manual-a29 th{background:#eef2fb;}
 .hoja-a29 .fila-a29 span{flex:1;}
 .hoja-a29 .fila-a29 span:last-child{text-align:right;}
 .hoja-a29 .sec-activa-a29{outline:2px dashed #e08a00;outline-offset:-3px;background:#fff8e6;}
+
+/* ===== A.2.10 — ancho y alineación de columnas ===== */
+.etiqueta-ancho-a210{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;font-size:13px;margin-bottom:6px;font-weight:700;}
+.etiqueta-ancho-a210 .excede{color:#e5484d;}
+.scroll-a210{overflow-x:auto;padding-bottom:4px;}
+.hoja-a210{position:relative;background:#fff;color:#111;border:1px solid #9fb0cc;border-radius:4px;font-size:12px;font-family:Arial,'Liberation Sans',sans-serif;}
+.margen-a210{position:absolute;top:0;bottom:0;border-left:2px dashed #e5484d;z-index:2;pointer-events:none;}
+.fila-a210{display:flex;white-space:nowrap;border-bottom:1px solid #e2e8f0;}
+.fila-tit-a210{background:#dbe7f7;border-bottom:2px solid #12294a;}
+.celda-a210{box-sizing:border-box;padding:4px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:none;}
+.celda-a210.tit-a210{font-weight:700;}
+.celda-a210.col-mala-a210{background:rgba(229,72,77,.16);}
+.grid-controles-a210{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
+.ctrl-a210 label{display:block;font-size:12.5px;font-weight:700;margin-bottom:4px;}
+.tabla-alin-a210{display:grid;gap:6px;}
+.cab-a210,.fila-alin-a210{display:grid;grid-template-columns:110px 1fr 1fr;gap:10px;align-items:center;}
+.cab-a210{font-size:12px;font-weight:800;opacity:.75;}
